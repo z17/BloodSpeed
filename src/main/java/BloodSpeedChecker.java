@@ -9,11 +9,9 @@ class BloodSpeedChecker {
     private final static int NUMBER_OF_DIGITS_IN_FILE_NAMES = 5;
     private final static String CIRCUIT = "res3_cr2.bmp";
 
-    private final double[] g1;
     private final int[][] res3gr2;
 
     BloodSpeedChecker() {
-        g1 = initG1();
         res3gr2 = BmpHelper.readBmp(CIRCUIT);
     }
 
@@ -22,16 +20,16 @@ class BloodSpeedChecker {
                           final int ndv,
                           final int min_ndv1,
                           final int N,
-                          final int dnum,
+                          final int dNum,
                           final int r,
                           final int dr,
                           final int dt) {
-        System.out.println("getV7_ac_pdf_fst started, mindv1=" + min_ndv1 + "/" + ndv);
+        System.out.println("getV7_ac_pdf_fst started, minDv1=" + min_ndv1 + "/" + ndv);
         List<int[][]> resA3r = readInputFolder(INPUT_FOLDER, N);
         double[][] g11 = gr11_(r, dr);
 
-        int[][] pd = new int[N + 1][dnum+ 1];
-        int[][] pde = new int[N+ 1][dnum+ 1];
+        int[][] pd = new int[N + 1][dNum + 1];
+        int[][] pde = new int[N + 1][dNum + 1];
 
         for (int ndv1 = min_ndv1; ndv1 <= ndv; ndv1++) {
             for (int n = 0; n <= N; n++) {
@@ -51,29 +49,35 @@ class BloodSpeedChecker {
                     resA3rn1 = resA3r.get(0);
                 }
 
-                for (int dn1 = 0; dn1 <= dnum - 1; dn1++) {
+                for (int dn1 = 0; dn1 <= dNum - 1; dn1++) {
                     double cTemp = dn1 + (dv * ndv1 / ndv);
 
                     int c = (int) Math.round(cTemp);
 
-                    if (c <= dnum - 1 && c >= 0) {
+                    if (c <= dNum - 1 && c >= 0) {
                         double sum_add = 0;
                         double z1 = 0;
                         for (int r1 = -r; r1 <= r; r1 += dr) {
                             for (int r2 = -r; r2 <= r; r2 += dr) {
-                                if (r1 * r1 + r2 * r2 <= r * r) {
-                                    int yr0 = r - r1;
-                                    int xr0 = dn1 + r2;
-                                    int yr1 = r - r1;
-                                    int xr1 = c + r2;
-                                    if (xr0 >= 0 && xr0 <= dnum - 1 && xr1 >= 0 && xr1 <= dnum - 1)
-                                        if (res3gr2[yr0][xr0] > 127 &&
-                                                res3gr2[yr1][xr1] > 127) {
-                                            int point_sh = resA3rn1[yr0][xr0] - resA3rn[yr1][xr1];
-                                            double g2 = g11[r1 + r][r2 + r];
-                                            sum_add = sum_add + g2 * point_sh * point_sh;
-                                            z1 = z1 + g2;
-                                        }
+                                if (r1 * r1 + r2 * r2 > r * r) {
+                                    continue;
+                                }
+
+                                int yr0 = r - r1;
+                                int xr0 = dn1 + r2;
+                                int yr1 = r - r1;
+                                int xr1 = c + r2;
+
+                                if (xr0 < 0 || xr0 > dNum - 1 || xr1 < 0 || xr1 > dNum - 1) {
+                                    continue;
+                                }
+
+                                if (res3gr2[yr0][xr0] > 127 &&
+                                        res3gr2[yr1][xr1] > 127) {
+                                    int point_sh = resA3rn1[yr0][xr0] - resA3rn[yr1][xr1];
+                                    double g2 = g11[r1 + r][r2 + r];
+                                    sum_add = sum_add + g2 * point_sh * point_sh;
+                                    z1 = z1 + g2;
                                 }
                             }
                         }
@@ -84,7 +88,6 @@ class BloodSpeedChecker {
                         pde[n][dn1] = 0;
                         pd[n][dn1] = 0;
                     }
-
                 }
             }
 
@@ -103,7 +106,7 @@ class BloodSpeedChecker {
             for (int r2 = -r; r2 <= r; r2 += dr) {
                 if (r1 * r1 + r2 * r2 <= r * r) {
                     int index = Math.round(((r1 * r1 + r2 * r2) * 100) / (r * r));
-                    g2[r + r1][r + r2] = g1[index];
+                    g2[r + r1][r + r2] = Main.g1[index];
                 }
             }
         }
@@ -123,13 +126,5 @@ class BloodSpeedChecker {
         final String formatted = String.format("%0" + NUMBER_OF_DIGITS_IN_FILE_NAMES + "d", n);
         final String name = dir + formatted + ".bmp";
         return BmpHelper.readBmp(name);
-    }
-
-    private double[] initG1() {
-        double[] g = new double[101];
-        for (int i = 0; i <= 100; i++) {
-            g[i] = 0.125 * Math.pow((1 + Math.cos(Math.PI * i / 100)), 0.75);
-        }
-        return g;
     }
 }

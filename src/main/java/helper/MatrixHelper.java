@@ -9,4 +9,9 @@ public final class MatrixHelper {
         }
         return matrix;
     }
+
+    public static int[][] readMatrix(String inTxt) {
+        //todo: this
+        return new int[0][];
+    }
 }
