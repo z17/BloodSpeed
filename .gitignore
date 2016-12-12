@@ -1,0 +1,9 @@
+*.class
+*.jar
+*.war
+*.ear
+
+/data
+/gradle
+/out
+/out3cr2
