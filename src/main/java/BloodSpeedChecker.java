@@ -92,7 +92,7 @@ class BloodSpeedChecker {
             }
 
             String txtName = prefix + "m" + Integer.toString(ndv) + "_" + Integer.toString(ndv + ndv1) + ".txt";
-            BmpHelper.writeBmpAsText(txtName, pd);
+            MatrixHelper.writeMatrix(txtName, pd);
             String bmpName = prefix + "me" + ndv + "_" + (ndv + ndv1) + ".bmp";
             BmpHelper.writeBmp(bmpName, pde);
             bmpName = prefix + "m" + ndv + "_" + (ndv + ndv1) + ".bmp";

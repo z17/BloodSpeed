@@ -34,22 +34,6 @@ public final class BmpHelper {
         }
     }
 
-    public static void writeBmpAsText(final String name, final int[][] matrix) {
-        List<String> lines = new ArrayList<>();
-        for (int[] m : matrix) {
-            StringBuilder stringBuilder = new StringBuilder();
-            for (int k : m) {
-                stringBuilder.append(String.format("%5d", k));
-            }
-            lines.add(stringBuilder.toString());
-        }
-        try {
-            Files.write(Paths.get(name), lines, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     public static int[][] readBmp(final String name) {
         try {
             BufferedImage read = ImageIO.read(new File(name));

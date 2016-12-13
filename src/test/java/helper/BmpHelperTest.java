@@ -1,4 +1,5 @@
-import helper.BmpHelper;
+package helper;
+
 import org.junit.Test;
 
 import java.nio.file.Files;
@@ -6,7 +7,7 @@ import java.nio.file.Paths;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 
 public class BmpHelperTest {

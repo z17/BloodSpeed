@@ -1,20 +1,40 @@
 public class Main {
-    public static final double[] g1 = initG1();
+    static final double[] g1 = initG1();
 
 
     public static void main(final String[] args) {
         BloodSpeedChecker bloodSpeedChecker = new BloodSpeedChecker();
 
+        int ndv = 10;
+        int minNdv1 = 0;
+        int N = 1000;
+        int dNum = 153;
+
         bloodSpeedChecker.getV7_ac_pdf_fst(
-                "data\\shift1",
+                "data\\shift1_",
                 20,
-                10,
-                0,
-                1000,
-                153,
+                ndv,
+                minNdv1,
+                N,
+                dNum,
                 7,
                 1,
                 6
+        );
+
+        Blur blur = new Blur();
+        blur.getV6_ac_pd_2dblurf(
+                "data\\shift1_",
+                ndv,
+                minNdv1,
+                N,
+                dNum,
+                70,
+                16,
+                10,
+                4,
+                5,
+                4
         );
     }
 

@@ -2,10 +2,26 @@ package helper;
 
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.number.IsCloseTo.closeTo;
 import static org.junit.Assert.*;
 
 public class FunctionHelperTest {
+    @Test
+    public void rowsAndCols() throws Exception {
+        int[][] test = {
+                { 1, 2, 3, 4},
+                { 5, 6, 7, 8}
+        };
+
+        int cols = FunctionHelper.cols(test);
+        int rows = FunctionHelper.rows(test);
+
+        assertThat(cols, is(4));
+        assertThat(rows, is(2));
+    }
+
+
     @Test
     public void mean() throws Exception {
         double[][] test = {
