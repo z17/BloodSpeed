@@ -5,14 +5,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 class BloodSpeedChecker {
-    private final static String INPUT_FOLDER = "out3cr2/";
-    private final static int NUMBER_OF_DIGITS_IN_FILE_NAMES = 5;
-    private final static String CIRCUIT = "res3_cr2.bmp";
-
     private final int[][] res3gr2;
+    private final String inputFolder;
+    private final String outputFolder;
+    private final int numberOfDigitsInFileNames;
 
-    BloodSpeedChecker() {
-        res3gr2 = BmpHelper.readBmp(CIRCUIT);
+    BloodSpeedChecker(final int numberOfDigitsInFileNames, final String inputFolder, final String outputFolder, final String circuit) {
+        res3gr2 = BmpHelper.readBmp(circuit);
+        this.inputFolder = inputFolder;
+        this.outputFolder = outputFolder;
+        this.numberOfDigitsInFileNames = numberOfDigitsInFileNames;
     }
 
     void getV7_ac_pdf_fst(final String prefix,
@@ -25,7 +27,7 @@ class BloodSpeedChecker {
                           final int dr,
                           final int dt) {
         System.out.println("getV7_ac_pdf_fst started, minDv1=" + min_ndv1 + "/" + ndv);
-        List<int[][]> resA3r = readInputFolder(INPUT_FOLDER, N);
+        List<int[][]> resA3r = readInputFolder(inputFolder, N);
         double[][] g11 = gr11_(r, dr);
 
         int[][] pd = new int[N + 1][dNum + 1];
@@ -91,11 +93,11 @@ class BloodSpeedChecker {
                 }
             }
 
-            String txtName = prefix + "m" + Integer.toString(ndv) + "_" + Integer.toString(ndv + ndv1) + ".txt";
+            String txtName = outputFolder + "/" + prefix + "m" + Integer.toString(ndv) + "_" + Integer.toString(ndv + ndv1) + ".txt";
             MatrixHelper.writeMatrix(txtName, pd);
-            String bmpName = prefix + "me" + ndv + "_" + (ndv + ndv1) + ".bmp";
+            String bmpName = outputFolder + "/" + prefix + "me" + ndv + "_" + (ndv + ndv1) + ".bmp";
             BmpHelper.writeBmp(bmpName, pde);
-            bmpName = prefix + "m" + ndv + "_" + (ndv + ndv1) + ".bmp";
+            bmpName = outputFolder + "/" + prefix + "m" + ndv + "_" + (ndv + ndv1) + ".bmp";
             BmpHelper.writeBmp(bmpName, MatrixHelper.multiplyMatrix(pd, 0.025));
         }
     }
@@ -114,17 +116,17 @@ class BloodSpeedChecker {
         return g2;
     }
 
-    private List<int[][]> readInputFolder(final String dir3cr, final int N) {
+    private List<int[][]> readInputFolder(final String dir, final int N) {
         List<int[][]> result = new ArrayList<>();
         for (int i = 0; i < N; i++) {
-            result.add(i, readFile(i, dir3cr));
+            result.add(i, readFile(i, dir));
         }
         return result;
     }
 
     private int[][] readFile(final int n, final String dir) {
-        final String formatted = String.format("%0" + NUMBER_OF_DIGITS_IN_FILE_NAMES + "d", n);
-        final String name = dir + formatted + ".bmp";
+        final String formatted = String.format("%0" + numberOfDigitsInFileNames + "d", n);
+        final String name = dir + "/" + formatted + ".bmp";
         return BmpHelper.readBmp(name);
     }
 }

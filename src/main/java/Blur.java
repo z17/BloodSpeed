@@ -4,6 +4,14 @@ import helper.MatrixHelper;
 import javafx.util.Pair;
 
 class Blur {
+    private final String inputFolder;
+    private final String outputFolder;
+
+    Blur(final String inputFolder, final String outputFolder) {
+        this.inputFolder = inputFolder;
+        this.outputFolder = outputFolder;
+    }
+
     void getV6_ac_pd_2dblurf(
             final String prefix,
             final int ndv,
@@ -39,11 +47,11 @@ class Blur {
         System.out.println("starting getV6_ac_pd_2blurf from mindv = " + min_ndv + "/" + ndv);
 
         for (int ndv1 = min_ndv; ndv1 <= ndv; ndv1++) {
-            String inTxt = prefix + "m" + ndv + "_" + (ndv + ndv1) + ".txt";
+            String inTxt = inputFolder + "/" + prefix + "m" + ndv + "_" + (ndv + ndv1) + ".txt";
             System.out.println("reading " + inTxt);
             int[][] img = MatrixHelper.readMatrix(inTxt);
 
-            String inBmp = prefix + "me" + ndv + "_" + (ndv + ndv1) + ".bmp";
+            String inBmp = inputFolder + "/" + prefix + "me" + ndv + "_" + (ndv + ndv1) + ".bmp";
             System.out.println("reading " + inBmp);
             int[][] imge = BmpHelper.readBmp(inBmp);
 
@@ -51,9 +59,9 @@ class Blur {
             imgs = blr2(inTxt, imgs.getKey(), imge, s2dn1, s2dn2, 3, 2, gv2);
             imgs = blr2(inTxt, imgs.getKey(), imge, s2dn1, s2dn2, 1, 1, gv1);
 
-            String outBmp1 = prefix + "sm" + ndv + "_" + (ndv + ndv1) + ".bmp";
+            String outBmp1 = outputFolder + "/" + prefix + "sm" + ndv + "_" + (ndv + ndv1) + ".bmp";
             BmpHelper.writeBmp(outBmp1, MatrixHelper.multiplyMatrix(imgs.getKey(), 0.025));
-            String outBmp2 = prefix + "sme" + ndv + "_" + (ndv + ndv1) + ".bmp";
+            String outBmp2 = outputFolder + "/" + prefix + "sme" + ndv + "_" + (ndv + ndv1) + ".bmp";
             BmpHelper.writeBmp(outBmp2, imgs.getValue());
         }
     }
@@ -63,8 +71,6 @@ class Blur {
 
 
         double mgv = FunctionHelper.mean(gv);
-        int[][] imgs = img;
-        int[][] imgse = img;
         int N = FunctionHelper.rows(img);
         int dnum = FunctionHelper.cols(img);
         int sr = 0;
@@ -115,16 +121,16 @@ class Blur {
                     }
                 }
 
-                imgse[n1][n2] = 200;
+                img[n1][n2] = 200;
                 if (z > 0.125 * mgv) {
-                    imgs[n1][n2] = (int) (sum / z);
+                    img[n1][n2] = (int) (sum / z);
                 } else {
-                    imgs[n1][n2] = 0;
-                    imgse[n1][n2] = 0;
+                    img[n1][n2] = 0;
+                    img[n1][n2] = 0;
                 }
             }
         }
-        return new Pair<>(imgs, imgse);
+        return new Pair<>(img, img);
     }
 
     private double ves2d(int y1, int x1, int ym, int xm) {

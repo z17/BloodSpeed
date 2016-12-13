@@ -3,7 +3,7 @@ public class Main {
 
 
     public static void main(final String[] args) {
-        BloodSpeedChecker bloodSpeedChecker = new BloodSpeedChecker();
+        BloodSpeedChecker bloodSpeedChecker = new BloodSpeedChecker(5, "data/input", "data/step1_output", "data/res3_cr2.bmp");
 
         int ndv = 10;
         int minNdv1 = 0;
@@ -11,7 +11,7 @@ public class Main {
         int dNum = 153;
 
         bloodSpeedChecker.getV7_ac_pdf_fst(
-                "data\\shift1_",
+                "shift1_",
                 20,
                 ndv,
                 minNdv1,
@@ -22,9 +22,9 @@ public class Main {
                 6
         );
 
-        Blur blur = new Blur();
+        Blur blur = new Blur("data/step1_output", "data/blur_output");
         blur.getV6_ac_pd_2dblurf(
-                "data\\shift1_",
+                "shift1_",
                 ndv,
                 minNdv1,
                 N,
