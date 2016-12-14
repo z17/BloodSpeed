@@ -4,13 +4,13 @@ import helper.MatrixHelper;
 import java.util.ArrayList;
 import java.util.List;
 
-class BloodSpeedChecker {
+class AcPdfFst {
     private final int[][] res3gr2;
     private final String inputFolder;
     private final String outputFolder;
     private final int numberOfDigitsInFileNames;
 
-    BloodSpeedChecker(final int numberOfDigitsInFileNames, final String inputFolder, final String outputFolder, final String circuit) {
+    AcPdfFst(final int numberOfDigitsInFileNames, final String inputFolder, final String outputFolder, final String circuit) {
         res3gr2 = BmpHelper.readBmp(circuit);
         this.inputFolder = inputFolder;
         this.outputFolder = outputFolder;

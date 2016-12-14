@@ -30,10 +30,11 @@ public final class BmpHelper {
         try {
             ImageIO.write(img, "BMP", new File(name));
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
     public static int[][] readBmp(final String name) {
         try {
             BufferedImage read = ImageIO.read(new File(name));
@@ -48,8 +49,7 @@ public final class BmpHelper {
             }
             return result;
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        return null;
     }
 }

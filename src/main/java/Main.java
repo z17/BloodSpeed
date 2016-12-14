@@ -3,14 +3,14 @@ public class Main {
 
 
     public static void main(final String[] args) {
-        BloodSpeedChecker bloodSpeedChecker = new BloodSpeedChecker(5, "data/input", "data/step1_output", "data/res3_cr2.bmp");
+        AcPdfFst acPdfFst = new AcPdfFst(5, "data/input", "data/step1_output", "data/res3_cr2.bmp");
 
         int ndv = 10;
         int minNdv1 = 0;
         int N = 1000;
         int dNum = 153;
 
-        bloodSpeedChecker.getV7_ac_pdf_fst(
+        acPdfFst.getV7_ac_pdf_fst(
                 "shift1_",
                 20,
                 ndv,
@@ -36,6 +36,9 @@ public class Main {
                 5,
                 4
         );
+
+        Speed speed = new Speed("data/blur_output", "data/result");
+        speed.check(ndv, minNdv1);
     }
 
     private static double[] initG1() {

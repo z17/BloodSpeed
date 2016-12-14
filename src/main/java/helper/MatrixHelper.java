@@ -30,7 +30,7 @@ public final class MatrixHelper {
                 int column = 0;
                 final String[] split = line.trim().split("\\s+");
                 if (split.length != columns) {
-                    throw new RuntimeException("Not a matrix");
+                    throw new IllegalArgumentException("Not a matrix");
                 }
 
                 for (String oneNumber : split) {
@@ -60,7 +60,7 @@ public final class MatrixHelper {
         try {
             Files.write(Paths.get(name), lines, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 }

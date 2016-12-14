@@ -20,7 +20,7 @@ public final class FunctionHelper {
     public static int cols(int[][] matrix) {
         long count = Arrays.stream(matrix).map(array -> array.length).distinct().count();
         if (count > 1) {
-            throw new IllegalArgumentException("Матрица невалидна");
+            throw new IllegalArgumentException("Not a matrix");
         }
         return matrix[0].length;
     }
