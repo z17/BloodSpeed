@@ -3,6 +3,9 @@ import helper.FunctionHelper;
 import helper.MatrixHelper;
 import javafx.util.Pair;
 
+import java.util.ArrayList;
+import java.util.List;
+
 class Blur {
     private final String inputFolder;
     private final String outputFolder;
@@ -12,7 +15,7 @@ class Blur {
         this.outputFolder = outputFolder;
     }
 
-    void getV6_ac_pd_2dblurf(
+    List<int[][]> getV6_ac_pd_2dblurf(
             final String prefix,
             final int ndv,
             final int min_ndv,
@@ -46,6 +49,8 @@ class Blur {
 
         System.out.println("starting getV6_ac_pd_2blurf from mindv = " + min_ndv + "/" + ndv);
 
+        List<int[][]> result = new ArrayList<>();
+
         for (int ndv1 = min_ndv; ndv1 <= ndv; ndv1++) {
             String inTxt = inputFolder + "/" + prefix + "m" + ndv + "_" + (ndv + ndv1) + ".txt";
             System.out.println("reading " + inTxt);
@@ -59,11 +64,14 @@ class Blur {
             imgs = blr2(inTxt, imgs.getKey(), imge, s2dn1, s2dn2, 3, 2, gv2);
             imgs = blr2(inTxt, imgs.getKey(), imge, s2dn1, s2dn2, 1, 1, gv1);
 
-            String outBmp1 = outputFolder + "/" + prefix + "sm" + ndv + "_" + (ndv + ndv1) + ".bmp";
-            BmpHelper.writeBmp(outBmp1, MatrixHelper.multiplyMatrix(imgs.getKey(), 0.025));
-            String outBmp2 = outputFolder + "/" + prefix + "sme" + ndv + "_" + (ndv + ndv1) + ".bmp";
-            BmpHelper.writeBmp(outBmp2, imgs.getValue());
+            String outBmpName1 = outputFolder + "/" + prefix + "sm" + ndv + "_" + (ndv + ndv1) + ".bmp";
+            int[][] outBmp1 = MatrixHelper.multiplyMatrix(imgs.getKey(), 0.025);
+            result.add(outBmp1);
+            BmpHelper.writeBmp(outBmpName1, outBmp1);
+            String outBmpName2 = outputFolder + "/" + prefix + "sme" + ndv + "_" + (ndv + ndv1) + ".bmp";
+            BmpHelper.writeBmp(outBmpName2, imgs.getValue());
         }
+        return result;
     }
 
     private Pair<int[][], int[][]> blr2(String str, int[][] img, int[][] imge,

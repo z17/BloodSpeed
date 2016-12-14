@@ -1,3 +1,5 @@
+import java.util.List;
+
 public class Main {
     static final double[] g1 = initG1();
 
@@ -23,7 +25,7 @@ public class Main {
         );
 
         Blur blur = new Blur("data/step1_output", "data/blur_output");
-        blur.getV6_ac_pd_2dblurf(
+        List<int[][]> blurImages = blur.getV6_ac_pd_2dblurf(
                 "shift1_",
                 ndv,
                 minNdv1,
@@ -37,8 +39,10 @@ public class Main {
                 4
         );
 
-        Speed speed = new Speed("data/blur_output", "data/result");
-        speed.check(ndv, minNdv1);
+        // Чтобы запустить с чтением с диска
+        // Speed speed = new Speed("data/blur_output", "data/result", ndv, minNdv1);
+        Speed speed = new Speed("data/result", blurImages);
+        speed.check();
     }
 
     private static double[] initG1() {
