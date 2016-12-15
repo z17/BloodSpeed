@@ -1,37 +1,39 @@
-import helper.BmpHelper;
-import helper.FunctionHelper;
-import helper.MatrixHelper;
+package blood_speed.step;
+
+import blood_speed.helper.BmpHelper;
+import blood_speed.helper.FunctionHelper;
+import blood_speed.helper.MatrixHelper;
 
 import java.util.ArrayList;
 import java.util.List;
 
-class Speed {
+public class Speed {
 
     private final String outputName;
     private final Images images;
 
-    Speed(final String inputDir, final String outputFolder, final int ndv, final int minNdv) {
+    public Speed(final String inputDir, final String outputFolder, final int ndv, final int minNdv) {
         this.outputName = outputFolder;
         images = loadBlurImages(inputDir, "shift1_sm", ndv, minNdv);
     }
 
-    Speed(final String outputFolder, final List<int[][]> images) {
+    public Speed(final String outputFolder, final List<int[][]> images) {
         this.outputName = outputFolder;
         this.images = new Images(images);
     }
 
-    void check() {
-        System.out.println("Started");
+    public void check() {
+        System.out.println("Started analyzing blur");
 
         int[][] resultMatrix = new int[images.getRows()][images.getCols()];
 
-        System.out.println("Counting minimum values");
         for (int currentRow = 0; currentRow < images.getRows(); currentRow++) {
             for (int currentCol = 0; currentCol < images.getCols(); currentCol++) {
                 resultMatrix[currentRow][currentCol] = getMinimum(currentRow, currentCol, images.getImagesList());
             }
         }
 
+        MatrixHelper.multiplyMatrix(resultMatrix, 10);
         System.out.println("Writing result");
         BmpHelper.writeBmp(outputName + "/result.bmp", resultMatrix);
         MatrixHelper.writeMatrix(outputName + "/result.txt", resultMatrix);

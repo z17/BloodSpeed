@@ -1,39 +1,45 @@
-import helper.BmpHelper;
-import helper.MatrixHelper;
+package blood_speed.step;
+
+import blood_speed.Main;
+import blood_speed.helper.BmpHelper;
+import blood_speed.helper.MatrixHelper;
+import javafx.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
 
-class AcPdfFst {
+public class AcPdfFst {
     private final int[][] res3gr2;
     private final String inputFolder;
     private final String outputFolder;
     private final int numberOfDigitsInFileNames;
 
-    AcPdfFst(final int numberOfDigitsInFileNames, final String inputFolder, final String outputFolder, final String circuit) {
+    public AcPdfFst(final int numberOfDigitsInFileNames, final String inputFolder, final String outputFolder, final String circuit) {
         res3gr2 = BmpHelper.readBmp(circuit);
         this.inputFolder = inputFolder;
         this.outputFolder = outputFolder;
         this.numberOfDigitsInFileNames = numberOfDigitsInFileNames;
     }
 
-    void getV7_ac_pdf_fst(final String prefix,
+    public Step1Result getV7_ac_pdf_fst(final String prefix,
                           final int dv,
                           final int ndv,
-                          final int min_ndv1,
+                          final int minNdv,
                           final int N,
                           final int dNum,
                           final int r,
                           final int dr,
                           final int dt) {
-        System.out.println("getV7_ac_pdf_fst started, minDv1=" + min_ndv1 + "/" + ndv);
+        System.out.println("getV7_ac_pdf_fst started, minDv1=" + minNdv + "/" + ndv);
         List<int[][]> resA3r = readInputFolder(inputFolder, N);
         double[][] g11 = gr11_(r, dr);
 
-        int[][] pd = new int[N + 1][dNum + 1];
-        int[][] pde = new int[N + 1][dNum + 1];
+        Step1Result result = new Step1Result();
+        for (int ndv1 = minNdv; ndv1 <= ndv; ndv1++) {
+            int[][] pd = new int[N + 1][dNum + 1];
+            int[][] pde = new int[N + 1][dNum + 1];
 
-        for (int ndv1 = min_ndv1; ndv1 <= ndv; ndv1++) {
+            System.out.println("Processing ndv1 = " + ndv1);
             for (int n = 0; n <= N; n++) {
                 int dt2 = dt / 2;
                 int dt2a = dt % 2;
@@ -93,13 +99,17 @@ class AcPdfFst {
                 }
             }
 
-            String txtName = outputFolder + "/" + prefix + "m" + Integer.toString(ndv) + "_" + Integer.toString(ndv + ndv1) + ".txt";
+            String txtName = outputFolder + "/" + prefix + "m" + ndv + "_" + (ndv + ndv1) + ".txt";
             MatrixHelper.writeMatrix(txtName, pd);
-            String bmpName = outputFolder + "/" + prefix + "me" + ndv + "_" + (ndv + ndv1) + ".bmp";
-            BmpHelper.writeBmp(bmpName, pde);
-            bmpName = outputFolder + "/" + prefix + "m" + ndv + "_" + (ndv + ndv1) + ".bmp";
-            BmpHelper.writeBmp(bmpName, MatrixHelper.multiplyMatrix(pd, 0.025));
+            String bmpName1 = outputFolder + "/" + prefix + "me" + ndv + "_" + (ndv + ndv1) + ".bmp";
+            BmpHelper.writeBmp(bmpName1, pde);
+            result.add(pd, pde);
+
+//            String bmpName2 = outputFolder + "/" + prefix + "m" + ndv + "_" + (ndv + ndv1) + ".bmp";
+//            BmpHelper.writeBmp(bmpName2, MatrixHelper.multiplyMatrix(pd, 0.025));
         }
+
+        return result;
     }
 
     private double[][] gr11_(final int r, final int dr) {
@@ -108,7 +118,7 @@ class AcPdfFst {
             for (int r2 = -r; r2 <= r; r2 += dr) {
                 if (r1 * r1 + r2 * r2 <= r * r) {
                     int index = Math.round(((r1 * r1 + r2 * r2) * 100) / (r * r));
-                    g2[r + r1][r + r2] = Main.g1[index];
+                    g2[r + r1][r + r2] = Main.G1[index];
                 }
             }
         }
@@ -128,5 +138,21 @@ class AcPdfFst {
         final String formatted = String.format("%0" + numberOfDigitsInFileNames + "d", n);
         final String name = dir + "/" + formatted + ".bmp";
         return BmpHelper.readBmp(name);
+    }
+
+    public static class Step1Result {
+        private List<Pair<int[][], int[][]>> data;
+
+        Step1Result() {
+            data = new ArrayList<>();
+        }
+
+        void add(int[][] pd, int[][] pde) {
+            data.add(new Pair<>(pd, pde));
+        }
+
+        List<Pair<int[][], int[][]>> getData() {
+            return data;
+        }
     }
 }

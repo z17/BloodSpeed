@@ -1,24 +1,38 @@
-import helper.BmpHelper;
-import helper.FunctionHelper;
-import helper.MatrixHelper;
+package blood_speed.step;
+
+import blood_speed.Main;
+import blood_speed.helper.BmpHelper;
+import blood_speed.helper.FunctionHelper;
+import blood_speed.helper.MatrixHelper;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
 
-class Blur {
-    private final String inputFolder;
+public class Blur {
     private final String outputFolder;
+    private final AcPdfFst.Step1Result inputData;
+    private final String prefix;
+    private final int ndv;
+    private final int minNdv;
 
-    Blur(final String inputFolder, final String outputFolder) {
-        this.inputFolder = inputFolder;
+    public Blur(final String inputFolder, final String outputFolder, final String prefix, final int ndv, final int minNdv) {
         this.outputFolder = outputFolder;
+        this.prefix = prefix;
+        this.ndv = ndv;
+        this.minNdv = minNdv;
+        this.inputData = readData(prefix, inputFolder, minNdv, ndv);
     }
 
-    List<int[][]> getV6_ac_pd_2dblurf(
-            final String prefix,
-            final int ndv,
-            final int min_ndv,
+    public Blur(final AcPdfFst.Step1Result inputData, final String outputFolder, final String prefix, final int ndv, final int minNdv) {
+        this.outputFolder = outputFolder;
+        this.inputData = inputData;
+        this.prefix = prefix;
+        this.ndv = ndv;
+        this.minNdv = minNdv;
+    }
+
+    public List<int[][]> getV6_ac_pd_2dblurf(
             final int N,
             final int dNum,
             final int s1dn1,
@@ -47,22 +61,19 @@ class Blur {
         int[][] pd = new int[N][dNum];
         pd[N - 1][dNum - 1] = 0;
 
-        System.out.println("starting getV6_ac_pd_2blurf from mindv = " + min_ndv + "/" + ndv);
+        System.out.println("starting getV6_ac_pd_2blurf from mindv = " + minNdv + "/" + ndv);
 
         List<int[][]> result = new ArrayList<>();
 
-        for (int ndv1 = min_ndv; ndv1 <= ndv; ndv1++) {
-            String inTxt = inputFolder + "/" + prefix + "m" + ndv + "_" + (ndv + ndv1) + ".txt";
-            System.out.println("reading " + inTxt);
-            int[][] img = MatrixHelper.readMatrix(inTxt);
+        int ndv1 = minNdv;
+        for (Pair<int[][], int[][]> one : inputData.getData()) {
+            System.out.println("bluring file " + ndv + "_" + (ndv + ndv1));
+            int[][] img = one.getKey();
+            int[][] imge = one.getValue();
 
-            String inBmp = inputFolder + "/" + prefix + "me" + ndv + "_" + (ndv + ndv1) + ".bmp";
-            System.out.println("reading " + inBmp);
-            int[][] imge = BmpHelper.readBmp(inBmp);
-
-            Pair<int[][], int[][]> imgs = blr2(inTxt, img, imge, s1dn1, s1dn2, s1dn1st, s1dn2st, gv1);
-            imgs = blr2(inTxt, imgs.getKey(), imge, s2dn1, s2dn2, 3, 2, gv2);
-            imgs = blr2(inTxt, imgs.getKey(), imge, s2dn1, s2dn2, 1, 1, gv1);
+            Pair<int[][], int[][]> imgs = blr2(img, imge, s1dn1, s1dn2, s1dn1st, s1dn2st, gv1);
+            imgs = blr2(imgs.getKey(), imge, s2dn1, s2dn2, 3, 2, gv2);
+            imgs = blr2(imgs.getKey(), imge, s2dn1, s2dn2, 1, 1, gv1);
 
             String outBmpName1 = outputFolder + "/" + prefix + "sm" + ndv + "_" + (ndv + ndv1) + ".bmp";
             int[][] outBmp1 = MatrixHelper.multiplyMatrix(imgs.getKey(), 0.025);
@@ -70,11 +81,13 @@ class Blur {
             BmpHelper.writeBmp(outBmpName1, outBmp1);
             String outBmpName2 = outputFolder + "/" + prefix + "sme" + ndv + "_" + (ndv + ndv1) + ".bmp";
             BmpHelper.writeBmp(outBmpName2, imgs.getValue());
+
+            ndv1++;
         }
         return result;
     }
 
-    private Pair<int[][], int[][]> blr2(String str, int[][] img, int[][] imge,
+    private Pair<int[][], int[][]> blr2(int[][] img, int[][] imge,
                                         int dn1, int dn2, int st1, int st2, double[][] gv) {
 
 
@@ -98,9 +111,6 @@ class Blur {
             for (int n2 = 0; n2 < dnum; n2++) {
                 double sum = 0;
                 double z = 0;
-                if (n1 % 100 == 0 && n2 == 0) {
-                    System.out.println("bluring file " + str);
-                }
 
                 int na_min = Math.max(0, n1 - dn1);
                 int na_max = Math.min(N - 1, n1 + dn1);
@@ -146,8 +156,26 @@ class Blur {
 
         double g2 = 0;
         if (sqr <= ym * ym)
-            g2 = Main.g1[(int) Math.round(sqr * 100 / ym / ym)];
+            g2 = Main.G1[(int) Math.round(sqr * 100 / ym / ym)];
 
         return g2;
+    }
+
+    private AcPdfFst.Step1Result readData(final String prefix, final String inputFolder, final int minNdv, final int ndv) {
+        AcPdfFst.Step1Result data = new AcPdfFst.Step1Result();
+
+        System.out.println("Reading data for blur");
+
+        for (int i = minNdv; i <= ndv; i++) {
+            String inTxt = inputFolder + "/" + prefix + "m" + ndv + "_" + (ndv + i) + ".txt";
+            int[][] pd = MatrixHelper.readMatrix(inTxt);
+
+            String inBmp = inputFolder + "/" + prefix + "me" + ndv + "_" + (ndv + i) + ".bmp";
+            int[][] pde = BmpHelper.readBmp(inBmp);
+
+            data.add(pd, pde);
+        }
+
+        return data;
     }
 }

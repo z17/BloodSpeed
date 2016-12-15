@@ -1,4 +1,4 @@
-package helper;
+package blood_speed.helper;
 
 
 import java.util.Arrays;
