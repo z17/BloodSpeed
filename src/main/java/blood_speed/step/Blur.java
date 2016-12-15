@@ -17,6 +17,7 @@ public class Blur {
     private final int minNdv;
 
     public Blur(final String inputFolder, final String outputFolder, final String prefix, final int ndv, final int minNdv) {
+        FunctionHelper.checkIOFolders(inputFolder, outputFolder);
         this.outputFolder = outputFolder;
         this.prefix = prefix;
         this.ndv = ndv;
@@ -25,6 +26,7 @@ public class Blur {
     }
 
     public Blur(final AcPdfFst.Step1Result inputData, final String outputFolder, final String prefix, final int ndv, final int minNdv) {
+        FunctionHelper.checkIOFolders(null, outputFolder);
         this.outputFolder = outputFolder;
         this.inputData = inputData;
         this.prefix = prefix;

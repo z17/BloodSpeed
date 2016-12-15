@@ -12,17 +12,19 @@ public class Speed {
     private final String outputName;
     private final Images images;
 
-    public Speed(final String inputDir, final String outputFolder, final int ndv, final int minNdv) {
+    public Speed(final String inputFolder, final String outputFolder, final int ndv, final int minNdv, final String prefix) {
+        FunctionHelper.checkIOFolders(inputFolder, outputFolder);
         this.outputName = outputFolder;
-        images = loadBlurImages(inputDir, "shift1_sm", ndv, minNdv);
+        images = loadBlurImages(inputFolder, prefix + "sm", ndv, minNdv);
     }
 
     public Speed(final String outputFolder, final List<int[][]> images) {
+        FunctionHelper.checkIOFolders(null, outputFolder);
         this.outputName = outputFolder;
         this.images = new Images(images);
     }
 
-    public void check() {
+    public void check(final int resultCoefficient) {
         System.out.println("Started analyzing blur");
 
         int[][] resultMatrix = new int[images.getRows()][images.getCols()];
@@ -33,7 +35,7 @@ public class Speed {
             }
         }
 
-        MatrixHelper.multiplyMatrix(resultMatrix, 10);
+        MatrixHelper.multiplyMatrix(resultMatrix, resultCoefficient);
         System.out.println("Writing result");
         BmpHelper.writeBmp(outputName + "/result.bmp", resultMatrix);
         MatrixHelper.writeMatrix(outputName + "/result.txt", resultMatrix);

@@ -2,9 +2,13 @@ package blood_speed.step;
 
 import blood_speed.Main;
 import blood_speed.helper.BmpHelper;
+import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MatrixHelper;
 import javafx.util.Pair;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +19,7 @@ public class AcPdfFst {
     private final int numberOfDigitsInFileNames;
 
     public AcPdfFst(final int numberOfDigitsInFileNames, final String inputFolder, final String outputFolder, final String circuit) {
+        FunctionHelper.checkIOFolders(inputFolder, outputFolder);
         res3gr2 = BmpHelper.readBmp(circuit);
         this.inputFolder = inputFolder;
         this.outputFolder = outputFolder;

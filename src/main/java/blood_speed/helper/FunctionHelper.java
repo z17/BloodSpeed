@@ -1,6 +1,9 @@
 package blood_speed.helper;
 
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.stream.DoubleStream;
 
@@ -27,5 +30,16 @@ public final class FunctionHelper {
 
     public static int rows(int[][] matrix) {
         return matrix.length;
+    }
+
+    public static void checkIOFolders(final String input, final String output) {
+        if (input != null && !Files.exists(Paths.get(input))) {
+            throw new RuntimeException("Input folder not found");
+        }
+        try {
+            Files.createDirectories(Paths.get(output));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
