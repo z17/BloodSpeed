@@ -16,12 +16,12 @@ public class Main {
         final Properties properties = getSettings();
         int ndv =  Integer.valueOf(properties.getProperty("ndv"));
         int minNdv1 =  Integer.valueOf(properties.getProperty("minNdv1"));
-        int N =  Integer.valueOf(properties.getProperty("N"));
-        int dNum =  Integer.valueOf(properties.getProperty("dNum"));
+        int N =  Integer.valueOf(properties.getProperty("N"));              // количество кадров
+        int dNum =  Integer.valueOf(properties.getProperty("dNum"));        // ширина каждого кадра
         int dv =  Integer.valueOf(properties.getProperty("dv"));
         int r =  Integer.valueOf(properties.getProperty("r"));
         int dr =  Integer.valueOf(properties.getProperty("dr"));
-        int dt =  Integer.valueOf(properties.getProperty("dt"));
+        int dt =  Integer.valueOf(properties.getProperty("dt"));            // скорее всего это step сравнения (сравниваем n кадра и n + dt)
         String prefix = properties.getProperty("prefix");
         int s1dn1 =  Integer.valueOf(properties.getProperty("s1dn1"));
         int s1dn2 =  Integer.valueOf(properties.getProperty("s1dn2"));
@@ -52,12 +52,13 @@ public class Main {
                 dt
         );
 
+//        step1.buildImage(step1Result, 283, 29);
+
+//        System.exit(1);
         // чтобы запустить с чтеним с диска
          //Blur blur = new Blur(step1FolderOutput, step2FolderOutput, prefix, ndv, minNdv1);
         Blur step2 = new Blur(step1Result, step2FolderOutput, prefix, ndv, minNdv1);
         List<int[][]> blurImages = step2.getV6_ac_pd_2dblurf(
-                N,
-                dNum,
                 s1dn1,
                 s1dn2,
                 s1dn1st,

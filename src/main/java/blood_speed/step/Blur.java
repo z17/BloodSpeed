@@ -35,8 +35,6 @@ public class Blur {
     }
 
     public List<int[][]> getV6_ac_pd_2dblurf(
-            final int N,
-            final int dNum,
             final int s1dn1,
             final int s1dn2,
             final int s1dn1st,
@@ -59,9 +57,6 @@ public class Blur {
                 gv2[dn11][dn22] = ves2d(dn11, dn22, s2dn1, s2dn2);
             }
         }
-
-        int[][] pd = new int[N][dNum];
-        pd[N - 1][dNum - 1] = 0;
 
         System.out.println("starting getV6_ac_pd_2blurf from mindv = " + minNdv + "/" + ndv);
 

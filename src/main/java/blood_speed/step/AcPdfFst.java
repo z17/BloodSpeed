@@ -36,32 +36,38 @@ public class AcPdfFst {
                           final int dr,
                           final int dt) {
         System.out.println("getV7_ac_pdf_fst started, minDv1=" + minNdv + "/" + ndv);
-        List<int[][]> resA3r = readInputFolder(inputFolder, N);
+        List<int[][]> inputFiles = readInputFolder(inputFolder, N);
         double[][] g11 = gr11_(r, dr);
 
         Step1Result result = new Step1Result();
+
+        // цикл по всем предполагаемым скоростям
         for (int ndv1 = minNdv; ndv1 <= ndv; ndv1++) {
             int[][] pd = new int[N + 1][dNum + 1];
             int[][] pde = new int[N + 1][dNum + 1];
 
             System.out.println("Processing ndv1 = " + ndv1);
+
+            // цикл по всем кадрам
             for (int n = 0; n <= N; n++) {
                 int dt2 = dt / 2;
                 int dt2a = dt % 2;
                 int[][] resA3rn;
                 int[][] resA3rn1;
 
+                // выбор исходных картинок, которые сравниваем
                 if (n < N - dt2 && n > dt2 + dt2a - 1) {
-                    resA3rn = resA3r.get(n + dt2);
-                    resA3rn1 = resA3r.get(n - dt2 - dt2a);
+                    resA3rn = inputFiles.get(n + dt2);
+                    resA3rn1 = inputFiles.get(n - dt2 - dt2a);
                 } else if (n >= N - dt2) {
-                    resA3rn = resA3r.get(N - 1);
-                    resA3rn1 = resA3r.get(N - 1 - dt);
+                    resA3rn = inputFiles.get(N - 1);
+                    resA3rn1 = inputFiles.get(N - 1 - dt);
                 } else {
-                    resA3rn = resA3r.get(dt);
-                    resA3rn1 = resA3r.get(0);
+                    resA3rn = inputFiles.get(dt);
+                    resA3rn1 = inputFiles.get(0);
                 }
 
+                // цикл по ширине кадра
                 for (int dn1 = 0; dn1 <= dNum - 1; dn1++) {
                     double cTemp = dn1 + (dv * ndv1 / ndv);
 
@@ -85,6 +91,7 @@ public class AcPdfFst {
                                     continue;
                                 }
 
+                                // если попадаем в контур
                                 if (res3gr2[yr0][xr0] > 127 &&
                                         res3gr2[yr1][xr1] > 127) {
                                     int point_sh = resA3rn1[yr0][xr0] - resA3rn[yr1][xr1];
@@ -143,6 +150,21 @@ public class AcPdfFst {
         final String formatted = String.format("%0" + numberOfDigitsInFileNames + "d", n);
         final String name = dir + "/" + formatted + ".bmp";
         return BmpHelper.readBmp(name);
+    }
+
+    public void buildImage(final Step1Result step1Result, final int x, final int y) {
+        List<Integer> values = new ArrayList<>();
+
+        for (Pair<int[][], int[][]> data : step1Result.getData()) {
+            values.add(data.getKey()[x][y]);
+        }
+
+        System.out.println();
+        for (Integer a : values) {
+            System.out.print(a);
+            System.out.print(" ");
+        }
+        System.out.println();
     }
 
     public static class Step1Result {
