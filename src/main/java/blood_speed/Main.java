@@ -11,6 +11,7 @@ import java.util.Properties;
 
 public class Main {
     public static final double[] G1 = initG1();
+    private final static int DIGITS_IN_FILES_NAME = 5;
 
     public static void main(final String[] args) {
         final Properties properties = getSettings();
@@ -19,10 +20,12 @@ public class Main {
         int N =  Integer.valueOf(properties.getProperty("N"));              // количество кадров
         int dNum =  Integer.valueOf(properties.getProperty("dNum"));        // ширина каждого кадра
         int dv =  Integer.valueOf(properties.getProperty("dv"));
-        int r =  Integer.valueOf(properties.getProperty("r"));
+        int r =  Integer.valueOf(properties.getProperty("r"));             // радиус области
         int dr =  Integer.valueOf(properties.getProperty("dr"));
         int dt =  Integer.valueOf(properties.getProperty("dt"));            // скорее всего это step сравнения (сравниваем n кадра и n + dt)
-        String prefix = properties.getProperty("prefix");
+        String prefix = properties.getProperty("prefix");                   // префикс имени входных файлов
+
+        // радиусы и прочее для блюра
         int s1dn1 =  Integer.valueOf(properties.getProperty("s1dn1"));
         int s1dn2 =  Integer.valueOf(properties.getProperty("s1dn2"));
         int s1dn1st =  Integer.valueOf(properties.getProperty("s1dn1st"));
@@ -32,13 +35,14 @@ public class Main {
 
         int resultCoefficient =  Integer.valueOf(properties.getProperty("result_coefficient"));
 
+        // папки
         String folderInput = properties.getProperty("input_folder");
         String circuitImage = properties.getProperty("circuit_image");
         String step1FolderOutput = properties.getProperty("correlation_folder");
         String step2FolderOutput = properties.getProperty("blur_folder");
         String step3FolderOutput = properties.getProperty("result_folder");
 
-        AcPdfFst step1 = new AcPdfFst(5, folderInput, step1FolderOutput, circuitImage);
+        AcPdfFst step1 = new AcPdfFst(DIGITS_IN_FILES_NAME, folderInput, step1FolderOutput, circuitImage);
 
         AcPdfFst.Step1Result step1Result = step1.getV7_ac_pdf_fst(
                 prefix,
