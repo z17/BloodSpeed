@@ -42,7 +42,7 @@ public class AcPdfFst {
         Step1Result result = new Step1Result();
 
         // цикл по всем предполагаемым скоростям
-        for (int ndv1 = minNdv; ndv1 <= ndv; ndv1++) {
+        for (int ndv1 = minNdv; ndv1 < ndv; ndv1++) {
             int[][] pd = new int[N + 1][dNum + 1];
             int[][] pde = new int[N + 1][dNum + 1];
 
@@ -119,8 +119,8 @@ public class AcPdfFst {
             BmpHelper.writeBmp(bmpName1, pde);
             result.add(pd, pde);
 
-//            String bmpName2 = outputFolder + "/" + prefix + "m" + ndv + "_" + (ndv + ndv1) + ".bmp";
-//            BmpHelper.writeBmp(bmpName2, MatrixHelper.multiplyMatrix(pd, 0.025));
+            String bmpName2 = outputFolder + "/" + prefix + "m" + ndv + "_" + (ndv + ndv1) + ".bmp";
+            BmpHelper.writeBmp(bmpName2, MatrixHelper.multiplyMatrix(pd, 0.025));
         }
 
         return result;

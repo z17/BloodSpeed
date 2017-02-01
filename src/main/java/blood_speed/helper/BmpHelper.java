@@ -28,6 +28,27 @@ public final class BmpHelper {
         }
     }
 
+    public static void writeBmp(final String name, final double[][] matrix) {
+
+        double[] preparedArray = new double[matrix.length * matrix[0].length];
+
+        int index = 0;
+        for (double[] aMatrix : matrix) {
+            for (double value : aMatrix) {
+                preparedArray[index] = value;
+                index++;
+            }
+        }
+
+        BufferedImage img = new BufferedImage(matrix[0].length, matrix.length, BufferedImage.TYPE_BYTE_GRAY);
+        img.getRaster().setPixels(0, 0, matrix[0].length, matrix.length, preparedArray);
+
+        try {
+            ImageIO.write(img, "BMP", new File(name));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
     @SuppressWarnings("ConstantConditions")
     public static int[][] readBmp(final String name) {
         try {

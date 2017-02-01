@@ -40,7 +40,7 @@ public class Helper {
 //        System.exit(1);
 
 
-        int[][] matrix = BmpHelper.readBmp("data/result.bmp");
+        int[][] matrix = BmpHelper.readBmp("data/result/result.bmp");
 
         int cols = FunctionHelper.cols(matrix);
         int rows = FunctionHelper.rows(matrix);
@@ -49,10 +49,10 @@ public class Helper {
         System.out.println(rows);
 
         for (int i = 0; i < rows; i++) {
-            if (matrix[i][80] > 0 && matrix[i][80] < 245){
-                System.out.print(matrix[i][80]);
+//            if (matrix[i][250] > 0 && matrix[i][250] < 250){
+                System.out.print(matrix[i][250]);
                 System.out.print("\t");
-            }
+//            }
         }
 
         System.out.println();

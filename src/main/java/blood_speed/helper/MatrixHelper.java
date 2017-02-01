@@ -10,12 +10,13 @@ import java.util.List;
 
 public final class MatrixHelper {
     public static int[][] multiplyMatrix(int[][] matrix, double q) {
+        int[][] m = new int[matrix.length][matrix[0].length];
         for (int i = 0; i < matrix.length; i++) {
             for (int k = 0; k < matrix[i].length; k++) {
-                matrix[i][k] = (int) Math.round(matrix[i][k] * q);
+                m[i][k] = (int) Math.round(matrix[i][k] * q);
             }
         }
-        return matrix;
+        return m;
     }
 
     public static int[][] readMatrix(final String inTxt) {
