@@ -29,7 +29,7 @@ public class Speed {
             }
         }
 
-        MatrixHelper.multiplyMatrix(resultMatrix, resultCoefficient);
+        resultMatrix = MatrixHelper.multiplyMatrix(resultMatrix, resultCoefficient);
         System.out.println("Writing result");
         BmpHelper.writeBmp(outputName + "/result.bmp", resultMatrix);
         MatrixHelper.writeMatrix(outputName + "/result.txt", resultMatrix);
@@ -37,13 +37,17 @@ public class Speed {
 
     private int getMinimum(int currentRow, int currentCol, List<int[][]> imagesList) {
         int minimum = imagesList.get(0)[currentRow][currentCol];
+        int minimumNumber = 0;
 
-        for (int[][] current : imagesList) {
+//        for (int[][] current : imagesList) {
+        for (int i = 0; i < imagesList.size(); i++ ) {
+            int[][] current = imagesList.get(i);
             if (current[currentRow][currentCol] < minimum) {
                 minimum = current[currentRow][currentCol];
+                minimumNumber = i;
             }
         }
-        return minimum;
+        return minimumNumber;
     }
 
     public static Images loadBlurImages(final String dir, final String prefix, final int ndv, final int minNdv) {

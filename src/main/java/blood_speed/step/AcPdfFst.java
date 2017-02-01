@@ -35,21 +35,25 @@ public class AcPdfFst {
                           final int r,
                           final int dr,
                           final int dt) {
+
+//        for (int i = 0; i < res3gr2.length; i++) {
+//            System.out.println(res3gr2[i][34]);
+//        }
         System.out.println("getV7_ac_pdf_fst started, minDv1=" + minNdv + "/" + ndv);
         List<int[][]> inputFiles = readInputFolder(inputFolder, N);
         double[][] g11 = gr11_(r, dr);
 
         Step1Result result = new Step1Result();
 
-        // цикл по всем предполагаемым скоростям
+        // цикл по всем шагам
         for (int ndv1 = minNdv; ndv1 < ndv; ndv1++) {
-            int[][] pd = new int[N + 1][dNum + 1];
-            int[][] pde = new int[N + 1][dNum + 1];
+            int[][] pd = new int[N][dNum];
+            int[][] pde = new int[N][dNum];
 
             System.out.println("Processing ndv1 = " + ndv1);
 
             // цикл по всем кадрам
-            for (int n = 0; n <= N; n++) {
+            for (int n = 0; n < N; n++) {
                 int dt2 = dt / 2;
                 int dt2a = dt % 2;
                 int[][] resA3rn;
@@ -92,18 +96,22 @@ public class AcPdfFst {
                                 }
 
                                 // если попадаем в контур
-                                if (res3gr2[yr0][xr0] > 127 &&
-                                        res3gr2[yr1][xr1] > 127) {
-                                    int point_sh = resA3rn1[yr0][xr0] - resA3rn[yr1][xr1];
-//                                    int point_sh = resA3rn1[yr0][xr0] * resA3rn[yr1][xr1];
+                                if (res3gr2[yr0][xr0] > 0 &&
+                                        res3gr2[yr1][xr1] > 0) {
+                                    double point_sh = (double)resA3rn1[yr0][xr0] - (double)resA3rn[yr1][xr1];
                                     double g2 = g11[r1 + r][r2 + r];
                                     sum_add = sum_add + g2 * point_sh * point_sh;
+//                                    int point_sh = resA3rn1[yr0][xr0] * resA3rn[yr1][xr1];
 //                                    sum_add = sum_add + g2 * point_sh ;
                                     z1 = z1 + g2;
                                 }
                             }
                         }
                         pd[n][dn1] = (int) Math.round(sum_add / z1);
+
+                        if ( pd[n][dn1] == 0 ) {
+                            System.out.println("error!!!");
+                        }
                         pde[n][dn1] = 200;
 
                     } else {
@@ -119,8 +127,8 @@ public class AcPdfFst {
             BmpHelper.writeBmp(bmpName1, pde);
             result.add(pd, pde);
 
-            String bmpName2 = outputFolder + "/" + prefix + "m" + ndv + "_" + (ndv + ndv1) + ".bmp";
-            BmpHelper.writeBmp(bmpName2, MatrixHelper.multiplyMatrix(pd, 0.025));
+//            String bmpName2 = outputFolder + "/" + prefix + "m" + ndv + "_" + (ndv + ndv1) + ".bmp";
+//            BmpHelper.writeBmp(bmpName2, MatrixHelper.multiplyMatrix(pd, 0.025));
         }
 
         return result;

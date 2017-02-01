@@ -76,7 +76,7 @@ public class Main {
         step3.check(resultCoefficient);
 
 //        Blur.buildGraphic(step1Result, 75,2764);
-        Blur.buildGraphic(blurImages, 75,2764);
+//        Blur.buildGraphic(blurImages, 75,2764);
     }
 
     private static double[] initG1() {
