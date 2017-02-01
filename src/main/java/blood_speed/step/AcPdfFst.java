@@ -95,8 +95,10 @@ public class AcPdfFst {
                                 if (res3gr2[yr0][xr0] > 127 &&
                                         res3gr2[yr1][xr1] > 127) {
                                     int point_sh = resA3rn1[yr0][xr0] - resA3rn[yr1][xr1];
+//                                    int point_sh = resA3rn1[yr0][xr0] * resA3rn[yr1][xr1];
                                     double g2 = g11[r1 + r][r2 + r];
                                     sum_add = sum_add + g2 * point_sh * point_sh;
+//                                    sum_add = sum_add + g2 * point_sh ;
                                     z1 = z1 + g2;
                                 }
                             }
@@ -134,7 +136,6 @@ public class AcPdfFst {
                 }
             }
         }
-
         return g2;
     }
 
@@ -150,21 +151,6 @@ public class AcPdfFst {
         final String formatted = String.format("%0" + numberOfDigitsInFileNames + "d", n);
         final String name = dir + "/" + formatted + ".bmp";
         return BmpHelper.readBmp(name);
-    }
-
-    public void buildImage(final Step1Result step1Result, final int x, final int y) {
-        List<Integer> values = new ArrayList<>();
-
-        for (Pair<int[][], int[][]> data : step1Result.getData()) {
-            values.add(data.getKey()[x][y]);
-        }
-
-        System.out.println();
-        for (Integer a : values) {
-            System.out.print(a);
-            System.out.print(" ");
-        }
-        System.out.println();
     }
 
     public static class Step1Result {

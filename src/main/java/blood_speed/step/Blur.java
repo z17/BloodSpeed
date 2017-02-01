@@ -16,15 +16,6 @@ public class Blur {
     private final int ndv;
     private final int minNdv;
 
-    public Blur(final String inputFolder, final String outputFolder, final String prefix, final int ndv, final int minNdv) {
-        FunctionHelper.checkIOFolders(inputFolder, outputFolder);
-        this.outputFolder = outputFolder;
-        this.prefix = prefix;
-        this.ndv = ndv;
-        this.minNdv = minNdv;
-        this.inputData = readData(prefix, inputFolder, minNdv, ndv);
-    }
-
     public Blur(final AcPdfFst.Step1Result inputData, final String outputFolder, final String prefix, final int ndv, final int minNdv) {
         FunctionHelper.checkIOFolders(null, outputFolder);
         this.outputFolder = outputFolder;
@@ -158,7 +149,7 @@ public class Blur {
         return g2;
     }
 
-    private AcPdfFst.Step1Result readData(final String prefix, final String inputFolder, final int minNdv, final int ndv) {
+    public static AcPdfFst.Step1Result readData(final String prefix, final String inputFolder, final int minNdv, final int ndv) {
         AcPdfFst.Step1Result data = new AcPdfFst.Step1Result();
 
         System.out.println("Reading data for blur");
@@ -174,5 +165,35 @@ public class Blur {
         }
 
         return data;
+    }
+
+    public static void buildGraphic(final List<int[][]> bluredImages, final int x, final int y) {
+        List<Integer> values = new ArrayList<>();
+
+        for (int[][] data : bluredImages) {
+            values.add(data[y][x]);
+        }
+
+        System.out.println();
+        for (Integer a : values) {
+            System.out.print(a);
+            System.out.print("\t");
+        }
+        System.out.println();
+    }
+
+    public static void buildGraphic(final AcPdfFst.Step1Result images, final int x, final int y) {
+        List<Integer> values = new ArrayList<>();
+
+        for (Pair<int[][],int[][]> data : images.getData()) {
+            values.add(data.getKey()[y][x]);
+        }
+
+        System.out.println();
+        for (Integer a : values) {
+            System.out.print(a);
+            System.out.print("\t");
+        }
+        System.out.println();
     }
 }

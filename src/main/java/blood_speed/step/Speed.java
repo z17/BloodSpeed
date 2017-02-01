@@ -12,16 +12,10 @@ public class Speed {
     private final String outputName;
     private final Images images;
 
-    public Speed(final String inputFolder, final String outputFolder, final int ndv, final int minNdv, final String prefix) {
-        FunctionHelper.checkIOFolders(inputFolder, outputFolder);
-        this.outputName = outputFolder;
-        images = loadBlurImages(inputFolder, prefix + "sm", ndv, minNdv);
-    }
-
-    public Speed(final String outputFolder, final List<int[][]> images) {
+    public Speed(final String outputFolder, final Images images) {
         FunctionHelper.checkIOFolders(null, outputFolder);
         this.outputName = outputFolder;
-        this.images = new Images(images);
+        this.images = images;
     }
 
     public void check(final int resultCoefficient) {
@@ -52,7 +46,7 @@ public class Speed {
         return minimum;
     }
 
-    private Images loadBlurImages(final String dir, final String prefix, final int ndv, final int minNdv) {
+    public static Images loadBlurImages(final String dir, final String prefix, final int ndv, final int minNdv) {
         System.out.println("Reading blur images");
         Images images = new Images();
 
@@ -64,12 +58,12 @@ public class Speed {
         return images;
     }
 
-    private static class Images {
+    public static class Images {
         private List<int[][]> imagesList;
         private int cols;
         private int rows;
 
-        Images(List<int[][]> images) {
+        public Images(List<int[][]> images) {
             this.imagesList = images;
             this.cols = FunctionHelper.cols(images.get(0));
             this.rows = FunctionHelper.rows(images.get(0));
@@ -97,7 +91,7 @@ public class Speed {
             imagesList.add(image);
         }
 
-        List<int[][]> getImagesList() {
+        public List<int[][]> getImagesList() {
             return imagesList;
         }
 

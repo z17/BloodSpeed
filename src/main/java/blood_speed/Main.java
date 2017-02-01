@@ -56,11 +56,8 @@ public class Main {
                 dt
         );
 
-//        step1.buildImage(step1Result, 283, 29);
-
-//        System.exit(1);
-        // чтобы запустить с чтеним с диска
-         //Blur blur = new Blur(step1FolderOutput, step2FolderOutput, prefix, ndv, minNdv1);
+        // чтобы запустить чтение с диска
+        // AcPdfFst.Step1Result step1Result = Blur.readData(prefix, step1FolderOutput, minNdv1, ndv);
         Blur step2 = new Blur(step1Result, step2FolderOutput, prefix, ndv, minNdv1);
         List<int[][]> blurImages = step2.getV6_ac_pd_2dblurf(
                 s1dn1,
@@ -72,9 +69,15 @@ public class Main {
         );
 
         // Чтобы запустить с чтением с диска
-        // Speed speed = new Speed(step2FolderOutput, step3FolderOutput, ndv, minNdv1, prefix);
-        Speed step3 = new Speed(step3FolderOutput, blurImages);
+//        Speed.Images images = Speed.loadBlurImages(step2FolderOutput, prefix + "sm", ndv, minNdv1);
+//        Speed speed = new Speed( step3FolderOutput, images);
+
+        Speed step3 = new Speed(step3FolderOutput, new Speed.Images(blurImages));
         step3.check(resultCoefficient);
+
+
+        Blur.buildGraphic(blurImages, 75,2764);
+        Blur.buildGraphic(step1Result, 75,2764);
     }
 
     private static double[] initG1() {
