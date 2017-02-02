@@ -3,10 +3,11 @@ package blood_speed;
 import blood_speed.step.AcPdfFst;
 import blood_speed.step.Blur;
 import blood_speed.step.Speed;
+import blood_speed.step.data.Images;
+import blood_speed.step.data.Step1Result;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.List;
 import java.util.Properties;
 
 public class Main {
@@ -15,11 +16,10 @@ public class Main {
 
     public static void main(final String[] args) {
         final Properties properties = getSettings();
-        int ndv =  Integer.valueOf(properties.getProperty("ndv"));
-        int minNdv1 =  Integer.valueOf(properties.getProperty("minNdv1"));
-        int N =  Integer.valueOf(properties.getProperty("N"));              // количество кадров
-        int dNum =  Integer.valueOf(properties.getProperty("dNum"));        // ширина каждого кадра
-        int dv =  Integer.valueOf(properties.getProperty("dv"));
+        int stepsNumber =  Integer.valueOf(properties.getProperty("stepsNumber"));
+        int startStep =  Integer.valueOf(properties.getProperty("startStep"));
+        int framesNumber =  Integer.valueOf(properties.getProperty("framesNumber"));              // количество кадров
+        int maxSpeed =  Integer.valueOf(properties.getProperty("maxSpeed"));
         int r =  Integer.valueOf(properties.getProperty("r"));             // радиус области
         int dr =  Integer.valueOf(properties.getProperty("dr"));
         int dt =  Integer.valueOf(properties.getProperty("dt"));            // скорее всего это step сравнения (сравниваем n кадра и n + dt)
@@ -42,24 +42,29 @@ public class Main {
         String step2FolderOutput = properties.getProperty("blur_folder");
         String step3FolderOutput = properties.getProperty("result_folder");
 
-        AcPdfFst step1 = new AcPdfFst(DIGITS_IN_FILES_NAME, folderInput, step1FolderOutput, circuitImage);
-
-        AcPdfFst.Step1Result step1Result = step1.getV7_ac_pdf_fst(
+        AcPdfFst step1 = new AcPdfFst(
+                DIGITS_IN_FILES_NAME,
+                folderInput,
+                step1FolderOutput,
+                circuitImage,
                 prefix,
-                dv,
-                ndv,
-                minNdv1,
-                N,
-                dNum,
+                maxSpeed,
+                stepsNumber,
+                startStep,
+                framesNumber,
                 r,
                 dr,
                 dt
         );
 
+        Step1Result step1Result = step1.process();
+
         // чтобы запустить чтение с диска
 //        AcPdfFst.Step1Result step1Result = Blur.readData(prefix, step1FolderOutput, minNdv1, ndv);
-        Blur step2 = new Blur(step1Result, step2FolderOutput, prefix, ndv, minNdv1);
-        List<int[][]> blurImages = step2.getV6_ac_pd_2dblurf(
+        Blur step2 = new Blur(
+                step1Result,
+                step2FolderOutput,
+                prefix,
                 s1dn1,
                 s1dn2,
                 s1dn1st,
@@ -67,16 +72,15 @@ public class Main {
                 s2dn1,
                 s2dn2
         );
+        Images blurImages = step2.process();
 
         // Чтобы запустить с чтением с диска
 //        Speed.Images images = Speed.loadBlurImages(step2FolderOutput, prefix + "sm", ndv, minNdv1);
 //        Speed speed = new Speed( step3FolderOutput, images);
 
-        Speed step3 = new Speed(step3FolderOutput, new Speed.Images(blurImages));
-        step3.check(resultCoefficient);
+        Speed step3 = new Speed(step3FolderOutput, blurImages, resultCoefficient);
 
-        Blur.buildGraphic(step1Result, 75,2764);
-        Blur.buildGraphic(blurImages, 75,2764);
+        step3.process();
     }
 
     private static double[] initG1() {

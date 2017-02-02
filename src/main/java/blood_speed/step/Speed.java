@@ -3,22 +3,24 @@ package blood_speed.step;
 import blood_speed.helper.BmpHelper;
 import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MatrixHelper;
+import blood_speed.step.data.Images;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class Speed {
+public class Speed extends Step<int[][]>{
 
     private final String outputName;
     private final Images images;
+    private final int resultCoefficient;
 
-    public Speed(final String outputFolder, final Images images) {
+    public Speed(final String outputFolder, final Images images, final int resultCoefficient) {
         FunctionHelper.checkIOFolders(null, outputFolder);
         this.outputName = outputFolder;
         this.images = images;
+        this.resultCoefficient = resultCoefficient;
     }
 
-    public void check(final int resultCoefficient) {
+    public int[][] process() {
         System.out.println("Started analyzing blur");
 
         int[][] resultMatrix = new int[images.getRows()][images.getCols()];
@@ -32,17 +34,18 @@ public class Speed {
         System.out.println("Writing result");
         BmpHelper.writeBmp(outputName + "/result-clear.bmp", resultMatrix);
         MatrixHelper.writeMatrix(outputName + "/result-clear.txt", resultMatrix);
-        resultMatrix = MatrixHelper.multiplyMatrix(resultMatrix, resultCoefficient);
-        System.out.println("Writing result");
-        BmpHelper.writeBmp(outputName + "/result.bmp", resultMatrix);
-        MatrixHelper.writeMatrix(outputName + "/result.txt", resultMatrix);
+
+        int[][] resultMatrixCoef = MatrixHelper.multiplyMatrix(resultMatrix, resultCoefficient);
+        BmpHelper.writeBmp(outputName + "/result.bmp", resultMatrixCoef);
+        MatrixHelper.writeMatrix(outputName + "/result.txt", resultMatrixCoef);
+
+        return resultMatrix;
     }
 
     private int getMinimum(int currentRow, int currentCol, List<int[][]> imagesList) {
         int minimum = imagesList.get(0)[currentRow][currentCol];
         int minimumNumber = 0;
 
-//        for (int[][] current : imagesList) {
         for (int i = 0; i < imagesList.size(); i++ ) {
             int[][] current = imagesList.get(i);
             if (current[currentRow][currentCol] < minimum) {
@@ -63,51 +66,5 @@ public class Speed {
         }
 
         return images;
-    }
-
-    public static class Images {
-        private List<int[][]> imagesList;
-        private int cols;
-        private int rows;
-
-        public Images(List<int[][]> images) {
-            this.imagesList = images;
-            this.cols = FunctionHelper.cols(images.get(0));
-            this.rows = FunctionHelper.rows(images.get(0));
-        }
-
-        Images() {
-            imagesList = new ArrayList<>();
-            cols = 0;
-            rows = 0;
-        }
-
-        void addImage(final int[][] image) {
-            int cols = FunctionHelper.cols(image);
-            int rows = FunctionHelper.rows(image);
-
-            if (this.cols == 0 && this.rows == 0) {
-                this.cols = cols;
-                this.rows = rows;
-            }
-
-            if (this.cols != cols || this.rows != rows) {
-                throw new RuntimeException("Different matrix size");
-            }
-
-            imagesList.add(image);
-        }
-
-        public List<int[][]> getImagesList() {
-            return imagesList;
-        }
-
-        int getCols() {
-            return cols;
-        }
-
-        int getRows() {
-            return rows;
-        }
     }
 }

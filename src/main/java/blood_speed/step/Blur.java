@@ -4,28 +4,33 @@ import blood_speed.Main;
 import blood_speed.helper.BmpHelper;
 import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MatrixHelper;
+import blood_speed.step.data.Images;
+import blood_speed.step.data.Step1Result;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
 
-public class Blur {
+public class Blur extends Step<Images> {
     private final String outputFolder;
-    private final AcPdfFst.Step1Result inputData;
+    private final Step1Result inputData;
     private final String prefix;
-    private final int ndv;
-    private final int minNdv;
+    private final int s1dn1;
+    private final int s1dn2;
+    private final int s1dn1st;
+    private final int s1dn2st;
+    private final int s2dn1;
+    private final int s2dn2;
 
-    public Blur(final AcPdfFst.Step1Result inputData, final String outputFolder, final String prefix, final int ndv, final int minNdv) {
-        FunctionHelper.checkIOFolders(null, outputFolder);
-        this.outputFolder = outputFolder;
-        this.inputData = inputData;
-        this.prefix = prefix;
-        this.ndv = ndv;
-        this.minNdv = minNdv;
-    }
+    private double[][] gv1;
+    private double[][] gv2;
 
-    public List<int[][]> getV6_ac_pd_2dblurf(
+    public Blur(
+            final Step1Result inputData,
+            final String outputFolder,
+            final String prefix,
             final int s1dn1,
             final int s1dn2,
             final int s1dn1st,
@@ -33,7 +38,23 @@ public class Blur {
             final int s2dn1,
             final int s2dn2
     ) {
-        double[][] gv1 = new double[s1dn1 + 1][s1dn2 + 1];
+        FunctionHelper.checkIOFolders(null, outputFolder);
+        this.outputFolder = outputFolder;
+        this.inputData = inputData;
+        this.prefix = prefix;
+
+        this.s1dn1 = s1dn1;
+        this.s1dn2 = s1dn2;
+        this.s1dn1st = s1dn1st;
+        this.s1dn2st = s1dn2st;
+        this.s2dn1 = s2dn1;
+        this.s2dn2 = s2dn2;
+    }
+
+    public Images process() {
+        System.out.println("Blurring started");
+
+        gv1 = new double[s1dn1 + 1][s1dn2 + 1];
         gv1[s1dn1][s1dn2] = 0;
         for (int dn11 = 0; dn11 <= s1dn1; dn11++) {
             for (int dn22 = 0; dn22 <= s1dn2; dn22++) {
@@ -41,7 +62,7 @@ public class Blur {
             }
         }
 
-        double[][] gv2 = new double[s1dn1 + 1][s1dn2 + 1];
+        gv2 = new double[s1dn1 + 1][s1dn2 + 1];
         gv2[s2dn1][s2dn2] = 0;
         for (int dn11 = 0; dn11 <= s2dn1; dn11++) {
             for (int dn22 = 0; dn22 <= s2dn2; dn22++) {
@@ -49,30 +70,42 @@ public class Blur {
             }
         }
 
-        System.out.println("starting getV6_ac_pd_2blurf from mindv = " + minNdv + "/" + ndv);
+        int number = 1;
+        List<ForkJoinTask<int[][]>> tasks = new ArrayList<>();
+        ForkJoinPool executor = ForkJoinPool.commonPool();
 
-        List<int[][]> result = new ArrayList<>();
-
-        int ndv1 = minNdv;
         for (Pair<int[][], int[][]> one : inputData.getData()) {
-            System.out.println("bluring file " + ndv + "_" + (ndv + ndv1));
-            int[][] img = one.getKey();
-            int[][] imge = one.getValue();
-
-            Pair<int[][], int[][]> imgs = blr2(img, imge, s1dn1, s1dn2, s1dn1st, s1dn2st, gv1);
-            imgs = blr2(imgs.getKey(), imge, s2dn1, s2dn2, 3, 2, gv2);
-            imgs = blr2(imgs.getKey(), imge, s2dn1, s2dn2, 1, 1, gv1);
-
-            String outBmpName1 = outputFolder + "/" + prefix + "sm" + ndv + "_" + (ndv + ndv1) + ".bmp";
-            int[][] outBmp1 = MatrixHelper.multiplyMatrix(imgs.getKey(), 0.025);
-            result.add(outBmp1);
-            BmpHelper.writeBmp(outBmpName1, outBmp1);
-            String outBmpName2 = outputFolder + "/" + prefix + "sme" + ndv + "_" + (ndv + ndv1) + ".bmp";
-            BmpHelper.writeBmp(outBmpName2, imgs.getValue());
-
-            ndv1++;
+            final int currentNumber = number;
+            tasks.add(executor.submit(() -> blurFile(one, currentNumber)));
+            number++;
         }
+
+        Images result = new Images();
+        for (ForkJoinTask<int[][]> task : tasks) {
+            result.addImage(task.join());
+        }
+
         return result;
+    }
+
+    private int[][] blurFile(Pair<int[][], int[][]> one, int number) {
+        System.out.println("Blurring file " + number);
+
+        int[][] img = one.getKey();
+        int[][] imge = one.getValue();
+
+        Pair<int[][], int[][]> imgs = blr2(img, imge, s1dn1, s1dn2, s1dn1st, s1dn2st, gv1);
+        imgs = blr2(imgs.getKey(), imge, s2dn1, s2dn2, 3, 2, gv2);
+        imgs = blr2(imgs.getKey(), imge, s2dn1, s2dn2, 1, 1, gv1);
+
+        String outBmpName1 = outputFolder + "/" + prefix + "sm" + "_" + number + ".bmp";
+        int[][] outBmp1 = MatrixHelper.multiplyMatrix(imgs.getKey(), 0.025);
+
+        BmpHelper.writeBmp(outBmpName1, outBmp1);
+        String outBmpName2 = outputFolder + "/" + prefix + "sme" + "_" + number + ".bmp";
+        BmpHelper.writeBmp(outBmpName2, imgs.getValue());
+
+        return outBmp1;
     }
 
     private Pair<int[][], int[][]> blr2(int[][] img, int[][] imge,
@@ -149,16 +182,16 @@ public class Blur {
         return g2;
     }
 
-    public static AcPdfFst.Step1Result readData(final String prefix, final String inputFolder, final int minNdv, final int ndv) {
-        AcPdfFst.Step1Result data = new AcPdfFst.Step1Result();
+    public static Step1Result readData(final String prefix, final String inputFolder, final int startStep, final int stepsNumber) {
+        Step1Result data = new Step1Result();
 
         System.out.println("Reading data for blur");
 
-        for (int i = minNdv; i <= ndv; i++) {
-            String inTxt = inputFolder + "/" + prefix + "m" + ndv + "_" + (ndv + i) + ".txt";
+        for (int i = startStep; i <= stepsNumber; i++) {
+            String inTxt = inputFolder + "/" + prefix + "m" + stepsNumber + "_" + (stepsNumber + i) + ".txt";
             int[][] pd = MatrixHelper.readMatrix(inTxt);
 
-            String inBmp = inputFolder + "/" + prefix + "me" + ndv + "_" + (ndv + i) + ".bmp";
+            String inBmp = inputFolder + "/" + prefix + "me" + stepsNumber + "_" + (stepsNumber + i) + ".bmp";
             int[][] pde = BmpHelper.readBmp(inBmp);
 
             data.add(pd, pde);
@@ -172,21 +205,6 @@ public class Blur {
 
         for (int[][] data : bluredImages) {
             values.add(data[y][x]);
-        }
-
-        System.out.println();
-        for (Integer a : values) {
-            System.out.print(a);
-            System.out.print("\t");
-        }
-        System.out.println();
-    }
-
-    public static void buildGraphic(final AcPdfFst.Step1Result images, final int x, final int y) {
-        List<Integer> values = new ArrayList<>();
-
-        for (Pair<int[][],int[][]> data : images.getData()) {
-            values.add(data.getKey()[y][x]);
         }
 
         System.out.println();
