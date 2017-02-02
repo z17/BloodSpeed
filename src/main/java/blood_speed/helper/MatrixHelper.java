@@ -64,4 +64,19 @@ public final class MatrixHelper {
             throw new RuntimeException(e);
         }
     }
+
+    public static void writeMatrix(final String name, final List<Integer> matrix) {
+        List<String> lines = new ArrayList<>();
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int m : matrix) {
+                stringBuilder.append(String.format("%7d", m));
+        }
+
+        lines.add(stringBuilder.toString());
+        try {
+            Files.write(Paths.get(name), lines, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

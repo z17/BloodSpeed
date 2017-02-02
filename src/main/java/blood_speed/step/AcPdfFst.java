@@ -109,9 +109,6 @@ public class AcPdfFst {
                         }
                         pd[n][dn1] = (int) Math.round(sum_add / z1);
 
-                        if ( pd[n][dn1] == 0 ) {
-                            System.out.println("error!!!");
-                        }
                         pde[n][dn1] = 200;
 
                     } else {

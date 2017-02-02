@@ -75,8 +75,8 @@ public class Main {
         Speed step3 = new Speed(step3FolderOutput, new Speed.Images(blurImages));
         step3.check(resultCoefficient);
 
-//        Blur.buildGraphic(step1Result, 75,2764);
-//        Blur.buildGraphic(blurImages, 75,2764);
+        Blur.buildGraphic(step1Result, 75,2764);
+        Blur.buildGraphic(blurImages, 75,2764);
     }
 
     private static double[] initG1() {

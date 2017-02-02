@@ -29,6 +29,9 @@ public class Speed {
             }
         }
 
+        System.out.println("Writing result");
+        BmpHelper.writeBmp(outputName + "/result-clear.bmp", resultMatrix);
+        MatrixHelper.writeMatrix(outputName + "/result-clear.txt", resultMatrix);
         resultMatrix = MatrixHelper.multiplyMatrix(resultMatrix, resultCoefficient);
         System.out.println("Writing result");
         BmpHelper.writeBmp(outputName + "/result.bmp", resultMatrix);
