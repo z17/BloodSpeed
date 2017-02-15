@@ -1,6 +1,6 @@
 package blood_speed.step;
 
-import blood_speed.Main;
+import blood_speed.StepRunner;
 import blood_speed.helper.BmpHelper;
 import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MatrixHelper;
@@ -170,7 +170,7 @@ public class AcPdfFst extends Step<Step1Result> {
             for (int r2 = -r; r2 <= r; r2 += dr) {
                 if (r1 * r1 + r2 * r2 <= r * r) {
                     int index = Math.round(((r1 * r1 + r2 * r2) * 100) / (r * r));
-                    g2[r + r1][r + r2] = Main.G1[index];
+                    g2[r + r1][r + r2] = StepRunner.G1[index];
                 }
             }
         }
