@@ -1,8 +1,6 @@
 package blood_speed;
 
-import blood_speed.step.AcPdfFst;
-import blood_speed.step.Blur;
-import blood_speed.step.Speed;
+import blood_speed.step.*;
 import blood_speed.step.data.Images;
 import blood_speed.step.data.Step1Result;
 
@@ -24,7 +22,7 @@ public final class StepRunner {
             throw new RuntimeException("Not enough parameters to run steps");
         }
 
-        AcPdfFst step1 = new AcPdfFst(
+        Step<Step1Result> step1 = new AcPdfFst(
                 data.numberOfDigitsInStep1FileNames,
                 data.step1InputFolder,
                 data.step1OutputFolder,
@@ -40,9 +38,9 @@ public final class StepRunner {
         );
         Step1Result step1Result = step1.process();
 
-        Blur step2 = new Blur(
+        Step<Images> step2 = new Blur(
                 step1Result,
-                data.step2OutputFolder,
+                data.blurStepOutputFolder,
                 data.filePrefix,
                 data.s1dn1,
                 data.s1dn2,
@@ -53,13 +51,16 @@ public final class StepRunner {
         );
         Images blurImages = step2.process();
 
-        Speed step3 = new Speed(
+        Step<int[][]> step3 = new Speed(
                 data.step3OutputFolder,
                 blurImages,
                 data.resultCoefficient
         );
-        step3.process();
+        int[][] speedMatrix = step3.process();
 
+        Step<Integer> middleSpeed = new MiddleSpeed(speedMatrix, data.middleStepOutputFile, data.affectedCols);
+
+        Integer middleSpeedValue = middleSpeed.process();
 
 //        чтобы запустить чтение с диска
 //        AcPdfFst.Step1Result step1Result = Blur.readData(prefix, step1FolderOutput, minNdv1, ndv);
@@ -70,12 +71,12 @@ public final class StepRunner {
     }
 
     static final class StepData {
-        private byte[] counter = new byte[21];
+        private byte[] counter = new byte[23];
 
         // common
         private String filePrefix;
 
-        // step1
+        // step1 : get speed
         private String step1InputFolder;
         private String step1OutputFolder;
         private int numberOfDigitsInStep1FileNames;
@@ -88,8 +89,8 @@ public final class StepRunner {
         private int dr;
         private int dt;
 
-        // step2
-        private String step2OutputFolder;
+        // step2 : blur
+        private String blurStepOutputFolder;
         private int s1dn1;
         private int s1dn2;
         private int s1dn1st;
@@ -97,9 +98,13 @@ public final class StepRunner {
         private int s2dn1;
         private int s2dn2;
 
-        // step3
+        // step3 : analyze
         private String step3OutputFolder;
         private int resultCoefficient;
+
+        // step4 : middle speed
+        private String middleStepOutputFile;
+        private int affectedCols;
 
         boolean ready() {
             for (byte b : counter) {
@@ -181,8 +186,8 @@ public final class StepRunner {
             return this;
         }
 
-        StepData setStep2OutputFolder(String step2OutputFolder) {
-            this.step2OutputFolder = step2OutputFolder;
+        StepData setBlurStepOutputFolder(String blurStepOutputFolder) {
+            this.blurStepOutputFolder = blurStepOutputFolder;
             counter[12] = 1;
             return this;
         }
@@ -232,6 +237,18 @@ public final class StepRunner {
         StepData setResultCoefficient(int resultCoefficient) {
             this.resultCoefficient = resultCoefficient;
             counter[20] = 1;
+            return this;
+        }
+
+        StepData setMiddleStepOutputFile(String middleStepOutputFile) {
+            this.middleStepOutputFile = middleStepOutputFile;
+            counter[21] = 1;
+            return this;
+        }
+
+        StepData setAffectedCols(int affectedCols) {
+            this.affectedCols = affectedCols;
+            counter[22] = 1;
             return this;
         }
     }

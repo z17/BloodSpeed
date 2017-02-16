@@ -53,7 +53,7 @@ public class Main {
                 .setDr(dr)
                 .setDt(dt)
 
-                .setStep2OutputFolder(step2FolderOutput)
+                .setBlurStepOutputFolder(step2FolderOutput)
                 .setS1dn1(s1dn1)
                 .setS1dn2(s1dn2)
                 .setS1dn1st(s1dn1st)
@@ -62,7 +62,10 @@ public class Main {
                 .setS2dn2(s2dn2)
 
                 .setStep3OutputFolder(step3FolderOutput)
-                .setResultCoefficient(resultCoefficient);
+                .setResultCoefficient(resultCoefficient)
+
+                .setMiddleStepOutputFile("data/result/middle-speed2.txt")
+                .setAffectedCols(309);
 
         StepRunner runner = new StepRunner();
         runner.run(data);

@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public final class MatrixHelper {
     public static int[][] multiplyMatrix(int[][] matrix, double q) {
@@ -65,11 +66,11 @@ public final class MatrixHelper {
         }
     }
 
-    public static void writeMatrix(final String name, final List<Integer> matrix) {
+    public static <T extends Number> void  writeMatrix(final String name, final List<T> matrix) {
         List<String> lines = new ArrayList<>();
         StringBuilder stringBuilder = new StringBuilder();
-        for (int m : matrix) {
-                stringBuilder.append(String.format("%7d", m));
+        for (Number m : matrix) {
+                stringBuilder.append(String.format(Locale.ROOT, "%10.5f", m.doubleValue()));
         }
 
         lines.add(stringBuilder.toString());

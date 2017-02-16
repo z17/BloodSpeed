@@ -31,7 +31,7 @@ public class StepDataTest {
         assertThat(data.ready(), is(false));
 
         data
-                .setStep2OutputFolder(null)
+                .setBlurStepOutputFolder(null)
                 .setS1dn1(3)
                 .setS1dn2(6)
                 .setS1dn1st(1)
