@@ -32,6 +32,8 @@ public class MiddleSpeed extends Step<Integer> {
         }
 
         MatrixHelper.writeMatrix(outputFile, signal);
-        return fullSum / (affectedCols * rows);
+        int middleSpeed =  fullSum / (affectedCols * rows);
+        System.err.println("Middle speed = " + middleSpeed);
+        return middleSpeed;
     }
 }

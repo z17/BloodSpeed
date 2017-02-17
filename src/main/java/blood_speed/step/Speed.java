@@ -7,15 +7,21 @@ import blood_speed.step.data.Images;
 
 import java.util.List;
 
-public class Speed extends Step<int[][]>{
+public class Speed extends Step<int[][]> {
 
-    private final String outputName;
+    private final String outputFolder;
+    private final String outputNameClearFile;
+    private final String outputNameClearImage;
+    private final String outputNameImageFile;
     private final Images images;
     private final int resultCoefficient;
 
-    public Speed(final String outputFolder, final Images images, final int resultCoefficient) {
+    public Speed(final String outputFolder, String outputNameClearFile, String outputNameClearImage, String outputNameImageFile, final Images images, final int resultCoefficient) {
+        this.outputNameClearFile = outputNameClearFile;
+        this.outputNameClearImage = outputNameClearImage;
+        this.outputNameImageFile = outputNameImageFile;
         FunctionHelper.checkIOFolders(null, outputFolder);
-        this.outputName = outputFolder;
+        this.outputFolder = outputFolder;
         this.images = images;
         this.resultCoefficient = resultCoefficient;
     }
@@ -32,12 +38,11 @@ public class Speed extends Step<int[][]>{
         }
 
         System.out.println("Writing result");
-        BmpHelper.writeBmp(outputName + "/result-clear.bmp", resultMatrix);
-        MatrixHelper.writeMatrix(outputName + "/result-clear.txt", resultMatrix);
+        BmpHelper.writeBmp(outputFolder + outputNameClearImage, resultMatrix);
+        MatrixHelper.writeMatrix(outputFolder + outputNameClearFile, resultMatrix);
 
         int[][] resultMatrixCoef = MatrixHelper.multiplyMatrix(resultMatrix, resultCoefficient);
-        BmpHelper.writeBmp(outputName + "/result.bmp", resultMatrixCoef);
-        MatrixHelper.writeMatrix(outputName + "/result.txt", resultMatrixCoef);
+        BmpHelper.writeBmp(outputFolder + outputNameImageFile, resultMatrixCoef);
 
         return resultMatrix;
     }
@@ -46,7 +51,7 @@ public class Speed extends Step<int[][]>{
         int minimum = imagesList.get(0)[currentRow][currentCol];
         int minimumNumber = 0;
 
-        for (int i = 0; i < imagesList.size(); i++ ) {
+        for (int i = 0; i < imagesList.size(); i++) {
             int[][] current = imagesList.get(i);
             if (current[currentRow][currentCol] < minimum) {
                 minimum = current[currentRow][currentCol];
