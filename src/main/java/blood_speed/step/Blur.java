@@ -5,6 +5,7 @@ import blood_speed.helper.BmpHelper;
 import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MatrixHelper;
 import blood_speed.step.data.Images;
+import blood_speed.step.data.SpeedData;
 import blood_speed.step.data.Step1Result;
 import javafx.util.Pair;
 
@@ -71,28 +72,28 @@ public class Blur extends Step<Images> {
         }
 
         int number = 1;
-        List<ForkJoinTask<int[][]>> tasks = new ArrayList<>();
+        List<ForkJoinTask<SpeedData>> tasks = new ArrayList<>();
         ForkJoinPool executor = ForkJoinPool.commonPool();
 
-        for (Pair<int[][], int[][]> one : inputData.getData()) {
+        for (SpeedData one : inputData.getData()) {
             final int currentNumber = number;
             tasks.add(executor.submit(() -> blurFile(one, currentNumber)));
             number++;
         }
 
         Images result = new Images();
-        for (ForkJoinTask<int[][]> task : tasks) {
+        for (ForkJoinTask<SpeedData> task : tasks) {
             result.addImage(task.join());
         }
 
         return result;
     }
 
-    private int[][] blurFile(Pair<int[][], int[][]> one, int number) {
+    private SpeedData blurFile(SpeedData one, int number) {
         System.out.println("Blurring file " + number);
 
-        int[][] img = one.getKey();
-        int[][] imge = one.getValue();
+        int[][] img = one.pd;
+        int[][] imge = one.pde;
 
         Pair<int[][], int[][]> imgs = blr2(img, imge, s1dn1, s1dn2, s1dn1st, s1dn2st, gv1);
         imgs = blr2(imgs.getKey(), imge, s2dn1, s2dn2, 3, 2, gv2);
@@ -105,7 +106,7 @@ public class Blur extends Step<Images> {
         String outBmpName2 = outputFolder + "/" + prefix + "sme" + "_" + number + ".bmp";
         BmpHelper.writeBmp(outBmpName2, imgs.getValue());
 
-        return outBmp1;
+        return new SpeedData(one.speed, outBmp1, null);
     }
 
     private Pair<int[][], int[][]> blr2(int[][] img, int[][] imge,
@@ -194,7 +195,7 @@ public class Blur extends Step<Images> {
             String inBmp = inputFolder + "/" + prefix + "me" + stepsNumber + "_" + (stepsNumber + i) + ".bmp";
             int[][] pde = BmpHelper.readBmp(inBmp);
 
-            data.add(pd, pde);
+//            data.add(pd, pde);
         }
 
         return data;

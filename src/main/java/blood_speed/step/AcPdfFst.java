@@ -4,6 +4,7 @@ import blood_speed.StepRunner;
 import blood_speed.helper.BmpHelper;
 import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MatrixHelper;
+import blood_speed.step.data.SpeedData;
 import blood_speed.step.data.Step1Result;
 import javafx.util.Pair;
 
@@ -67,9 +68,7 @@ public class AcPdfFst extends Step<Step1Result> {
     public Step1Result process() {
         System.out.println("Step1: getV7_ac_pdf_fst started, minDv1=" + startStep + "/" + stepsNumber);
 
-
-
-        List<ForkJoinTask<Pair<int[][], int[][]>>> tasks = new ArrayList<>();
+        List<ForkJoinTask<SpeedData>> tasks = new ArrayList<>();
         ForkJoinPool executor = ForkJoinPool.commonPool();
 
         // цикл по всем шагам
@@ -79,17 +78,18 @@ public class AcPdfFst extends Step<Step1Result> {
         }
 
         Step1Result result = new Step1Result();
-        for(ForkJoinTask<Pair<int[][], int[][]>> task : tasks) {
+        for(ForkJoinTask<SpeedData> task : tasks) {
             result.add(task.join());
         }
         return result;
     }
 
-    private Pair<int[][], int[][]> oneStep(int currentStep) {
+    private SpeedData oneStep(int currentStep) {
+        int currentSpeed = maxSpeed * currentStep / stepsNumber;
         int[][] pd = new int[framesNumber][imageWidth];
         int[][] pde = new int[framesNumber][imageWidth];
 
-        System.out.println("Processing currentStep = " + currentStep);
+        System.out.println("Processing, currentSpeed = " + currentSpeed);
 
         int dt2 = dt / 2;
         int dt2a = dt % 2;
@@ -113,8 +113,7 @@ public class AcPdfFst extends Step<Step1Result> {
 
             // цикл по ширине кадра
             for (int x = 0; x <= imageWidth - 1; x++) {
-                double cTemp = x + (maxSpeed * currentStep / stepsNumber);
-                int shift = (int) Math.round(cTemp);
+                int shift = x + (maxSpeed * currentStep / stepsNumber);
 
                 if (shift < imageWidth && shift >= 0) {
                     double sumRate = 0;
@@ -161,7 +160,7 @@ public class AcPdfFst extends Step<Step1Result> {
         String bmpName1 = outputFolder + "/" + outputFilePrefix + "me" + stepsNumber + "_" + (stepsNumber + currentStep) + ".bmp";
         BmpHelper.writeBmp(bmpName1, pde);
 
-        return new Pair<>(pd, pde);
+        return new SpeedData(currentSpeed, pd, pde);
     }
 
     private double[][] gr11_(final int r, final int dr) {

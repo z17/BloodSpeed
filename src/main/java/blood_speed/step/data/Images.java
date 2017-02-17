@@ -6,14 +6,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Images {
-    private List<int[][]> imagesList;
+    private List<SpeedData> imagesList;
     private int cols;
     private int rows;
 
-    public Images(List<int[][]> images) {
+    public Images(List<SpeedData> images) {
         this.imagesList = images;
-        this.cols = FunctionHelper.cols(images.get(0));
-        this.rows = FunctionHelper.rows(images.get(0));
+        this.cols = FunctionHelper.cols(images.get(0).pd);
+        this.rows = FunctionHelper.rows(images.get(0).pd);
     }
 
     public Images() {
@@ -22,9 +22,9 @@ public class Images {
         rows = 0;
     }
 
-    public void addImage(final int[][] image) {
-        int cols = FunctionHelper.cols(image);
-        int rows = FunctionHelper.rows(image);
+    public void addImage(final SpeedData data) {
+        int cols = FunctionHelper.cols(data.pd);
+        int rows = FunctionHelper.rows(data.pd);
 
         if (this.cols == 0 && this.rows == 0) {
             this.cols = cols;
@@ -35,11 +35,7 @@ public class Images {
             throw new RuntimeException("Different matrix size");
         }
 
-        imagesList.add(image);
-    }
-
-    public List<int[][]> getImagesList() {
-        return imagesList;
+        imagesList.add(data);
     }
 
     public int getCols() {
@@ -48,5 +44,9 @@ public class Images {
 
     public int getRows() {
         return rows;
+    }
+
+    public List<SpeedData> getImagesList() {
+        return imagesList;
     }
 }

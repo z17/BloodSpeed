@@ -4,6 +4,7 @@ import blood_speed.helper.BmpHelper;
 import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MatrixHelper;
 import blood_speed.step.data.Images;
+import blood_speed.step.data.SpeedData;
 
 import java.util.List;
 
@@ -47,15 +48,14 @@ public class Speed extends Step<int[][]> {
         return resultMatrix;
     }
 
-    private int getMinimum(int currentRow, int currentCol, List<int[][]> imagesList) {
-        int minimum = imagesList.get(0)[currentRow][currentCol];
+    private int getMinimum(int currentRow, int currentCol, List<SpeedData> imagesList) {
+        int minimum = imagesList.get(0).pd[currentRow][currentCol];
         int minimumNumber = 0;
 
-        for (int i = 0; i < imagesList.size(); i++) {
-            int[][] current = imagesList.get(i);
-            if (current[currentRow][currentCol] < minimum) {
-                minimum = current[currentRow][currentCol];
-                minimumNumber = i;
+        for (SpeedData current : imagesList) {
+            if (current.pd[currentRow][currentCol] < minimum) {
+                minimum = current.pd[currentRow][currentCol];
+                minimumNumber = current.speed;
             }
         }
         return minimumNumber;
@@ -67,7 +67,7 @@ public class Speed extends Step<int[][]> {
 
         for (int i = minNdv; i <= ndv; i++) {
             final String name = dir + "/" + prefix + ndv + "_" + (ndv + i) + ".bmp";
-            images.addImage(BmpHelper.readBmp(name));
+//            images.addImage(BmpHelper.readBmp(name));
         }
 
         return images;

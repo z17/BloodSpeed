@@ -6,21 +6,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Step1Result {
-    private List<Pair<int[][], int[][]>> data;
+    private List<SpeedData> data;
 
     public Step1Result() {
         data = new ArrayList<>();
     }
 
-    public void add(int[][] rateMatrix, int[][] scopeMatrix) {
-        data.add(new Pair<>(rateMatrix, scopeMatrix));
+    public void add(int speed, int[][] rateMatrix, int[][] scopeMatrix) {
+        data.add(new SpeedData(speed, rateMatrix, scopeMatrix));
     }
 
-    public void add(Pair<int[][], int[][]> pair) {
-        data.add(pair);
+    public void add(int speed, Pair<int[][], int[][]> pair) {
+        data.add(new SpeedData(speed, pair.getKey(), pair.getValue()));
     }
 
-    public List<Pair<int[][], int[][]>> getData() {
+    public void add(SpeedData data) {
+        this.data.add(data);
+    }
+
+    public List<SpeedData> getData() {
         return data;
     }
 }
