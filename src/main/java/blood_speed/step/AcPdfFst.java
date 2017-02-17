@@ -6,7 +6,6 @@ import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MatrixHelper;
 import blood_speed.step.data.SpeedData;
 import blood_speed.step.data.Step1Result;
-import javafx.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -139,8 +138,6 @@ public class AcPdfFst extends Step<Step1Result> {
                                 double point_sh = (double) secondImage[yr0][xr0] - (double) firstImage[yr1][xr1];
                                 double g2 = g11[r1 + r][r2 + r];
                                 sumRate = sumRate + g2 * point_sh * point_sh;
-//                                    int point_sh = resA3rn1[yr0][xr0] * resA3rn[yr1][xr1];
-//                                    sum_add = sum_add + g2 * point_sh ;
                                 z1 = z1 + g2;
                             }
                         }
@@ -155,9 +152,9 @@ public class AcPdfFst extends Step<Step1Result> {
             }
         }
 
-        String txtName = outputFolder + "/" + outputFilePrefix + "m" + stepsNumber + "_" + (stepsNumber + currentStep) + ".txt";
+        String txtName = outputFolder + "/" + outputFilePrefix + "m" + maxSpeed + "_" + currentSpeed + ".txt";
         MatrixHelper.writeMatrix(txtName, pd);
-        String bmpName1 = outputFolder + "/" + outputFilePrefix + "me" + stepsNumber + "_" + (stepsNumber + currentStep) + ".bmp";
+        String bmpName1 = outputFolder + "/" + outputFilePrefix + "me" + maxSpeed + "_" + currentSpeed + ".bmp";
         BmpHelper.writeBmp(bmpName1, pde);
 
         return new SpeedData(currentSpeed, pd, pde);
@@ -167,10 +164,11 @@ public class AcPdfFst extends Step<Step1Result> {
         double[][] g2 = new double[r * 2 + 1][r * 2 + 1];
         for (int r1 = -r; r1 <= r; r1 += dr) {
             for (int r2 = -r; r2 <= r; r2 += dr) {
-                if (r1 * r1 + r2 * r2 <= r * r) {
-                    int index = Math.round(((r1 * r1 + r2 * r2) * 100) / (r * r));
-                    g2[r + r1][r + r2] = StepRunner.G1[index];
+                if (r1 * r1 + r2 * r2 > r * r) {
+                    continue;
                 }
+                int index = Math.round(((r1 * r1 + r2 * r2) * 100) / (r * r));
+                g2[r + r1][r + r2] = StepRunner.G1[index];
             }
         }
         return g2;

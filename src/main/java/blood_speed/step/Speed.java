@@ -61,13 +61,16 @@ public class Speed extends Step<int[][]> {
         return minimumNumber;
     }
 
-    public static Images loadBlurImages(final String dir, final String prefix, final int ndv, final int minNdv) {
+    @SuppressWarnings("unused")
+    public static Images loadData(final String dir, final String prefix, final int stepsNumber, final int startStep, final int maxSpeed) {
         System.out.println("Reading blur images");
         Images images = new Images();
 
-        for (int i = minNdv; i <= ndv; i++) {
-            final String name = dir + "/" + prefix + ndv + "_" + (ndv + i) + ".bmp";
-//            images.addImage(BmpHelper.readBmp(name));
+        for (int i = startStep; i <= stepsNumber; i++) {
+
+            int currentSpeed = maxSpeed * i / stepsNumber;
+            final String name = dir + "/" + prefix + "sm" + "_" + currentSpeed + ".bmp";
+            images.addImage(new SpeedData(currentSpeed, BmpHelper.readBmp(name), null));
         }
 
         return images;
