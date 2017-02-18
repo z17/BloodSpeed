@@ -2,7 +2,6 @@ package blood_speed;
 
 import blood_speed.step.*;
 import blood_speed.step.data.Images;
-import blood_speed.step.data.Step1Result;
 
 public final class StepRunner {
 
@@ -22,7 +21,7 @@ public final class StepRunner {
             throw new RuntimeException("Not enough parameters to run steps");
         }
 
-        Step<Step1Result> step1 = new AcPdfFst(
+        Step<Images> step1 = new AcPdfFst(
                 data.numberOfDigitsInStep1FileNames,
                 data.step1InputFolder,
                 data.step1OutputFolder,
@@ -36,7 +35,7 @@ public final class StepRunner {
                 data.dr,
                 data.dt
         );
-        Step1Result step1Result = step1.process();
+        Images step1Result = step1.process();
 
         Step<Images> step2 = new Blur(
                 step1Result,

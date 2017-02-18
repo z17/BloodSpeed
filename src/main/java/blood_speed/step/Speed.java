@@ -28,7 +28,7 @@ public class Speed extends Step<int[][]> {
     }
 
     public int[][] process() {
-        System.out.println("Started analyzing blur");
+        System.out.println("Started analyzing blur files");
 
         int[][] resultMatrix = new int[images.getRows()][images.getCols()];
 
@@ -49,12 +49,12 @@ public class Speed extends Step<int[][]> {
     }
 
     private int getMinimum(int currentRow, int currentCol, List<SpeedData> imagesList) {
-        int minimum = imagesList.get(0).pd[currentRow][currentCol];
+        int minimum = imagesList.get(0).matrix[currentRow][currentCol];
         int minimumNumber = 0;
 
         for (SpeedData current : imagesList) {
-            if (current.pd[currentRow][currentCol] < minimum) {
-                minimum = current.pd[currentRow][currentCol];
+            if (current.matrix[currentRow][currentCol] < minimum) {
+                minimum = current.matrix[currentRow][currentCol];
                 minimumNumber = current.speed;
             }
         }
@@ -70,7 +70,7 @@ public class Speed extends Step<int[][]> {
 
             int currentSpeed = maxSpeed * i / stepsNumber;
             final String name = dir + "/" + prefix + "sm" + "_" + currentSpeed + ".bmp";
-            images.addImage(new SpeedData(currentSpeed, BmpHelper.readBmp(name), null));
+            images.add(new SpeedData(currentSpeed, BmpHelper.readBmp(name), null));
         }
 
         return images;

@@ -12,8 +12,8 @@ public class Images {
 
     public Images(List<SpeedData> images) {
         this.imagesList = images;
-        this.cols = FunctionHelper.cols(images.get(0).pd);
-        this.rows = FunctionHelper.rows(images.get(0).pd);
+        this.cols = FunctionHelper.cols(images.get(0).matrix);
+        this.rows = FunctionHelper.rows(images.get(0).matrix);
     }
 
     public Images() {
@@ -22,9 +22,9 @@ public class Images {
         rows = 0;
     }
 
-    public void addImage(final SpeedData data) {
-        int cols = FunctionHelper.cols(data.pd);
-        int rows = FunctionHelper.rows(data.pd);
+    public void add(final SpeedData data) {
+        int cols = FunctionHelper.cols(data.matrix);
+        int rows = FunctionHelper.rows(data.matrix);
 
         if (this.cols == 0 && this.rows == 0) {
             this.cols = cols;

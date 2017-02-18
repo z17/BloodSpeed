@@ -10,7 +10,10 @@ public class Main {
 
     public static void main(final String[] args) {
         final Properties properties = getSettings();
+        System.err.println("Stage 1");
         int middleSpeed = stage1(properties);
+        System.out.println();
+        System.err.println("Stage 2");
         stage2(properties, middleSpeed);
     }
 

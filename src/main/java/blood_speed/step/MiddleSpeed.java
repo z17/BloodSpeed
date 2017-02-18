@@ -19,6 +19,7 @@ public class MiddleSpeed extends Step<Integer> {
 
     @Override
     public Integer process() {
+        System.out.println("Processing middle speed");
         int rows = FunctionHelper.rows(speedMatrix);
         List<Double> signal = new ArrayList<>();
         int fullSum = 0;

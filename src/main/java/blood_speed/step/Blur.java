@@ -6,7 +6,6 @@ import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MatrixHelper;
 import blood_speed.step.data.Images;
 import blood_speed.step.data.SpeedData;
-import blood_speed.step.data.Step1Result;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
@@ -16,7 +15,7 @@ import java.util.concurrent.ForkJoinTask;
 
 public class Blur extends Step<Images> {
     private final String outputFolder;
-    private final Step1Result inputData;
+    private final Images inputData;
     private final String prefix;
     private final int s1dn1;
     private final int s1dn2;
@@ -29,7 +28,7 @@ public class Blur extends Step<Images> {
     private double[][] gv2;
 
     public Blur(
-            final Step1Result inputData,
+            final Images inputData,
             final String outputFolder,
             final String prefix,
             final int s1dn1,
@@ -74,13 +73,13 @@ public class Blur extends Step<Images> {
         List<ForkJoinTask<SpeedData>> tasks = new ArrayList<>();
         ForkJoinPool executor = ForkJoinPool.commonPool();
 
-        for (SpeedData one : inputData.getData()) {
+        for (SpeedData one : inputData.getImagesList()) {
             tasks.add(executor.submit(() -> blurFile(one)));
         }
 
         Images result = new Images();
         for (ForkJoinTask<SpeedData> task : tasks) {
-            result.addImage(task.join());
+            result.add(task.join());
         }
 
         return result;
@@ -89,7 +88,7 @@ public class Blur extends Step<Images> {
     private SpeedData blurFile(SpeedData one) {
         System.out.println("Blurring file, speed =  " + one.speed);
 
-        int[][] img = one.pd;
+        int[][] img = one.matrix;
         int[][] imge = one.pde;
 
         Pair<int[][], int[][]> imgs = blr2(img, imge, s1dn1, s1dn2, s1dn1st, s1dn2st, gv1);
@@ -184,8 +183,8 @@ public class Blur extends Step<Images> {
     }
 
     @SuppressWarnings("unused")
-    public static Step1Result loadData(final String prefix, final String inputFolder, final int startStep, final int stepsNumber, final int maxSpeed) {
-        Step1Result data = new Step1Result();
+    public static Images loadData(final String prefix, final String inputFolder, final int startStep, final int stepsNumber, final int maxSpeed) {
+        Images data = new Images();
 
         System.out.println("Reading data for blur");
 
