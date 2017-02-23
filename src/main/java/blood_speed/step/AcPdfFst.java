@@ -4,7 +4,7 @@ import blood_speed.StepRunner;
 import blood_speed.helper.BmpHelper;
 import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MatrixHelper;
-import blood_speed.step.data.Images;
+import blood_speed.step.data.SpeedImages;
 import blood_speed.step.data.SpeedData;
 
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 
-public class AcPdfFst extends Step<Images> {
+public class AcPdfFst extends Step<SpeedImages> {
     private final int[][] circuitImage;
     private final String outputFolder;
     private final int numberOfDigitsInFileNames;
@@ -64,7 +64,7 @@ public class AcPdfFst extends Step<Images> {
 
 
     @Override
-    public Images process() {
+    public SpeedImages process() {
         System.out.println("Step1: getV7_ac_pdf_fst started, minDv1=" + startStep + "/" + stepsNumber);
 
         List<ForkJoinTask<SpeedData>> tasks = new ArrayList<>();
@@ -76,7 +76,7 @@ public class AcPdfFst extends Step<Images> {
             tasks.add(executor.submit(() -> oneStep(step)));
         }
 
-        Images result = new Images();
+        SpeedImages result = new SpeedImages();
         for(ForkJoinTask<SpeedData> task : tasks) {
             result.add(task.join());
         }

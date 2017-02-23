@@ -3,7 +3,7 @@ package blood_speed.step;
 import blood_speed.helper.BmpHelper;
 import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MatrixHelper;
-import blood_speed.step.data.Images;
+import blood_speed.step.data.SpeedImages;
 import blood_speed.step.data.SpeedData;
 
 import java.util.List;
@@ -14,10 +14,10 @@ public class Speed extends Step<int[][]> {
     private final String outputNameClearFile;
     private final String outputNameClearImage;
     private final String outputNameImageFile;
-    private final Images images;
+    private final SpeedImages images;
     private final int resultCoefficient;
 
-    public Speed(final String outputFolder, String outputNameClearFile, String outputNameClearImage, String outputNameImageFile, final Images images, final int resultCoefficient) {
+    public Speed(final String outputFolder, String outputNameClearFile, String outputNameClearImage, String outputNameImageFile, final SpeedImages images, final int resultCoefficient) {
         this.outputNameClearFile = outputNameClearFile;
         this.outputNameClearImage = outputNameClearImage;
         this.outputNameImageFile = outputNameImageFile;
@@ -62,9 +62,9 @@ public class Speed extends Step<int[][]> {
     }
 
     @SuppressWarnings("unused")
-    public static Images loadData(final String dir, final String prefix, final int stepsNumber, final int startStep, final int maxSpeed) {
+    public static SpeedImages loadData(final String dir, final String prefix, final int stepsNumber, final int startStep, final int maxSpeed) {
         System.out.println("Reading blur images");
-        Images images = new Images();
+        SpeedImages images = new SpeedImages();
 
         for (int i = startStep; i <= stepsNumber; i++) {
 

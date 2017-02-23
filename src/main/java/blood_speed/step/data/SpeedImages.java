@@ -5,20 +5,26 @@ import blood_speed.helper.FunctionHelper;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Images {
+public class SpeedImages {
+    private List<SpeedData> imagesList;
     private int cols;
-    private List<int[][]> imagesList;
     private int rows;
 
-    public Images() {
+    public SpeedImages(List<SpeedData> images) {
+        this.imagesList = images;
+        this.cols = FunctionHelper.cols(images.get(0).matrix);
+        this.rows = FunctionHelper.rows(images.get(0).matrix);
+    }
+
+    public SpeedImages() {
         imagesList = new ArrayList<>();
         cols = 0;
         rows = 0;
     }
 
-    public void add(final int[][] data) {
-        int cols = FunctionHelper.cols(data);
-        int rows = FunctionHelper.rows(data);
+    public void add(final SpeedData data) {
+        int cols = FunctionHelper.cols(data.matrix);
+        int rows = FunctionHelper.rows(data.matrix);
 
         if (this.cols == 0 && this.rows == 0) {
             this.cols = cols;
@@ -40,7 +46,7 @@ public class Images {
         return rows;
     }
 
-    public List<int[][]> getImagesList() {
+    public List<SpeedData> getImagesList() {
         return imagesList;
     }
 }

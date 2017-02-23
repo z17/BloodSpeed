@@ -1,7 +1,7 @@
 package blood_speed;
 
 import blood_speed.step.*;
-import blood_speed.step.data.Images;
+`import blood_speed.step.data.SpeedImages;
 
 public final class StepRunner {
 
@@ -21,7 +21,7 @@ public final class StepRunner {
             throw new RuntimeException("Not enough parameters to run steps");
         }
 
-        Step<Images> step1 = new AcPdfFst(
+        Step<SpeedImages> step1 = new AcPdfFst(
                 data.numberOfDigitsInStep1FileNames,
                 data.step1InputFolder,
                 data.step1OutputFolder,
@@ -35,9 +35,9 @@ public final class StepRunner {
                 data.dr,
                 data.dt
         );
-        Images step1Result = step1.process();
+        SpeedImages step1Result = step1.process();
 
-        Step<Images> step2 = new Blur(
+        Step<SpeedImages> step2 = new Blur(
                 step1Result,
                 data.blurStepOutputFolder,
                 data.filePrefix,
@@ -48,7 +48,7 @@ public final class StepRunner {
                 data.s2dn1,
                 data.s2dn2
         );
-        Images blurImages = step2.process();
+        SpeedImages blurImages = step2.process();
 
         Step<int[][]> step3 = new Speed(
                 data.step3OutputFolder,
@@ -65,9 +65,9 @@ public final class StepRunner {
         return middleSpeed.process();
 
 //        чтобы запустить чтение с диска
-//        AcPdfFst.Step1Result step1Result = Blur.readData(prefix, step1FolderOutput, minNdv1, ndv);
+//        AcPdfFst.Step1Result step1Result = Blur.loadData(prefix, step1FolderOutput, minNdv1, ndv);
 //        Чтобы запустить с чтением с диска
-//        Speed.Images images = Speed.loadBlurImages(step2FolderOutput, prefix + "sm", ndv, minNdv1);
+//        Speed.SpeedImages images = Speed.loadBlurImages(step2FolderOutput, prefix + "sm", ndv, minNdv1);
 //        Speed speed = new Speed( step3FolderOutput, images);
 
     }

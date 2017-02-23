@@ -49,12 +49,12 @@ public final class BmpHelper {
             throw new RuntimeException(e);
         }
     }
-    @SuppressWarnings("ConstantConditions")
+
     public static int[][] readBmp(final String name) {
         try {
             BufferedImage read = ImageIO.read(new File(name));
-            int[] opt = null;
-            int[] pixels = read.getRaster().getPixels(0, 0, read.getWidth(), read.getHeight(), opt);
+            int[] nullArray = null;
+            int[] pixels = read.getRaster().getPixels(0, 0, read.getWidth(), read.getHeight(), nullArray);
             int[][] result = new int[read.getHeight()][ read.getWidth()];
             for (int i = 0; i < read.getHeight(); i++ ) {
                 for (int k = 0; k < read.getWidth(); k++) {
@@ -64,7 +64,28 @@ public final class BmpHelper {
             }
             return result;
         } catch (IOException e) {
+            throw new RuntimeException("Cant read file " + name, e);
+        }
+    }
+
+    public static int[][] readBmpColors(final String name) {
+        try {
+            BufferedImage image = ImageIO.read(new File(name));
+            int[] nullArray = null;
+            final int[][] result = new int[image.getHeight()][image.getWidth()];
+
+            int[] pixels = image.getData().getPixels(0, 0, image.getWidth(), image.getHeight(), nullArray);
+
+            for (int i = 0; i < pixels.length; i = i + 3) {
+                int positionNumber = i / 3;
+                int row = positionNumber / image.getWidth();
+                int col = positionNumber % image.getWidth();
+                result[row][col] = (pixels[i] +  pixels[i + 1] +  pixels[i + 2]) / 3;
+            }
+            return result;
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
+
 }

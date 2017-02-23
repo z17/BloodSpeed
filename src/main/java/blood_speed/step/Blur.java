@@ -4,7 +4,7 @@ import blood_speed.StepRunner;
 import blood_speed.helper.BmpHelper;
 import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MatrixHelper;
-import blood_speed.step.data.Images;
+import blood_speed.step.data.SpeedImages;
 import blood_speed.step.data.SpeedData;
 import javafx.util.Pair;
 
@@ -13,9 +13,9 @@ import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 
-public class Blur extends Step<Images> {
+public class Blur extends Step<SpeedImages> {
     private final String outputFolder;
-    private final Images inputData;
+    private final SpeedImages inputData;
     private final String prefix;
     private final int s1dn1;
     private final int s1dn2;
@@ -28,7 +28,7 @@ public class Blur extends Step<Images> {
     private double[][] gv2;
 
     public Blur(
-            final Images inputData,
+            final SpeedImages inputData,
             final String outputFolder,
             final String prefix,
             final int s1dn1,
@@ -51,7 +51,7 @@ public class Blur extends Step<Images> {
         this.s2dn2 = s2dn2;
     }
 
-    public Images process() {
+    public SpeedImages process() {
         System.out.println("Blurring started");
 
         gv1 = new double[s1dn1 + 1][s1dn2 + 1];
@@ -77,7 +77,7 @@ public class Blur extends Step<Images> {
             tasks.add(executor.submit(() -> blurFile(one)));
         }
 
-        Images result = new Images();
+        SpeedImages result = new SpeedImages();
         for (ForkJoinTask<SpeedData> task : tasks) {
             result.add(task.join());
         }
@@ -183,8 +183,8 @@ public class Blur extends Step<Images> {
     }
 
     @SuppressWarnings("unused")
-    public static Images loadData(final String prefix, final String inputFolder, final int startStep, final int stepsNumber, final int maxSpeed) {
-        Images data = new Images();
+    public static SpeedImages loadData(final String prefix, final String inputFolder, final int startStep, final int stepsNumber, final int maxSpeed) {
+        SpeedImages data = new SpeedImages();
 
         System.out.println("Reading data for blur");
 
