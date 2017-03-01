@@ -1,7 +1,7 @@
 package blood_speed;
 
 import blood_speed.step.*;
-`import blood_speed.step.data.SpeedImages;
+import blood_speed.step.data.SpeedImages;
 
 public final class StepRunner {
 

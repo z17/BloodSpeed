@@ -4,6 +4,8 @@ import blood_speed.helper.BmpHelper;
 import blood_speed.helper.FunctionHelper;
 import blood_speed.step.data.Images;
 
+import java.util.Arrays;
+
 public class BackgroundSelector extends Step<Images> {
     private final Images images;
     private final String outputFolder;
@@ -16,65 +18,79 @@ public class BackgroundSelector extends Step<Images> {
 
     @Override
     public Images process() {
-        Images resultImages = new Images();
-        // вычисляем сумму всех изображений
-        int sum = 0;
-        int currentNumber = 0;
-
+        // сумма всех изображений
+        int[][] sumImage = new int[images.getRows()][images.getCols()];
         for (int[][] matrix : images.getImagesList()) {
             for (int i = 0; i < images.getRows(); i++) {
                 for (int j = 0; j < images.getCols(); j++) {
-                    sum += matrix[i][j];
+                    sumImage[i][j] += matrix[i][j];
                 }
             }
         }
 
-        // среднее значения всех изображений
-        int middleImagesValue = sum / (images.getRows() * images.getCols() * images.getImagesList().size());
+        // максимум и минимум суммы
+        int min = sumImage[0][0];
+        int max = sumImage[0][0];
+        for (int i = 0; i < images.getRows(); i++) {
+            for (int j = 0; j < images.getCols(); j++) {
+                if (min > sumImage[i][j]) {
+                    min = sumImage[i][j];
+                }
+                if (max < sumImage[i][j]) {
+                    max = sumImage[i][j];
+                }
+            }
+        }
 
-        // вычисляем изображения +  среднее значение всех изображений и сумму всех таких изображений
-        int[][] sumMiddleImage = new int[images.getRows()][images.getCols()];
-        long sumAllMiddleImages = 0;
+        // формируем суммированное изображение
+        int sum = 0;
+        for (int i = 0; i < images.getRows(); i++) {
+            for (int j = 0; j < images.getCols(); j++) {
+                double coefficient = ((double) max - min) / 256;
+                sumImage[i][j] = (int) Math.round((sumImage[i][j] - min) / coefficient);
+                sum += sumImage[i][j];
+            }
+        }
+        int middleSumImage = (int) (sum / (images.getRows() * images.getCols() * 1.56));
+        BmpHelper.writeBmp(outputFolder + "/sum-image.bmp", sumImage);
+
+        // формируем контур капилляра
+        int[][] circuitImage = new int[images.getRows()][images.getCols()];
+        for (int i = 0; i < images.getRows(); i++) {
+            for (int j = 0; j < images.getCols(); j++) {
+                circuitImage[i][j] = sumImage[i][j] > middleSumImage ? 255 : 0;
+            }
+        }
+        BmpHelper.writeBmp(outputFolder + "/circuit-image.bmp", circuitImage);
+
+
+        // вычитаем миинимум каждой точки из всех изображений
+        int[][] minValues = new int[images.getRows()][];
+        int[][] first = images.getImagesList().get(0);
+        for (int i = 0; i < first.length; i++) {
+            minValues[i] = Arrays.copyOf(first[i], first[i].length);
+        }
+
         for (int[][] matrix : images.getImagesList()) {
-            // изображение + среднее значение всех изображений
+            for (int i = 0; i < images.getRows(); i++) {
+                for (int j = 0; j < images.getCols(); j++) {
+                    if (minValues[i][j] > matrix[i][j]) {
+                        minValues[i][j] = matrix[i][j];
+                    }
+                }
+            }
+        }
+
+        int currentNumber = 0;
+        for (int[][] matrix : images.getImagesList()) {
             int[][] result = new int[images.getRows()][images.getCols()];
             for (int i = 0; i < images.getRows(); i++) {
                 for (int j = 0; j < images.getCols(); j++) {
-                    int diff = (int) ((matrix[i][j] + middleImagesValue) * 0.7);
-                    if (diff > 255) {
-                        diff = 255;
-                    }
-                    result[i][j] = diff;
-                    sumMiddleImage[i][j] += diff;
-                    sumAllMiddleImages += diff;
+                    result[i][j] = (matrix[i][j] - minValues[i][j]) * 2;
                 }
             }
-            BmpHelper.writeBmp("data/backgroundSelector/background_" + currentNumber + ".bmp", result);
+            BmpHelper.writeBmp(outputFolder + "/background_" + currentNumber + ".bmp", result);
             currentNumber++;
-        }
-
-        // вычисляем среднее значение всех изображений и контур
-        long middleValue = (long) (sumAllMiddleImages / (images.getCols() * images.getRows() * images.getImagesList().size()) / 1.2);
-        int[][] circuit = new int[images.getRows()][images.getCols()];
-        int[][] middleImage = new int[images.getRows()][images.getCols()];
-        for (int i = 0; i < images.getRows(); i++) {
-            for (int j = 0; j < images.getCols(); j++) {
-                middleImage[i][j] = sumMiddleImage[i][j] / images.getImagesList().size();
-                if (middleImage[i][j] > middleValue) {
-                    circuit[i][j] = 255;
-                } else {
-                    circuit[i][j] = 0;
-                }
-            }
-        }
-
-        BmpHelper.writeBmp("data/backgroundSelector/00_middleImage.bmp", middleImage);
-        BmpHelper.writeBmp("data/backgroundSelector/00_circuit.bmp", circuit);
-
-        for (int i = 0; i < images.getRows(); i++) {
-            for (int j = 0; j < images.getCols(); j++) {
-
-            }
         }
         return null;
     }
@@ -82,7 +98,7 @@ public class BackgroundSelector extends Step<Images> {
 
     public static Images loadData(final String inputFolder) {
         final Images result = new Images();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 300; i++) {
             int[][] bmp = BmpHelper.readBmpColors(inputFolder + "img1_00000_" + String.format("%05d", i) + ".bmp");
             result.add(bmp);
         }
@@ -91,7 +107,7 @@ public class BackgroundSelector extends Step<Images> {
 
     public static void main(String[] args) {
         Images images = loadData("data/test2/out2b/");
-        BackgroundSelector backgroundSelector = new BackgroundSelector(images, "data/backgroundSelector/");
+        BackgroundSelector backgroundSelector = new BackgroundSelector(images, "data/backgroundSelector_v2/");
         backgroundSelector.process();
     }
 }
