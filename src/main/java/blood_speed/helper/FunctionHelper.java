@@ -42,4 +42,12 @@ public final class FunctionHelper {
             throw new RuntimeException(e);
         }
     }
+
+    public static void checkOutputFolders(final String output) {
+        try {
+            Files.createDirectories(Paths.get(output));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

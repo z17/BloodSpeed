@@ -1,6 +1,7 @@
 package blood_speed.step;
 
 import blood_speed.helper.BmpHelper;
+import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MathHelper;
 import blood_speed.helper.MatrixHelper;
 import blood_speed.step.data.Images;
@@ -14,10 +15,13 @@ import java.util.*;
 public class VectorSelector2 extends Step<Images> {
     private final Images data;
     private final int[][] circuit;
+    private final String outputFolder;
 
-    public VectorSelector2(Images data, int[][] circuit) {
+    public VectorSelector2(Images data, int[][] circuit, String outputFolder) {
         this.data = data;
         this.circuit = circuit;
+        this.outputFolder = outputFolder;
+        FunctionHelper.checkOutputFolders(outputFolder);
     }
 
     private boolean inCircle(int centerX, int centerY, int x, int y, double r) {
@@ -30,14 +34,123 @@ public class VectorSelector2 extends Step<Images> {
         final int maxSpeed = 15;
 
         // выбираем стартовую точку
-        Point currentPoint = new Point(47, 143);
-        Direction currentDirection = Direction.TOP;
+        final Point start = new Point(51, 203);
+//        final Point start = new Point(51, 203);
+//        Direction currentDirection = Direction.TOP;
 
+        final List<Point> centralPoints = getCentralPoints(start, regionSize, maxSpeed);
+
+        final int[][] pointsImage = MatrixHelper.copyMatrix(circuit);
+
+        for (int i = 0; i < centralPoints.size() - 1; i++) {
+            final Point startPoint = centralPoints.get(i);
+            final Point finishPoint = centralPoints.get(i + 1);
+
+            Set<Point> pointsSet = new HashSet<>();
+            Point currentPoint = startPoint;
+            boolean flagStop = false;
+            while (!flagStop) {
+                Direction direction = Direction.getByPoints(currentPoint, finishPoint);
+                Direction[] towardsDirections = direction.getTowardsDirections();
+
+                double minDifferent = 0;
+                Point nextPoint = null;
+                for (Direction d : towardsDirections) {
+                    Point oneOfNextPoint = d.nextPointFunction.apply(currentPoint);
+                    if (oneOfNextPoint.equals(finishPoint)) {
+                        flagStop = true;
+                    }
+
+                    if (circuit[oneOfNextPoint.y][oneOfNextPoint.x] != 0) {
+                        continue;
+                    }
+                    Distances borderDistance = findBorderDistance(oneOfNextPoint.x, oneOfNextPoint.y);
+                    double minDirection = borderDistance.getMinDirectionValue();
+                    if (minDirection > minDifferent  && !pointsSet.contains(oneOfNextPoint)) {
+                        minDifferent = minDirection;
+//                    nextDirection = d;
+                        nextPoint = oneOfNextPoint;
+                    }
+                }
+                if (nextPoint == null) {
+                    break;
+                }
+                currentPoint = nextPoint;
+                pointsSet.add(currentPoint);
+                pointsImage[currentPoint.y][currentPoint.x] = 187;
+            }
+
+        }
+
+
+        /// ================= first version
+//        boolean canStop = true;
+//        List<Point> currentCentralPoints = centralPoints;
+//        while (canStop) {
+//            boolean wasUpdated = false;
+//
+//            List<Point> tempPoints = new ArrayList<>();
+//            for (int i = 0; i < currentCentralPoints.size() - 1; i++) {
+//                final Point firstPoint = currentCentralPoints.get(i);
+//                final Point secondPoint = currentCentralPoints.get(i + 1);
+//                    final double length = MathHelper.distance(firstPoint, secondPoint);
+//                    tempPoints.add(firstPoint);
+//                    if (length > Math.sqrt(2)) {
+//                        final Point newPoint = getBestMiddlePoint(firstPoint, secondPoint);
+//                        if (newPoint != null) {
+//                            wasUpdated = true;
+//                            tempPoints.add(newPoint);
+//                        }
+//                    }
+//                    if (!wasUpdated) {
+//                        canStop = false;
+//                    }
+//            }
+//            tempPoints.add(currentCentralPoints.get(currentCentralPoints.size() - 1));
+//            currentCentralPoints = tempPoints;
+//        }
+//
+//        for (Point p : currentCentralPoints) {
+//            pointsImage[p.y][p.x] = 127;
+//        }
+
+        BmpHelper.writeBmp(outputFolder + "/points-append.bmp", pointsImage);
+
+        System.exit(1);
+        return null;
+    }
+
+    private Point getBestMiddlePoint(final Point fistPoint, final Point secondPoint) {
+        // добавляем промежуточную точку, выбирая её с радиусом 1/2 расстояния между текуей и слуд
+        double halfDistance = MathHelper.distance(fistPoint, secondPoint) / 2;
+        Set<Point> halfCirclePoints = getCirclePoints(fistPoint, halfDistance);
+        List<Point> halfCandidates = getCandidates(halfCirclePoints, MathHelper.middlePoint(fistPoint, secondPoint), halfDistance, 25);
+
+        double minHalfDifferent = 0;
+        Point nextHalfPoint = null;
+        for (Point oneOfNextPoint : halfCandidates) {
+            if (circuit[oneOfNextPoint.y][oneOfNextPoint.x] != 0) {
+                continue;
+            }
+
+            Distances borderDistance = findBorderDistance(oneOfNextPoint.x, oneOfNextPoint.y);
+//          double currentDiff = d.perpendicularDiffFunction.apply(borderDistance);
+            double minDirection = borderDistance.getMinDirectionValue();
+            if (minDirection > minHalfDifferent) {
+                minHalfDifferent = minDirection;
+                nextHalfPoint = oneOfNextPoint;
+            }
+        }
+        return nextHalfPoint;
+    }
+
+    private List<Point> getCentralPoints(final Point startPoint, final int regionSize, final int maxSpeed) {
+        final int[][] pointsImage = MatrixHelper.copyMatrix(circuit);
+        final List<Point> points = new ArrayList<>();
         int n = 0;
-        while (currentPoint != null) {
 
-            circuit[currentPoint.y][currentPoint.x] = 127;
-
+        Point currentPoint = startPoint;
+        while (true) {
             int[][] dissynchronizationFactor = findDirection(currentPoint, regionSize, maxSpeed);
             Point minDissynchronizationPoint = getMinDissynchronizationPoint(dissynchronizationFactor, currentPoint, maxSpeed);
 
@@ -47,7 +160,6 @@ public class VectorSelector2 extends Step<Images> {
             Set<Point> circle = getCirclePoints(currentPoint, r);
 
             List<Point> candidates = getCandidates(circle, minDissynchronizationPoint, r, 35);
-
 
             double minDifferent = 0;
             Point nextPoint = null;
@@ -69,51 +181,30 @@ public class VectorSelector2 extends Step<Images> {
                 break;
             }
 
-            Direction nextDirection = Direction.getByPoints(currentPoint, nextPoint);
+//            Direction nextDirection = Direction.getByPoints(currentPoint, nextPoint);
+//            System.err.println(nextDirection);
 
-            System.err.println(nextDirection);
+            // добавляем промежуточную точку, выбирая её с радиусом 1/2 расстояния между текуей и след
+            Point nextHalfPoint = getBestMiddlePoint(currentPoint, nextPoint);
 
-
-            // добавляем промежуточную точку, выбирая её с радиусом 1/2 расстояния между текуей и слуд
-            double halfDistance = MathHelper.distance(currentPoint, nextPoint) / 2;
-            Set<Point> halfCirclePoints = getCirclePoints(currentPoint, halfDistance);
-            List<Point> halfCandidates = getCandidates(halfCirclePoints, MathHelper.middlePoint(currentPoint, nextPoint), r, 20);
-
-            double minHalfDifferent = 0;
-            Point nextHalfPoint = null;
-            for (Point oneOfNextPoint : halfCandidates ) {
-                if (circuit[oneOfNextPoint.y][oneOfNextPoint.x] != 0) {
-                    continue;
-                }
-
-                Distances borderDistance = findBorderDistance(oneOfNextPoint.x, oneOfNextPoint.y);
-//          double currentDiff = d.perpendicularDiffFunction.apply(borderDistance);
-                double minDirection = borderDistance.getMinDirectionValue();
-                if (minDirection > minHalfDifferent) {
-                    minHalfDifferent = minDirection;
-                    nextHalfPoint = oneOfNextPoint;
-                }
-            }
             if (nextHalfPoint != null) {
-                circuit[nextHalfPoint.y][nextHalfPoint.x] = 50;
+                pointsImage[nextHalfPoint.y][nextHalfPoint.x] = 50;
             }
 
+            pointsImage[currentPoint.y][currentPoint.x] = 127;
+            points.add(currentPoint);
+            points.add(nextHalfPoint);
 
             currentPoint = nextPoint;
-            currentDirection = nextDirection;
-
-            if (n > 21) {
+//            currentDirection = nextDirection;
+            if (n > 26) {
                 break;
             }
             n++;
         }
 
-
-        BmpHelper.writeBmp("data/text.bmp", circuit);
-
-        System.exit(1);
-
-        return null;
+        BmpHelper.writeBmp(outputFolder + "/points.bmp", pointsImage);
+        return points;
     }
 
     private Point getMinDissynchronizationPoint(final int[][] dissynchronizationFactor, final Point currentPoint, final int maxSpeed) {
@@ -168,8 +259,8 @@ public class VectorSelector2 extends Step<Images> {
             }
         }
 
-        BmpHelper.writeBmp("data/dissynchronizationFactor.bmp", dissynchronizationFactor);
-        MatrixHelper.writeMatrix("data/dissynchronizationFactor.txt", dissynchronizationFactor);
+//        BmpHelper.writeBmp("data/dissynchronizationFactor.bmp", dissynchronizationFactor);
+//        MatrixHelper.writeMatrix("data/dissynchronizationFactor.txt", dissynchronizationFactor);
 
         return dissynchronizationFactor;
     }
@@ -268,13 +359,15 @@ public class VectorSelector2 extends Step<Images> {
 
     public static void main(String[] args) {
         Images images = loadData("data/backgroundSelector_v2/");
-        int[][] circuit = BmpHelper.readBmp("data/backgroundSelector_v2/circuit-image.bmp");
-        VectorSelector2 selector = new VectorSelector2(images, circuit);
+        int[][] circuit = BmpHelper.readBmp("data/backgroundSelector_v2/circuit-image_photoshop.bmp");
+//        int[][] circuit = BmpHelper.readBmp("data/backgroundSelector_v2/circuit-image.bmp");
+        BmpHelper.writeBmp("asdasd.bmp", circuit);
+        VectorSelector2 selector = new VectorSelector2(images, circuit, "data/middle-line/");
         selector.process();
     }
 
 
-    private Set<Point> getCirclePoints(final  Point point, final  double r) {
+    private Set<Point> getCirclePoints(final Point point, final double r) {
         Set<Point> circle = new HashSet<>();
         for (int j = (int) Math.round(point.x - r); j < point.x + r; j++) {
             double a = 1;
@@ -302,7 +395,7 @@ public class VectorSelector2 extends Step<Images> {
         return circle;
     }
 
-    private List<Point> getCandidates(final Collection<Point> circle, final Point point, final  double r, double angleLimit) {
+    private List<Point> getCandidates(final Collection<Point> circle, final Point point, final double r, double angleLimit) {
         List<Point> candidates = new ArrayList<>();
         for (Point c : circle) {
             double a = Math.sqrt(Math.pow(c.x - point.x, 2) + Math.pow(c.y - point.y, 2));

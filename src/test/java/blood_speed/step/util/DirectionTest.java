@@ -44,6 +44,19 @@ public class DirectionTest {
 
         Point next = new Point(4, 11);
 
-        assertThat(Direction.getByPoints(current, next), is(Direction.BOTTOM));
+        assertThat(Direction.getByPoints(current, next), is(Direction.BOTTOM_LEFT));
+    }
+
+
+    @Test
+    public void getByPointBottomLeft2() throws Exception {
+
+        Point current = new Point(33, 29);
+
+        Point next = new Point(26  , 36);
+
+        Direction byPoints = Direction.getByPoints(current, next);
+        System.out.println(byPoints);
+        assertThat(Direction.getByPoints(current, next), is(Direction.BOTTOM_LEFT));
     }
 }

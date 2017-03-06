@@ -32,7 +32,7 @@ public enum Direction {
             d -> Math.abs(d.getTopLeft() - d.getBottomRight()),
             d -> (Math.abs(d.getTopLeft() - d.getBottomRight()) + 0.1 * Math.abs(d.getLeft() - d.getRight()) + 0.1 * Math.abs(d.getBottom() - d.getTop())));
 
-    private final Function<Point, Point> nextPointFunction;
+    public final Function<Point, Point> nextPointFunction;
     private final Function<Distances, Double> perpendicularDiffFunction;
     private final Function<Distances, Double> perpendicularDiffFunction2;
 
@@ -90,13 +90,13 @@ public enum Direction {
         // нужно не забывать, что по оси y  - увеличение значения ведёт вниз, а не вверх
 
         // дистанция до диагонали y = x;
-        double distance0 = MathHelper.distancePointToLine(1, -1, 2*currentPoint.x, nextPoint.x, nextPoint.y);
+        double distance0 = MathHelper.distancePointToLine(1, 1, -(currentPoint.x + currentPoint.y), nextPoint.x, nextPoint.y);
 
         // дистанция до вертикали x = nextPoint.x
         double distance1 = MathHelper.distancePointToLine(1, 0, -currentPoint.x, nextPoint.x, nextPoint.y);
 
         // дистанция до диагонали y = -x + nexPoint.x
-        double distance2 = MathHelper.distancePointToLine(1, -1, -currentPoint.x, nextPoint.x, nextPoint.y);
+        double distance2 = MathHelper.distancePointToLine(1, -1, -(currentPoint.x - currentPoint.y), nextPoint.x, nextPoint.y);
 
         // дистанция до горизонтали y = nexPoint.y
         double distance3 = MathHelper.distancePointToLine(0, 1, -currentPoint.y, nextPoint.x, nextPoint.y);

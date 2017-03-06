@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -66,11 +67,11 @@ public final class MatrixHelper {
         }
     }
 
-    public static <T extends Number> void  writeMatrix(final String name, final List<T> matrix) {
+    public static <T extends Number> void writeMatrix(final String name, final List<T> matrix) {
         List<String> lines = new ArrayList<>();
         StringBuilder stringBuilder = new StringBuilder();
         for (Number m : matrix) {
-                stringBuilder.append(String.format(Locale.ROOT, "%10.5f", m.doubleValue()));
+            stringBuilder.append(String.format(Locale.ROOT, "%10.5f", m.doubleValue()));
         }
 
         lines.add(stringBuilder.toString());
@@ -79,5 +80,13 @@ public final class MatrixHelper {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static int[][] copyMatrix(final int[][] matrix) {
+        int[][] result = new int[matrix.length][];
+        for (int i = 0; i < matrix.length; i++) {
+            result[i] = Arrays.copyOf(matrix[i], matrix[i].length);
+        }
+        return result;
     }
 }
