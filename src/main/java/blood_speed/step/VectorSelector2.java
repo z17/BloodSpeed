@@ -1,14 +1,13 @@
 package blood_speed.step;
 
 import blood_speed.helper.BmpHelper;
-import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MatrixHelper;
 import blood_speed.step.data.Images;
 import blood_speed.step.data.Point;
-import javafx.util.Pair;
+import blood_speed.step.util.Direction;
+import blood_speed.step.util.Distances;
 
 import java.util.*;
-import java.util.function.Function;
 
 @SuppressWarnings({"SameParameterValue", "Duplicates"})
 public class VectorSelector2 extends Step<Images> {
@@ -31,9 +30,12 @@ public class VectorSelector2 extends Step<Images> {
 
         // выбираем стартовую точку
         Point currentPoint = new Point(47, 143);
+        Direction currentDirection = Direction.TOP;
 
         int n = 0;
-        while (true) {
+        while (currentPoint != null) {
+
+            circuit[currentPoint.y][currentPoint.x] = 127;
 
             int[][] dissynchronizationFactor = findDirection(currentPoint, regionSize, maxSpeed);
             Point minDissynchronizationPoint = getMinDissynchronizationPoint(dissynchronizationFactor, currentPoint, maxSpeed);
@@ -69,13 +71,17 @@ public class VectorSelector2 extends Step<Images> {
             for (Point c : circle) {
                 double a = Math.sqrt(Math.pow(c.x - minDissynchronizationPoint.x, 2) + Math.pow(c.y - minDissynchronizationPoint.y, 2));
                 double angle = Math.toDegrees(2 * Math.asin(a / 2 / r));
-                if (angle > 30 || Double.isNaN(angle)) {
+                if (angle > 35 || Double.isNaN(angle)) {
                     continue;
                 }
-                candidates.add(c);
+//                Direction tempDirection = Direction.getByPoints(currentPoint, c);
+//                if (!Arrays.asList(currentDirection.getOppositeDirection()).contains(tempDirection)) {
+                    candidates.add(c);
+//                }
             }
 
             double minDifferent = 0;
+            Point nextPoint = null;
             for (Point oneOfNextPoint : candidates) {
                 if (circuit[oneOfNextPoint.y][oneOfNextPoint.x] != 0) {
                     continue;
@@ -86,13 +92,21 @@ public class VectorSelector2 extends Step<Images> {
                 double minDirection = borderDistance.getMinDirectionValue();
                 if (minDirection > minDifferent) {
                     minDifferent = minDirection;
-                    currentPoint = oneOfNextPoint;
+                    nextPoint = oneOfNextPoint;
                 }
             }
 
-            circuit[currentPoint.y][currentPoint.x] = 127;
+            if (nextPoint == null) {
+                break;
+            }
 
-            if (n > 30) {
+            Direction nextDirection = Direction.getByPoints(currentPoint, nextPoint);
+
+            System.err.println(nextDirection);
+            currentPoint = nextPoint;
+            currentDirection = nextDirection;
+
+            if (n > 21) {
                 break;
             }
             n++;
@@ -103,76 +117,7 @@ public class VectorSelector2 extends Step<Images> {
 
         System.exit(1);
 
-//
-//        Point
-//
-//        System.exit(1);
-//
-//        Direction nextDirection = Direction.TOP;
-//
-//        int n = 0;
-//        List<Point> middles = new ArrayList<>();
-//        while (nextDirection != null) {
-//            try {
-//                middles.add(currentPoint);
-//                final Point currentPoint = currentPoint;
-//                final Direction currentDirection = nextDirection;
-//
-//                Direction[] towardsDirections = currentDirection.getTowardsDirections();
-//
-//                nextDirection = null;
-//                currentPoint = null;
-//
-//                double minDifferent = 0;
-//                for (Direction d : towardsDirections) {
-//                    Point oneOfNextPoint = d.nextPointFunction.apply(currentPoint);
-//                    if (circuit[oneOfNextPoint.y][oneOfNextPoint.x] != 0) {
-//                        continue;
-//                    }
-//                    Distances borderDistance = findBorderDistance(oneOfNextPoint.x, oneOfNextPoint.y);
-////                    double currentDiff = d.perpendicularDiffFunction.apply(borderDistance);
-//                    double minDirection = borderDistance.getMinDirectionValue();
-//                    if (minDirection > minDifferent && !middles.contains(oneOfNextPoint)) {
-//                        minDifferent = minDirection;
-//                        nextDirection = d;
-//                        currentPoint = oneOfNextPoint;
-//                    }
-//                }
-//            } catch (RuntimeException e) {
-//                break;
-//            }
-//
-//            if (n > 300) {
-//                break;
-//            }
-//            n++;
-//
-//        }
-//
-//
-//        int[][] trackImage = new int[data.getRows()][data.getCols()];
-//        for (int i = 0; i < data.getRows(); i++) {
-//            for (int j = 0; j < data.getCols(); j++) {
-//                if (circuit[i][j] == 0) {
-//                    trackImage[i][j] = 127;
-//
-//                } else {
-//                    trackImage[i][j] = 255;
-//                }
-//            }
-//        }
-//        int currentColor = 0;
-//        for (Point p : middles) {
-//            trackImage[p.y][p.x] = currentColor;
-//            currentColor += 20;
-//            if (currentColor > 254) {
-//                currentColor = 0;
-//            }
-//        }
-//
-//        BmpHelper.writeBmp("data/test-result5-2.bmp", trackImage);
         return null;
-
     }
 
     private Point getMinDissynchronizationPoint(final int[][] dissynchronizationFactor, final Point currentPoint, final int maxSpeed) {
@@ -198,7 +143,7 @@ public class VectorSelector2 extends Step<Images> {
         int[][] dissynchronizationFactor = new int[2 * (maxSpeed + 1)][2 * (maxSpeed + 1)];
         for (int i = point.y - maxSpeed; i < point.y + maxSpeed; i++) {
             for (int j = point.x - maxSpeed; j < point.x + maxSpeed; j++) {
-                if (i < pointRegionSize || j < pointRegionSize || i > data.getRows() - pointRegionSize || j > data.getCols() - pointRegionSize) {
+                if (i < pointRegionSize || j < pointRegionSize || i > data.getRows() - pointRegionSize - 1 || j > data.getCols() - pointRegionSize - 1) {
                     // если проверяемая точка стоит на границе изображения
                     continue;
                 }
@@ -332,132 +277,5 @@ public class VectorSelector2 extends Step<Images> {
         selector.process();
     }
 
-    private static final class Distances {
-        final Pair<Direction, Double> top;
-        final Pair<Direction, Double> bottom;
-        final Pair<Direction, Double> right;
-        final Pair<Direction, Double> left;
-
-        final Pair<Direction, Double> topRight;
-        final Pair<Direction, Double> topLeft;
-        final Pair<Direction, Double> bottomRight;
-        final Pair<Direction, Double> bottomLeft;
-
-        public Distances(int top, int bottom, int right, int left, double topRight, double topLeft, double bottomRight, double bottomLeft) {
-            this.top = new Pair<>(Direction.TOP, (double) top);
-            this.bottom = new Pair<>(Direction.BOTTOM, (double) bottom);
-            this.right = new Pair<>(Direction.RIGHT, (double) right);
-            this.left = new Pair<>(Direction.LEFT, (double) left);
-            this.topRight = new Pair<>(Direction.TOP_RIGHT, topRight);
-            this.topLeft = new Pair<>(Direction.TOP_LEFT, topLeft);
-            this.bottomRight = new Pair<>(Direction.BOTTOM_RIGHT, bottomRight);
-            this.bottomLeft = new Pair<>(Direction.BOTTOM_LEFT, bottomLeft);
-        }
-
-        public Double getMinDirectionValue() {
-            List<Pair<Direction, Double>> result = new ArrayList<>();
-            result.add(top);
-            result.add(right);
-            result.add(left);
-            result.add(bottom);
-            result.add(bottomRight);
-            result.add(bottomLeft);
-            result.add(topLeft);
-            result.add(topRight);
-            result.sort(Comparator.comparing(Pair::getValue));
-            return result.get(0).getValue();
-        }
-
-        Double getTop() {
-            return top.getValue();
-        }
-
-        Double getBottom() {
-            return bottom.getValue();
-        }
-
-        Double getRight() {
-            return right.getValue();
-        }
-
-        Double getLeft() {
-            return left.getValue();
-        }
-
-        Double getTopRight() {
-            return topRight.getValue();
-        }
-
-        Double getTopLeft() {
-            return topLeft.getValue();
-        }
-
-        Double getBottomRight() {
-            return bottomRight.getValue();
-        }
-
-        Double getBottomLeft() {
-            return bottomLeft.getValue();
-        }
-    }
-
-    private enum Direction {
-        TOP(p -> new Point(p.x, p.y - 1),
-                d -> Math.abs(d.getLeft() - d.getRight()),
-                d -> (Math.abs(d.getLeft() - d.getRight()) + 0.1 * Math.abs(d.getTopRight() - d.getBottomLeft()) + 0.1 * Math.abs(d.getTopLeft() - d.getBottomLeft()))),
-        LEFT(p -> new Point(p.x - 1, p.y),
-                d -> Math.abs(d.getTop() - d.getBottom()),
-                d -> (Math.abs(d.getTop() - d.getBottom()) + 0.1 * Math.abs(d.getTopRight() - d.getBottomLeft()) + 0.1 * Math.abs(d.getTopLeft() - d.getBottomRight()))),
-        RIGHT(p -> new Point(p.x + 1, p.y),
-                d -> Math.abs(d.getTop() - d.getBottom()),
-                d -> (Math.abs(d.getTop() - d.getBottom()) + 0.1 * Math.abs(d.getTopRight() - d.getBottomLeft()) + 0.1 * Math.abs(d.getTopLeft() - d.getBottomRight()))),
-        BOTTOM(p -> new Point(p.x, p.y + 1),
-                d -> Math.abs(d.getLeft() - d.getRight()),
-                d -> (Math.abs(d.getLeft() - d.getRight()) + 0.1 * Math.abs(d.getTopRight() - d.getBottomLeft()) + 0.1 * Math.abs(d.getTopLeft() - d.getBottomLeft()))),
-        TOP_RIGHT(p -> new Point(p.x + 1, p.y - 1),
-                d -> Math.abs(d.getTopLeft() - d.getBottomRight()),
-                d -> (Math.abs(d.getTopLeft() - d.getBottomRight()) + 0.1 * Math.abs(d.getLeft() - d.getRight()) + 0.1 * Math.abs(d.getBottom() - d.getTop()))),
-        TOP_LEFT(p -> new Point(p.x - 1, p.y - 1),
-                d -> Math.abs(d.getTopRight() - d.getBottomLeft()),
-                d -> (Math.abs(d.getTopRight() - d.getBottomLeft()) + 0.1 * Math.abs(d.getLeft() - d.getRight()) + 0.1 * Math.abs(d.getBottom() - d.getTop()))),
-        BOTTOM_RIGHT(p -> new Point(p.x + 1, p.y + 1),
-                d -> Math.abs(d.getBottomLeft() - d.getTopRight()),
-                d -> (Math.abs(d.getTopRight() - d.getBottomLeft()) + 0.1 * Math.abs(d.getLeft() - d.getRight()) + 0.1 * Math.abs(d.getBottom() - d.getTop()))),
-        BOTTOM_LEFT(p -> new Point(p.x - 1, p.y + 1),
-                d -> Math.abs(d.getTopLeft() - d.getBottomRight()),
-                d -> (Math.abs(d.getTopLeft() - d.getBottomRight()) + 0.1 * Math.abs(d.getLeft() - d.getRight()) + 0.1 * Math.abs(d.getBottom() - d.getTop())));
-
-        private final Function<Point, Point> nextPointFunction;
-        private final Function<Distances, Double> perpendicularDiffFunction;
-        private final Function<Distances, Double> perpendicularDiffFunction2;
-
-        Direction(Function<Point, Point> nextPointFunction, Function<Distances, Double> perpendicularDiffFunction, Function<Distances, Double> perpendicularDiffFunction2) {
-            this.nextPointFunction = nextPointFunction;
-            this.perpendicularDiffFunction = perpendicularDiffFunction;
-            this.perpendicularDiffFunction2 = perpendicularDiffFunction2;
-        }
-
-        public Direction[] getTowardsDirections() {
-            switch (this) {
-                case TOP:
-                    return new Direction[]{Direction.TOP, Direction.TOP_RIGHT, Direction.TOP_LEFT};
-                case LEFT:
-                    return new Direction[]{Direction.LEFT, Direction.BOTTOM_LEFT, Direction.TOP_LEFT};
-                case RIGHT:
-                    return new Direction[]{Direction.BOTTOM_RIGHT, Direction.TOP_RIGHT, Direction.RIGHT};
-                case BOTTOM:
-                    return new Direction[]{Direction.BOTTOM, Direction.BOTTOM_RIGHT, Direction.BOTTOM_LEFT};
-                case TOP_RIGHT:
-                    return new Direction[]{Direction.TOP_RIGHT, Direction.TOP, Direction.RIGHT};
-                case TOP_LEFT:
-                    return new Direction[]{Direction.TOP_LEFT, Direction.TOP, Direction.LEFT};
-                case BOTTOM_RIGHT:
-                    return new Direction[]{Direction.BOTTOM_RIGHT, Direction.BOTTOM, Direction.RIGHT};
-                case BOTTOM_LEFT:
-                    return new Direction[]{Direction.BOTTOM_LEFT, Direction.BOTTOM, Direction.LEFT};
-            }
-            throw new RuntimeException();
-        }
-    }
 
 }
