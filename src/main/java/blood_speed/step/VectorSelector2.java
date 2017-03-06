@@ -1,6 +1,7 @@
 package blood_speed.step;
 
 import blood_speed.helper.BmpHelper;
+import blood_speed.helper.MathHelper;
 import blood_speed.helper.MatrixHelper;
 import blood_speed.step.data.Images;
 import blood_speed.step.data.Point;
@@ -41,44 +42,12 @@ public class VectorSelector2 extends Step<Images> {
             Point minDissynchronizationPoint = getMinDissynchronizationPoint(dissynchronizationFactor, currentPoint, maxSpeed);
 
             // получаем точки окружности, с центром в текущей точек и радиусом = расстояние от текущей до минимума десинхронизации
-            double r = Math.sqrt(Math.pow(minDissynchronizationPoint.x - currentPoint.x, 2) + Math.pow(minDissynchronizationPoint.y - currentPoint.y, 2));
+            double r = MathHelper.distance(minDissynchronizationPoint, currentPoint);
 
-            Set<Point> circle = new HashSet<>();
-            for (int j = (int) Math.round(currentPoint.x - r); j < currentPoint.x + r; j++) {
-                double a = 1;
-                double b = -2 * currentPoint.y;
-                double c = Math.pow(j, 2) - 2 * j * currentPoint.x + Math.pow(currentPoint.x, 2) + Math.pow(currentPoint.y, 2) - Math.pow(r, 2);
-                double d = b * b - 4 * a * c;
-                double y1 = (-b + Math.sqrt(d)) / (2 * a);
-                double y2 = (-b - Math.sqrt(d)) / (2 * a);
+            Set<Point> circle = getCirclePoints(currentPoint, r);
 
-                circle.add(new Point(j, (int) Math.round(y1)));
-                circle.add(new Point(j, (int) Math.round(y2)));
-            }
-            for (int i = (int) Math.round(currentPoint.y - r); i < currentPoint.y + r; i++) {
-                double a = 1;
-                double b = -2 * currentPoint.x;
-                double c = Math.pow(i, 2) - 2 * i * currentPoint.y + Math.pow(currentPoint.y, 2) + Math.pow(currentPoint.x, 2) - Math.pow(r, 2);
-                double d = b * b - 4 * a * c;
-                double x1 = (-b + Math.sqrt(d)) / (2 * a);
-                double x2 = (-b - Math.sqrt(d)) / (2 * a);
+            List<Point> candidates = getCandidates(circle, minDissynchronizationPoint, r, 35);
 
-                circle.add(new Point((int) Math.round(x1), i));
-                circle.add(new Point((int) Math.round(x2), i));
-            }
-
-            List<Point> candidates = new ArrayList<>();
-            for (Point c : circle) {
-                double a = Math.sqrt(Math.pow(c.x - minDissynchronizationPoint.x, 2) + Math.pow(c.y - minDissynchronizationPoint.y, 2));
-                double angle = Math.toDegrees(2 * Math.asin(a / 2 / r));
-                if (angle > 35 || Double.isNaN(angle)) {
-                    continue;
-                }
-//                Direction tempDirection = Direction.getByPoints(currentPoint, c);
-//                if (!Arrays.asList(currentDirection.getOppositeDirection()).contains(tempDirection)) {
-                    candidates.add(c);
-//                }
-            }
 
             double minDifferent = 0;
             Point nextPoint = null;
@@ -103,6 +72,33 @@ public class VectorSelector2 extends Step<Images> {
             Direction nextDirection = Direction.getByPoints(currentPoint, nextPoint);
 
             System.err.println(nextDirection);
+
+
+            // добавляем промежуточную точку, выбирая её с радиусом 1/2 расстояния между текуей и слуд
+            double halfDistance = MathHelper.distance(currentPoint, nextPoint) / 2;
+            Set<Point> halfCirclePoints = getCirclePoints(currentPoint, halfDistance);
+            List<Point> halfCandidates = getCandidates(halfCirclePoints, MathHelper.middlePoint(currentPoint, nextPoint), r, 20);
+
+            double minHalfDifferent = 0;
+            Point nextHalfPoint = null;
+            for (Point oneOfNextPoint : halfCandidates ) {
+                if (circuit[oneOfNextPoint.y][oneOfNextPoint.x] != 0) {
+                    continue;
+                }
+
+                Distances borderDistance = findBorderDistance(oneOfNextPoint.x, oneOfNextPoint.y);
+//          double currentDiff = d.perpendicularDiffFunction.apply(borderDistance);
+                double minDirection = borderDistance.getMinDirectionValue();
+                if (minDirection > minHalfDifferent) {
+                    minHalfDifferent = minDirection;
+                    nextHalfPoint = oneOfNextPoint;
+                }
+            }
+            if (nextHalfPoint != null) {
+                circuit[nextHalfPoint.y][nextHalfPoint.x] = 50;
+            }
+
+
             currentPoint = nextPoint;
             currentDirection = nextDirection;
 
@@ -278,4 +274,47 @@ public class VectorSelector2 extends Step<Images> {
     }
 
 
+    private Set<Point> getCirclePoints(final  Point point, final  double r) {
+        Set<Point> circle = new HashSet<>();
+        for (int j = (int) Math.round(point.x - r); j < point.x + r; j++) {
+            double a = 1;
+            double b = -2 * point.y;
+            double c = Math.pow(j, 2) - 2 * j * point.x + Math.pow(point.x, 2) + Math.pow(point.y, 2) - Math.pow(r, 2);
+            double d = b * b - 4 * a * c;
+            double y1 = (-b + Math.sqrt(d)) / (2 * a);
+            double y2 = (-b - Math.sqrt(d)) / (2 * a);
+
+            circle.add(new Point(j, (int) Math.round(y1)));
+            circle.add(new Point(j, (int) Math.round(y2)));
+        }
+
+        for (int i = (int) Math.round(point.y - r); i < point.y + r; i++) {
+            double a = 1;
+            double b = -2 * point.x;
+            double c = Math.pow(i, 2) - 2 * i * point.y + Math.pow(point.y, 2) + Math.pow(point.x, 2) - Math.pow(r, 2);
+            double d = b * b - 4 * a * c;
+            double x1 = (-b + Math.sqrt(d)) / (2 * a);
+            double x2 = (-b - Math.sqrt(d)) / (2 * a);
+
+            circle.add(new Point((int) Math.round(x1), i));
+            circle.add(new Point((int) Math.round(x2), i));
+        }
+        return circle;
+    }
+
+    private List<Point> getCandidates(final Collection<Point> circle, final Point point, final  double r, double angleLimit) {
+        List<Point> candidates = new ArrayList<>();
+        for (Point c : circle) {
+            double a = Math.sqrt(Math.pow(c.x - point.x, 2) + Math.pow(c.y - point.y, 2));
+            double angle = Math.toDegrees(2 * Math.asin(a / 2 / r));
+            if (angle > angleLimit || Double.isNaN(angle)) {
+                continue;
+            }
+//                Direction tempDirection = Direction.getByPoints(currentPoint, c);
+//                if (!Arrays.asList(currentDirection.getOppositeDirection()).contains(tempDirection)) {
+            candidates.add(c);
+//                }
+        }
+        return candidates;
+    }
 }
