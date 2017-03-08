@@ -15,7 +15,7 @@ import java.util.*;
  * Класс для выделения центральной линии капилляра
  */
 @SuppressWarnings({"SameParameterValue"})
-public class MiddleLineSelector extends Step<Images> {
+public class MiddleLineSelector extends Step<List<Point>> {
     private final Point start;
     private final Images data;
     private final int[][] contour;
@@ -32,7 +32,7 @@ public class MiddleLineSelector extends Step<Images> {
     }
 
     public static void main(String[] args) {
-        Images images = loadData("data/backgroundSelector_v2/");
+        Images images = BackgroundSelector.loadOutputData("data/backgroundSelector_v2/");
 
         // контур
         int[][] contour = BmpHelper.readBmp("data/backgroundSelector_v2/circuit-image_photoshop.bmp");
@@ -49,7 +49,7 @@ public class MiddleLineSelector extends Step<Images> {
     }
 
     @Override
-    public Images process() {
+    public List<Point> process() {
         final int regionSize = 3;
         final int maxSpeed = 15;
 
@@ -59,11 +59,11 @@ public class MiddleLineSelector extends Step<Images> {
 
         final int[][] pointsImage = MatrixHelper.copyMatrix(contour);
 
+        List<Point> resultPoints = new ArrayList<>();
         for (int i = 0; i < centralPoints.size() - 1; i++) {
             final Point startPoint = centralPoints.get(i);
             final Point finishPoint = centralPoints.get(i + 1);
 
-            Set<Point> pointsSet = new HashSet<>();
             Point currentPoint = startPoint;
             boolean flagStop = false;
             while (!flagStop) {
@@ -84,7 +84,7 @@ public class MiddleLineSelector extends Step<Images> {
 
                     Distances borderDistance = findBorderDistance(oneOfNextPoint);
                     double minDirection = borderDistance.getMinDirectionValue();
-                    if (minDirection > minDifferent && !pointsSet.contains(oneOfNextPoint)) {
+                    if (minDirection > minDifferent && !resultPoints.contains(oneOfNextPoint)) {
                         minDifferent = minDirection;
 //                    nextDirection = d;
                         nextPoint = oneOfNextPoint;
@@ -94,48 +94,16 @@ public class MiddleLineSelector extends Step<Images> {
                     break;
                 }
                 currentPoint = nextPoint;
-                pointsSet.add(currentPoint);
+                resultPoints.add(currentPoint);
                 pointsImage[currentPoint.y][currentPoint.x] = 187;
             }
 
         }
 
-
-        /// ================= first version
-//        boolean canStop = true;
-//        List<Point> currentCentralPoints = centralPoints;
-//        while (canStop) {
-//            boolean wasUpdated = false;
-//
-//            List<Point> tempPoints = new ArrayList<>();
-//            for (int i = 0; i < currentCentralPoints.size() - 1; i++) {
-//                final Point firstPoint = currentCentralPoints.get(i);
-//                final Point secondPoint = currentCentralPoints.get(i + 1);
-//                    final double length = MathHelper.distance(firstPoint, secondPoint);
-//                    tempPoints.add(firstPoint);
-//                    if (length > Math.sqrt(2)) {
-//                        final Point newPoint = getBestMiddlePoint(firstPoint, secondPoint);
-//                        if (newPoint != null) {
-//                            wasUpdated = true;
-//                            tempPoints.add(newPoint);
-//                        }
-//                    }
-//                    if (!wasUpdated) {
-//                        canStop = false;
-//                    }
-//            }
-//            tempPoints.add(currentCentralPoints.get(currentCentralPoints.size() - 1));
-//            currentCentralPoints = tempPoints;
-//        }
-//
-//        for (Point p : currentCentralPoints) {
-//            pointsImage[p.y][p.x] = 127;
-//        }
-
         BmpHelper.writeBmp(outputPrefix + "points-append.bmp", pointsImage);
+        FunctionHelper.writePointsList(outputPrefix + "points.txt", resultPoints);
 
-        System.exit(1);
-        return null;
+        return resultPoints;
     }
 
     private Point getBestMiddlePoint(final Point fistPoint, final Point secondPoint) {
@@ -186,7 +154,8 @@ public class MiddleLineSelector extends Step<Images> {
 
             currentPoint = nextPoint;
 //            currentDirection = nextDirection;
-            if (n > 26) {
+            // todo: придумать как ограничить поиск
+            if (n > 20) {
                 break;
             }
             n++;
@@ -366,15 +335,6 @@ public class MiddleLineSelector extends Step<Images> {
         return new Distances(distanceTop, distanceBottom, distanceRight, distanceLeft, distanceTopRight, distanceTopLeft, distanceBottomRight, distanceBottomLeft);
     }
 
-
-    private static Images loadData(final String inputFolder) {
-        final Images result = new Images();
-        for (int i = 0; i < 300; i++) {
-            int[][] bmp = BmpHelper.readBmp(inputFolder + "background_" + i + ".bmp");
-            result.add(bmp);
-        }
-        return result;
-    }
 
     private Set<Point> getCirclePoints(final Point point, final double r) {
         Set<Point> circle = new HashSet<>();

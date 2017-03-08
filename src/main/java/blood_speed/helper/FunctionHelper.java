@@ -1,10 +1,17 @@
 package blood_speed.helper;
 
 
+import blood_speed.step.data.Point;
+
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 import java.util.stream.DoubleStream;
 
 public final class FunctionHelper {
@@ -48,6 +55,45 @@ public final class FunctionHelper {
             Files.createDirectories(Paths.get(output));
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static void writePointsList(final String name, final List<Point> points) {
+        List<String> lines = new ArrayList<>();
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Point p : points) {
+            stringBuilder
+                    .append(p.x)
+                    .append(" ")
+                    .append(p.y)
+                    .append(System.lineSeparator());
+        }
+
+        lines.add(stringBuilder.toString());
+        try {
+            Files.write(Paths.get(name), lines, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static List<Point> readPointsList(final String name) {
+        try {
+            final List<String> strings = Files.readAllLines(Paths.get(name));
+            final List<Point> result = new ArrayList<>();
+            for (String s : strings) {
+                if (s.isEmpty()) {
+                    continue;
+                }
+
+                int spacePosition = s.indexOf(" ");
+                String x = s.substring(0, spacePosition);
+                String y = s.substring(spacePosition + 1);
+                result.add(new Point(Integer.valueOf(x), Integer.valueOf(y)));
+            }
+            return result;
+        } catch (IOException e) {
+            throw new RuntimeException("Cant read file", e);
         }
     }
 }

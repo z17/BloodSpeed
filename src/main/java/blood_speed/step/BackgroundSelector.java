@@ -102,7 +102,7 @@ public class BackgroundSelector extends Step<Images> {
     }
 
 
-    public static Images loadData(final String inputFolder) {
+    public static Images loadInputData(final String inputFolder) {
         final Images result = new Images();
         for (int i = 0; i < 300; i++) {
             int[][] bmp = BmpHelper.readBmpColors(inputFolder + "img1_00000_" + String.format("%05d", i) + ".bmp");
@@ -112,8 +112,17 @@ public class BackgroundSelector extends Step<Images> {
     }
 
     public static void main(String[] args) {
-        Images images = loadData("data/test2/out2b/");
+        Images images = loadInputData("data/test2/out2b/");
         BackgroundSelector backgroundSelector = new BackgroundSelector(images, "data/backgroundSelector_v2/");
         backgroundSelector.process();
+    }
+
+    public static Images loadOutputData(final String inputFolder) {
+        final Images result = new Images();
+        for (int i = 0; i < 300; i++) {
+            int[][] bmp = BmpHelper.readBmp(inputFolder + "background_" + i + ".bmp");
+            result.add(bmp);
+        }
+        return result;
     }
 }
