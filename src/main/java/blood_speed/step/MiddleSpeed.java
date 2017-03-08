@@ -6,6 +6,9 @@ import blood_speed.helper.MatrixHelper;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Класс для определения средней скорости
+ */
 public class MiddleSpeed extends Step<Integer> {
     private final int[][] speedMatrix;
     private final String outputFile;

@@ -2,10 +2,14 @@ package blood_speed.step;
 
 import blood_speed.helper.BmpHelper;
 import blood_speed.helper.FunctionHelper;
+import blood_speed.helper.MatrixHelper;
 import blood_speed.step.data.Images;
 
 import java.util.Arrays;
 
+/**
+ * Класс для выделения контура, суммированного изображения и компенсации фона
+ */
 public class BackgroundSelector extends Step<Images> {
     private final Images images;
     private final String outputFolder;
@@ -42,6 +46,8 @@ public class BackgroundSelector extends Step<Images> {
             }
         }
 
+        MatrixHelper.writeMatrix(outputFolder + "/sum.txt", sumImage);
+
         // формируем суммированное изображение
         int sum = 0;
         for (int i = 0; i < images.getRows(); i++) {
@@ -55,13 +61,13 @@ public class BackgroundSelector extends Step<Images> {
         BmpHelper.writeBmp(outputFolder + "/sum-image.bmp", sumImage);
 
         // формируем контур капилляра
-        int[][] circuitImage = new int[images.getRows()][images.getCols()];
+        int[][] contourImage = new int[images.getRows()][images.getCols()];
         for (int i = 0; i < images.getRows(); i++) {
             for (int j = 0; j < images.getCols(); j++) {
-                circuitImage[i][j] = sumImage[i][j] > middleSumImage ? 255 : 0;
+                contourImage[i][j] = sumImage[i][j] > middleSumImage ? 255 : 0;
             }
         }
-        BmpHelper.writeBmp(outputFolder + "/circuit-image.bmp", circuitImage);
+        BmpHelper.writeBmp(outputFolder + "/contour-image.bmp", contourImage);
 
 
         // вычитаем миинимум каждой точки из всех изображений

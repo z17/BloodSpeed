@@ -14,4 +14,8 @@ public class MathHelper {
     public static Point middlePoint(Point currentPoint, Point nextPoint) {
         return new Point((currentPoint.x + nextPoint.x) / 2, (currentPoint.y + nextPoint.y) / 2);
     }
+
+    public static boolean inCircle(int centerX, int centerY, int x, int y, double r) {
+        return Math.sqrt(Math.pow(centerX - x, 2) + Math.pow(centerY - y, 2)) < r;
+    }
 }

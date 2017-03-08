@@ -82,10 +82,25 @@ public final class MatrixHelper {
         }
     }
 
+    public static void writeMatrix(final String name, final Integer[][] matrix) {
+        writeMatrix(name, convertMatrix(matrix));
+    }
+
     public static int[][] copyMatrix(final int[][] matrix) {
         int[][] result = new int[matrix.length][];
         for (int i = 0; i < matrix.length; i++) {
             result[i] = Arrays.copyOf(matrix[i], matrix[i].length);
+        }
+        return result;
+    }
+
+    public static int[][] convertMatrix(Integer[][] matrix) {
+        int[][] result = new int[matrix.length][];
+        for (int i = 0; i < matrix.length; i++) {
+            result[i] = new int[matrix[i].length];
+            for (int j = 0; j < matrix[i].length; j++) {
+                result[i][j] = matrix[i][j];
+            }
         }
         return result;
     }

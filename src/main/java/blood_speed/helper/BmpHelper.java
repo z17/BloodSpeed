@@ -6,6 +6,11 @@ import java.io.File;
 import java.io.IOException;
 
 public final class BmpHelper {
+
+    public static void writeBmp(final String name, final Integer[][] matrix) {
+        writeBmp(name, MatrixHelper.convertMatrix(matrix));
+    }
+
     public static void writeBmp(final String name, final int[][] matrix) {
 
         int[] preparedArray = new int[matrix.length * matrix[0].length];

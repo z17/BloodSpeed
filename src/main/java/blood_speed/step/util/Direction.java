@@ -1,7 +1,6 @@
 package blood_speed.step.util;
 
 import blood_speed.helper.MathHelper;
-import blood_speed.step.VectorSelector2;
 import blood_speed.step.data.Point;
 
 import java.util.function.Function;

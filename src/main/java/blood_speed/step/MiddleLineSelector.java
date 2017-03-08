@@ -11,21 +11,41 @@ import blood_speed.step.util.Distances;
 
 import java.util.*;
 
-@SuppressWarnings({"SameParameterValue", "Duplicates"})
-public class VectorSelector2 extends Step<Images> {
+/**
+ * Класс для выделения центральной линии капилляра
+ */
+@SuppressWarnings({"SameParameterValue"})
+public class MiddleLineSelector extends Step<Images> {
+    private final Point start;
     private final Images data;
-    private final int[][] circuit;
-    private final String outputFolder;
+    private final int[][] contour;
+    private final int[][] sumMatrix;
+    private final String outputPrefix;
 
-    public VectorSelector2(Images data, int[][] circuit, String outputFolder) {
+    public MiddleLineSelector(Point start, Images data, int[][] contour, int sumMatrix[][], String outputFolder, final String outputPrefix) {
+        this.start = start;
         this.data = data;
-        this.circuit = circuit;
-        this.outputFolder = outputFolder;
+        this.contour = contour;
+        this.sumMatrix = sumMatrix;
         FunctionHelper.checkOutputFolders(outputFolder);
+        this.outputPrefix = outputFolder + "/" + outputPrefix + "_";
     }
 
-    private boolean inCircle(int centerX, int centerY, int x, int y, double r) {
-        return Math.sqrt(Math.pow(centerX - x, 2) + Math.pow(centerY - y, 2)) < r;
+    public static void main(String[] args) {
+        Images images = loadData("data/backgroundSelector_v2/");
+
+        // контур
+        int[][] contour = BmpHelper.readBmp("data/backgroundSelector_v2/circuit-image_photoshop.bmp");
+//        int[][] contour = BmpHelper.readBmp("data/backgroundSelector_v2/circuit-image.bmp");
+
+        // изображение суммы
+        int[][] summImage = MatrixHelper.readMatrix("data/backgroundSelector_v2/sum.txt");
+
+        // выбираем стартовую точку
+        final Point start = new Point(44, 112);
+//        final Point start = new Point(47, 140);
+        MiddleLineSelector selector = new MiddleLineSelector(start, images, contour, summImage, "data/middle-line/", "v1_");
+        selector.process();
     }
 
     @Override
@@ -33,14 +53,11 @@ public class VectorSelector2 extends Step<Images> {
         final int regionSize = 3;
         final int maxSpeed = 15;
 
-        // выбираем стартовую точку
-        final Point start = new Point(51, 203);
-//        final Point start = new Point(51, 203);
 //        Direction currentDirection = Direction.TOP;
 
         final List<Point> centralPoints = getCentralPoints(start, regionSize, maxSpeed);
 
-        final int[][] pointsImage = MatrixHelper.copyMatrix(circuit);
+        final int[][] pointsImage = MatrixHelper.copyMatrix(contour);
 
         for (int i = 0; i < centralPoints.size() - 1; i++) {
             final Point startPoint = centralPoints.get(i);
@@ -61,12 +78,13 @@ public class VectorSelector2 extends Step<Images> {
                         flagStop = true;
                     }
 
-                    if (circuit[oneOfNextPoint.y][oneOfNextPoint.x] != 0) {
+                    if (!inContour(oneOfNextPoint)) {
                         continue;
                     }
-                    Distances borderDistance = findBorderDistance(oneOfNextPoint.x, oneOfNextPoint.y);
+
+                    Distances borderDistance = findBorderDistance(oneOfNextPoint);
                     double minDirection = borderDistance.getMinDirectionValue();
-                    if (minDirection > minDifferent  && !pointsSet.contains(oneOfNextPoint)) {
+                    if (minDirection > minDifferent && !pointsSet.contains(oneOfNextPoint)) {
                         minDifferent = minDirection;
 //                    nextDirection = d;
                         nextPoint = oneOfNextPoint;
@@ -114,7 +132,7 @@ public class VectorSelector2 extends Step<Images> {
 //            pointsImage[p.y][p.x] = 127;
 //        }
 
-        BmpHelper.writeBmp(outputFolder + "/points-append.bmp", pointsImage);
+        BmpHelper.writeBmp(outputPrefix + "points-append.bmp", pointsImage);
 
         System.exit(1);
         return null;
@@ -125,33 +143,17 @@ public class VectorSelector2 extends Step<Images> {
         double halfDistance = MathHelper.distance(fistPoint, secondPoint) / 2;
         Set<Point> halfCirclePoints = getCirclePoints(fistPoint, halfDistance);
         List<Point> halfCandidates = getCandidates(halfCirclePoints, MathHelper.middlePoint(fistPoint, secondPoint), halfDistance, 25);
-
-        double minHalfDifferent = 0;
-        Point nextHalfPoint = null;
-        for (Point oneOfNextPoint : halfCandidates) {
-            if (circuit[oneOfNextPoint.y][oneOfNextPoint.x] != 0) {
-                continue;
-            }
-
-            Distances borderDistance = findBorderDistance(oneOfNextPoint.x, oneOfNextPoint.y);
-//          double currentDiff = d.perpendicularDiffFunction.apply(borderDistance);
-            double minDirection = borderDistance.getMinDirectionValue();
-            if (minDirection > minHalfDifferent) {
-                minHalfDifferent = minDirection;
-                nextHalfPoint = oneOfNextPoint;
-            }
-        }
-        return nextHalfPoint;
+        return choiceBestPoint(halfCandidates);
     }
 
     private List<Point> getCentralPoints(final Point startPoint, final int regionSize, final int maxSpeed) {
-        final int[][] pointsImage = MatrixHelper.copyMatrix(circuit);
+        final int[][] pointsImage = MatrixHelper.copyMatrix(contour);
         final List<Point> points = new ArrayList<>();
         int n = 0;
 
         Point currentPoint = startPoint;
         while (true) {
-            int[][] dissynchronizationFactor = findDirection(currentPoint, regionSize, maxSpeed);
+            int[][] dissynchronizationFactor = findDissynchronizationFactor(currentPoint, regionSize, maxSpeed);
             Point minDissynchronizationPoint = getMinDissynchronizationPoint(dissynchronizationFactor, currentPoint, maxSpeed);
 
             // получаем точки окружности, с центром в текущей точек и радиусом = расстояние от текущей до минимума десинхронизации
@@ -161,30 +163,17 @@ public class VectorSelector2 extends Step<Images> {
 
             List<Point> candidates = getCandidates(circle, minDissynchronizationPoint, r, 35);
 
-            double minDifferent = 0;
-            Point nextPoint = null;
-            for (Point oneOfNextPoint : candidates) {
-                if (circuit[oneOfNextPoint.y][oneOfNextPoint.x] != 0) {
-                    continue;
-                }
 
-                Distances borderDistance = findBorderDistance(oneOfNextPoint.x, oneOfNextPoint.y);
-//          double currentDiff = d.perpendicularDiffFunction.apply(borderDistance);
-                double minDirection = borderDistance.getMinDirectionValue();
-                if (minDirection > minDifferent) {
-                    minDifferent = minDirection;
-                    nextPoint = oneOfNextPoint;
-                }
-            }
+            Point nextPoint = choiceBestPoint(candidates);
 
             if (nextPoint == null) {
                 break;
             }
 
-//            Direction nextDirection = Direction.getByPoints(currentPoint, nextPoint);
-//            System.err.println(nextDirection);
+            Direction nextDirection = Direction.getByPoints(currentPoint, nextPoint);
+            System.err.println(nextDirection);
 
-            // добавляем промежуточную точку, выбирая её с радиусом 1/2 расстояния между текуей и след
+//             добавляем промежуточную точку, выбирая её с радиусом 1/2 расстояния между текуей и след
             Point nextHalfPoint = getBestMiddlePoint(currentPoint, nextPoint);
 
             if (nextHalfPoint != null) {
@@ -193,7 +182,7 @@ public class VectorSelector2 extends Step<Images> {
 
             pointsImage[currentPoint.y][currentPoint.x] = 127;
             points.add(currentPoint);
-            points.add(nextHalfPoint);
+//            points.add(nextHalfPoint);
 
             currentPoint = nextPoint;
 //            currentDirection = nextDirection;
@@ -203,7 +192,7 @@ public class VectorSelector2 extends Step<Images> {
             n++;
         }
 
-        BmpHelper.writeBmp(outputFolder + "/points.bmp", pointsImage);
+        BmpHelper.writeBmp(outputPrefix + "points.bmp", pointsImage);
         return points;
     }
 
@@ -213,7 +202,11 @@ public class VectorSelector2 extends Step<Images> {
         int directionY = 0;
         for (int i = 0; i < dissynchronizationFactor.length; i++) {
             for (int j = 0; j < dissynchronizationFactor[i].length; j++) {
-                if (dissynchronizationFactor[i][j] > 0 && dissynchronizationFactor[i][j] < minFactor) {
+                if (dissynchronizationFactor[i][j] == 0) {
+                    continue;
+                }
+
+                if (dissynchronizationFactor[i][j] < minFactor) {
                     minFactor = dissynchronizationFactor[i][j];
                     directionX = j;
                     directionY = i;
@@ -224,26 +217,50 @@ public class VectorSelector2 extends Step<Images> {
         return new Point(currentPoint.x + directionX - maxSpeed, currentPoint.y + directionY - maxSpeed);
     }
 
-    private int[][] findDirection(Point point, int pointRegionSize, int maxSpeed) {
+    private int[][] findDissynchronizationFactor(Point point, int pointRegionSize, int maxSpeed) {
         final int minSpeed = maxSpeed - pointRegionSize;
 
-        int[][] dissynchronizationFactor = new int[2 * (maxSpeed + 1)][2 * (maxSpeed + 1)];
-        for (int i = point.y - maxSpeed; i < point.y + maxSpeed; i++) {
-            for (int j = point.x - maxSpeed; j < point.x + maxSpeed; j++) {
+        // массив, где true означает что до этой точки региона можно дойти из исходной
+        boolean checkRegion[][] = new boolean[2 * maxSpeed + 1][2 * maxSpeed + 1];
+        List<Point> stack = new ArrayList<>();
+        stack.add(point);
+        for (int i = 0; i < stack.size(); i++) {
+            Point currentPoint = stack.get(i);
+            for (Direction d : Direction.values()) {
+                Point candidate = d.nextPointFunction.apply(currentPoint);
+                if (inContour(candidate)
+                        && candidate.y >= point.y - maxSpeed
+                        && candidate.y <= point.y + maxSpeed
+                        && candidate.x >= point.x - maxSpeed
+                        && candidate.x <= point.x + maxSpeed
+                        && !stack.contains(candidate)) {
+                    stack.add(candidate);
+                    checkRegion[candidate.y - point.y + maxSpeed][candidate.x - point.x + maxSpeed] = true;
+                }
+            }
+        }
+
+        int[][] dissynchronizationFactor = new int[2 * maxSpeed + 1][2 * maxSpeed + 1];
+        for (int i = point.y - maxSpeed; i <= point.y + maxSpeed; i++) {
+            for (int j = point.x - maxSpeed; j <= point.x + maxSpeed; j++) {
                 if (i < pointRegionSize || j < pointRegionSize || i > data.getRows() - pointRegionSize - 1 || j > data.getCols() - pointRegionSize - 1) {
                     // если проверяемая точка стоит на границе изображения
                     continue;
                 }
 
-                boolean inRegion = inCircle(point.x, point.y, j, i, maxSpeed);
-                boolean inPointRegion = inCircle(point.x, point.y, j, i, minSpeed);
+                if (!checkRegion[i - point.y + maxSpeed][j - point.x + maxSpeed]) {
+                    continue;
+                }
+
+                boolean inRegion = MathHelper.inCircle(point.x, point.y, j, i, maxSpeed);
+                boolean inPointRegion = MathHelper.inCircle(point.x, point.y, j, i, minSpeed);
                 if (!inRegion || inPointRegion) {
                     // пропускаем, если проверяемая точка попала за пределы максимальной или минимальной скорости или за пределы контура
                     continue;
                 }
 
-                if (circuit[i][j] == 255) {
-                    // если вышли за контур
+                // если вышли за контур
+                if (!inContour(j, i)) {
                     continue;
                 }
 
@@ -280,8 +297,10 @@ public class VectorSelector2 extends Step<Images> {
         return sum;
     }
 
-    private Distances findBorderDistance(int x, int y) {
-        if (circuit[y][x] != 0) {
+    private Distances findBorderDistance(final Point p) {
+        int x = p.x;
+        int y = p.y;
+        if (contour[y][x] != 0) {
             throw new RuntimeException("error");
         }
 
@@ -291,25 +310,25 @@ public class VectorSelector2 extends Step<Images> {
         tempY = y;
         do {
             tempY--;
-        } while (tempY >= 0 && circuit[tempY][x] != 255);
+        } while (tempY >= 0 && contour[tempY][x] != 255);
         int distanceTop = Math.abs(y - tempY);
 
         tempX = x;
         do {
             tempX++;
-        } while (tempX < data.getCols() && circuit[y][tempX] != 255);
+        } while (tempX < data.getCols() && contour[y][tempX] != 255);
         int distanceRight = Math.abs(x - tempX);
 
         tempY = y;
         do {
             tempY++;
-        } while (tempY < data.getRows() && circuit[tempY][x] != 255);
+        } while (tempY < data.getRows() && contour[tempY][x] != 255);
         int distanceBottom = Math.abs(y - tempY);
 
         tempX = x;
         do {
             tempX--;
-        } while (tempX >= 0 && circuit[y][tempX] != 255);
+        } while (tempX >= 0 && contour[y][tempX] != 255);
         int distanceLeft = Math.abs(x - tempX);
 
         tempY = y;
@@ -317,7 +336,7 @@ public class VectorSelector2 extends Step<Images> {
         do {
             tempY--;
             tempX--;
-        } while (tempY >= 0 && tempX >= 0 && circuit[tempY][tempX] != 255);
+        } while (tempY >= 0 && tempX >= 0 && contour[tempY][tempX] != 255);
         double distanceTopLeft = Math.sqrt(Math.pow(y - tempY, 2) + Math.pow(x - tempX, 2));
 
         tempY = y;
@@ -325,7 +344,7 @@ public class VectorSelector2 extends Step<Images> {
         do {
             tempY--;
             tempX++;
-        } while (tempY >= 0 && tempX < data.getCols() && circuit[tempY][tempX] != 255);
+        } while (tempY >= 0 && tempX < data.getCols() && contour[tempY][tempX] != 255);
         double distanceTopRight = Math.sqrt(Math.pow(y - tempY, 2) + Math.pow(x - tempX, 2));
 
         tempY = y;
@@ -333,7 +352,7 @@ public class VectorSelector2 extends Step<Images> {
         do {
             tempY++;
             tempX--;
-        } while (tempY < data.getRows() && tempX >= 0 && circuit[tempY][tempX] != 255);
+        } while (tempY < data.getRows() && tempX >= 0 && contour[tempY][tempX] != 255);
         double distanceBottomLeft = Math.sqrt(Math.pow(y - tempY, 2) + Math.pow(x - tempX, 2));
 
         tempY = y;
@@ -341,7 +360,7 @@ public class VectorSelector2 extends Step<Images> {
         do {
             tempY++;
             tempX++;
-        } while (tempY < data.getRows() && tempX < data.getCols() && circuit[tempY][tempX] != 255);
+        } while (tempY < data.getRows() && tempX < data.getCols() && contour[tempY][tempX] != 255);
         double distanceBottomRight = Math.sqrt(Math.pow(y - tempY, 2) + Math.pow(x - tempX, 2));
 
         return new Distances(distanceTop, distanceBottom, distanceRight, distanceLeft, distanceTopRight, distanceTopLeft, distanceBottomRight, distanceBottomLeft);
@@ -356,16 +375,6 @@ public class VectorSelector2 extends Step<Images> {
         }
         return result;
     }
-
-    public static void main(String[] args) {
-        Images images = loadData("data/backgroundSelector_v2/");
-        int[][] circuit = BmpHelper.readBmp("data/backgroundSelector_v2/circuit-image_photoshop.bmp");
-//        int[][] circuit = BmpHelper.readBmp("data/backgroundSelector_v2/circuit-image.bmp");
-        BmpHelper.writeBmp("asdasd.bmp", circuit);
-        VectorSelector2 selector = new VectorSelector2(images, circuit, "data/middle-line/");
-        selector.process();
-    }
-
 
     private Set<Point> getCirclePoints(final Point point, final double r) {
         Set<Point> circle = new HashSet<>();
@@ -409,5 +418,60 @@ public class VectorSelector2 extends Step<Images> {
 //                }
         }
         return candidates;
+    }
+
+
+    private Point choiceBestPoint(final Collection<Point> candidates) {
+        return choiceBestPointByRadius(candidates);
+    }
+
+    private Point choiceBestPointByMinValue(Collection<Point> candidates) {
+        Point nextPoint = null;
+
+        int minSum = Integer.MAX_VALUE;
+        for (Point oneOfNextPoint : candidates) {
+            if (!inContour(oneOfNextPoint)) {
+                continue;
+            }
+
+            if (minSum > sumMatrix[oneOfNextPoint.y][oneOfNextPoint.x]) {
+                minSum = sumMatrix[oneOfNextPoint.y][oneOfNextPoint.x];
+                nextPoint = oneOfNextPoint;
+            }
+        }
+        return nextPoint;
+    }
+
+    private Point choiceBestPointByRadius(Collection<Point> candidates) {
+        double minDifferent = 0;
+        Point nextPoint = null;
+
+        for (Point oneOfNextPoint : candidates) {
+            if (!inContour(oneOfNextPoint)) {
+                continue;
+            }
+
+            Distances borderDistance = findBorderDistance(oneOfNextPoint);
+//          double currentDiff = d.perpendicularDiffFunction.apply(borderDistance);
+            double minDirectionValue = borderDistance.getMinDirectionValue();
+            if (minDirectionValue > minDifferent) {
+                minDifferent = minDirectionValue;
+                nextPoint = oneOfNextPoint;
+            }
+        }
+        return nextPoint;
+    }
+
+    private boolean inContour(final Point point) {
+        return inContour(point.x, point.y);
+    }
+
+    private boolean inContour(final int x, final int y) {
+        if (x >= 0 && y >= 0) {
+            if (y < contour.length && x < contour[0].length) {
+                return contour[y][x] == 0;
+            }
+        }
+        return false;
     }
 }
