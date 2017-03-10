@@ -1,37 +1,56 @@
 package blood_speed.step.data;
 
+import java.util.Objects;
+
 public class Point {
     public Point(int x, int y) {
         this.x = x;
         this.y = y;
     }
 
-    public final int x;
-    public final int y;
+    public Point(double x, double y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    private final double x;
+    private final double y;
+
+    public int getIntX() {
+        return (int) Math.round(x);
+    }
+
+    public int getIntY() {
+        return (int) Math.round(y);
+    }
+
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
+    }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
         Point point = (Point) o;
-
-        if (x != point.x) return false;
-        return y == point.y;
+        return Double.compare(point.getIntX(), getIntX()) == 0 &&
+                Double.compare(point.getIntY(), getIntY()) == 0;
     }
 
     @Override
     public int hashCode() {
-        int result = x;
-        result = 31 * result + y;
-        return result;
+        return Objects.hash(getIntX(), getIntY());
     }
 
     @Override
     public String toString() {
         return "Point{" +
-                "x=" + x +
-                ", y=" + y +
+                "x=" + getIntX() +
+                ", y=" + getIntY() +
                 '}';
     }
 }

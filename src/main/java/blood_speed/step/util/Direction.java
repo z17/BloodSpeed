@@ -6,28 +6,28 @@ import blood_speed.step.data.Point;
 import java.util.function.Function;
 
 public enum Direction {
-    TOP(p -> new Point(p.x, p.y - 1),
+    TOP(p -> new Point(p.getIntX(), p.getIntY() - 1),
             d -> Math.abs(d.getLeft() - d.getRight()),
             d -> (Math.abs(d.getLeft() - d.getRight()) + 0.1 * Math.abs(d.getTopRight() - d.getBottomLeft()) + 0.1 * Math.abs(d.getTopLeft() - d.getBottomLeft()))),
-    LEFT(p -> new Point(p.x - 1, p.y),
+    LEFT(p -> new Point(p.getIntX() - 1, p.getIntY()),
             d -> Math.abs(d.getTop() - d.getBottom()),
             d -> (Math.abs(d.getTop() - d.getBottom()) + 0.1 * Math.abs(d.getTopRight() - d.getBottomLeft()) + 0.1 * Math.abs(d.getTopLeft() - d.getBottomRight()))),
-    RIGHT(p -> new Point(p.x + 1, p.y),
+    RIGHT(p -> new Point(p.getIntX() + 1, p.getIntY()),
             d -> Math.abs(d.getTop() - d.getBottom()),
             d -> (Math.abs(d.getTop() - d.getBottom()) + 0.1 * Math.abs(d.getTopRight() - d.getBottomLeft()) + 0.1 * Math.abs(d.getTopLeft() - d.getBottomRight()))),
-    BOTTOM(p -> new Point(p.x, p.y + 1),
+    BOTTOM(p -> new Point(p.getIntX(), p.getIntY() + 1),
             d -> Math.abs(d.getLeft() - d.getRight()),
             d -> (Math.abs(d.getLeft() - d.getRight()) + 0.1 * Math.abs(d.getTopRight() - d.getBottomLeft()) + 0.1 * Math.abs(d.getTopLeft() - d.getBottomLeft()))),
-    TOP_RIGHT(p -> new Point(p.x + 1, p.y - 1),
+    TOP_RIGHT(p -> new Point(p.getIntX() + 1, p.getIntY() - 1),
             d -> Math.abs(d.getTopLeft() - d.getBottomRight()),
             d -> (Math.abs(d.getTopLeft() - d.getBottomRight()) + 0.1 * Math.abs(d.getLeft() - d.getRight()) + 0.1 * Math.abs(d.getBottom() - d.getTop()))),
-    TOP_LEFT(p -> new Point(p.x - 1, p.y - 1),
+    TOP_LEFT(p -> new Point(p.getIntX() - 1, p.getIntY() - 1),
             d -> Math.abs(d.getTopRight() - d.getBottomLeft()),
             d -> (Math.abs(d.getTopRight() - d.getBottomLeft()) + 0.1 * Math.abs(d.getLeft() - d.getRight()) + 0.1 * Math.abs(d.getBottom() - d.getTop()))),
-    BOTTOM_RIGHT(p -> new Point(p.x + 1, p.y + 1),
+    BOTTOM_RIGHT(p -> new Point(p.getIntX() + 1, p.getIntY() + 1),
             d -> Math.abs(d.getBottomLeft() - d.getTopRight()),
             d -> (Math.abs(d.getTopRight() - d.getBottomLeft()) + 0.1 * Math.abs(d.getLeft() - d.getRight()) + 0.1 * Math.abs(d.getBottom() - d.getTop()))),
-    BOTTOM_LEFT(p -> new Point(p.x - 1, p.y + 1),
+    BOTTOM_LEFT(p -> new Point(p.getIntX() - 1, p.getIntY() + 1),
             d -> Math.abs(d.getTopLeft() - d.getBottomRight()),
             d -> (Math.abs(d.getTopLeft() - d.getBottomRight()) + 0.1 * Math.abs(d.getLeft() - d.getRight()) + 0.1 * Math.abs(d.getBottom() - d.getTop())));
 
@@ -89,16 +89,16 @@ public enum Direction {
         // нужно не забывать, что по оси y  - увеличение значения ведёт вниз, а не вверх
 
         // дистанция до диагонали y = x;
-        double distance0 = MathHelper.distancePointToLine(1, 1, -(currentPoint.x + currentPoint.y), nextPoint.x, nextPoint.y);
+        double distance0 = MathHelper.distancePointToLine(1, 1, -(currentPoint.getIntX() + currentPoint.getIntY()), nextPoint.getIntX(), nextPoint.getIntY());
 
         // дистанция до вертикали x = nextPoint.x
-        double distance1 = MathHelper.distancePointToLine(1, 0, -currentPoint.x, nextPoint.x, nextPoint.y);
+        double distance1 = MathHelper.distancePointToLine(1, 0, -currentPoint.getIntX(), nextPoint.getIntX(), nextPoint.getIntY());
 
         // дистанция до диагонали y = -x + nexPoint.x
-        double distance2 = MathHelper.distancePointToLine(1, -1, -(currentPoint.x - currentPoint.y), nextPoint.x, nextPoint.y);
+        double distance2 = MathHelper.distancePointToLine(1, -1, -(currentPoint.getIntX() - currentPoint.getIntY()), nextPoint.getIntX(), nextPoint.getIntY());
 
         // дистанция до горизонтали y = nexPoint.y
-        double distance3 = MathHelper.distancePointToLine(0, 1, -currentPoint.y, nextPoint.x, nextPoint.y);
+        double distance3 = MathHelper.distancePointToLine(0, 1, -currentPoint.getIntY(), nextPoint.getIntX(), nextPoint.getIntY());
 
         double[] distances = new double[]{
                 distance0,
@@ -118,23 +118,23 @@ public enum Direction {
 
         switch (minIndex) {
             case 0:
-                if (nextPoint.x > currentPoint.x) {
+                if (nextPoint.getIntX() > currentPoint.getIntX()) {
                     return TOP_RIGHT;
                 } else {
                     return BOTTOM_LEFT;
                 }
             case 1:
-                if (nextPoint.y < currentPoint.y)
+                if (nextPoint.getIntY() < currentPoint.getIntY())
                     return TOP;
                 else
                     return BOTTOM;
             case 2:
-                if (nextPoint.y < currentPoint.y)
+                if (nextPoint.getIntY() < currentPoint.getIntY())
                     return TOP_LEFT;
                 else
                     return BOTTOM_RIGHT;
             case 3:
-                if (nextPoint.x < currentPoint.x)
+                if (nextPoint.getIntX() < currentPoint.getIntX())
                     return LEFT;
                 else
                     return RIGHT;

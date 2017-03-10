@@ -32,6 +32,8 @@ public class BackgroundSelector extends Step<Images> {
             }
         }
 
+        MatrixHelper.writeMatrix(outputFolder + "/sum.txt", sumImage);
+
         // максимум и минимум суммы
         int min = sumImage[0][0];
         int max = sumImage[0][0];
@@ -45,8 +47,6 @@ public class BackgroundSelector extends Step<Images> {
                 }
             }
         }
-
-        MatrixHelper.writeMatrix(outputFolder + "/sum.txt", sumImage);
 
         // формируем суммированное изображение
         int sum = 0;
@@ -70,7 +70,7 @@ public class BackgroundSelector extends Step<Images> {
         BmpHelper.writeBmp(outputFolder + "/contour-image.bmp", contourImage);
 
 
-        // вычитаем миинимум каждой точки из всех изображений
+        // вычиcляем минимум в каждой точки для всего ряда
         int[][] minValues = new int[images.getRows()][];
         int[][] first = images.getImagesList().get(0);
         for (int i = 0; i < first.length; i++) {
@@ -87,6 +87,7 @@ public class BackgroundSelector extends Step<Images> {
             }
         }
 
+        // вычитаем минимум из каждой точки и сохраняем изображение
         int currentNumber = 0;
         for (int[][] matrix : images.getImagesList()) {
             int[][] result = new int[images.getRows()][images.getCols()];
@@ -98,6 +99,7 @@ public class BackgroundSelector extends Step<Images> {
             BmpHelper.writeBmp(outputFolder + "/background_" + currentNumber + ".bmp", result);
             currentNumber++;
         }
+
         return null;
     }
 

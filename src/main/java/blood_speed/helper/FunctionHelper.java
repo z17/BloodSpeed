@@ -11,7 +11,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.DoubleStream;
 
 public final class FunctionHelper {
@@ -63,9 +62,9 @@ public final class FunctionHelper {
         StringBuilder stringBuilder = new StringBuilder();
         for (Point p : points) {
             stringBuilder
-                    .append(p.x)
+                    .append(p.getIntX())
                     .append(" ")
-                    .append(p.y)
+                    .append(p.getIntY())
                     .append(System.lineSeparator());
         }
 
@@ -93,7 +92,7 @@ public final class FunctionHelper {
             }
             return result;
         } catch (IOException e) {
-            throw new RuntimeException("Cant read file", e);
+            throw new RuntimeException("Cant read file " + name, e);
         }
     }
 }

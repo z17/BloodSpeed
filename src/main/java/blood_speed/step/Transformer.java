@@ -16,37 +16,39 @@ public class Transformer extends Step<Images> {
     private final Images data;
     private final int[][] contour;
     private final String outputDir;
+    private final int indent;
 
-    public Transformer(final List<Point> middleLine, final Images data, final int[][] contour, final String outputDir) {
+    public Transformer(final List<Point> middleLine, final Images data, final int[][] contour, final String outputDir, int indent) {
         this.middleLine = middleLine;
         this.data = data;
         this.contour = contour;
         this.outputDir = outputDir;
+        this.indent = indent;
         FunctionHelper.checkOutputFolders(outputDir);
     }
 
     public static void main(String[] args) {
-        List<Point> middleLine = FunctionHelper.readPointsList("data/middle-line/v1__points.txt");
+        List<Point> middleLine = FunctionHelper.readPointsList("data/middle-line/vMinValue_" + MiddleLineSelector.MIDDLE_FULL_POINTS_POSITION_FILENAME);
         Images data = BackgroundSelector.loadOutputData("data/backgroundSelector_v2/");
         int[][] contour = BmpHelper.readBmp("data/backgroundSelector_v2/circuit-image_photoshop.bmp");
-        Step<Images> step = new Transformer(middleLine, data, contour, "data/transformedImages");
+        Step<Images> step = new Transformer(middleLine, data, contour, "data/transformedImages", 2);
         step.process();
     }
 
 
     @Override
     public Images process() {
-        for (int i = 1; i < middleLine.size() - 1; i++) {
+        for (int i = indent; i < middleLine.size() - indent; i++) {
             int[][] contourTemp = MatrixHelper.copyMatrix(contour);
-            Point p1 = middleLine.get(i - 1);
-            Point p2 = middleLine.get(i + 1);
-            double A = p2.y - p1.y;
-            double B = p1.x - p2.x;
-            double C = -(p1.x * p2.y - p2.x * p1.y);
+            Point p1 = middleLine.get(i - indent);
+            Point p2 = middleLine.get(i + indent);
+            double A = p2.getIntY() - p1.getIntY();
+            double B = p1.getIntX() - p2.getIntX();
+            double C = -(p1.getIntX() * p2.getIntY() - p2.getIntX() * p1.getIntY());
 
 
-            double yMiddle = (p1.y + p2.y) / 2;
-            double xMiddle = (p1.x + p2.x) / 2;
+            double yMiddle = (p1.getIntY() + p2.getIntY()) / 2;
+            double xMiddle = (p1.getIntX() + p2.getIntX()) / 2;
 
             double A1 = -B;
             double B1 = A;
@@ -74,7 +76,7 @@ public class Transformer extends Step<Images> {
                     contourTemp[y2][x1] = 80;
             }
 
-            contourTemp[middleLine.get(i).y][middleLine.get(i).x] = 100;
+            contourTemp[middleLine.get(i).getIntY()][middleLine.get(i).getIntX()] = 100;
 
             BmpHelper.writeBmp(outputDir + "/test_" + i + ".bmp", contourTemp);
         }
