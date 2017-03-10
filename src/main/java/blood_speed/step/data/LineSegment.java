@@ -84,8 +84,8 @@ public class LineSegment {
     public boolean isPointOnSegment(final Point p) {
         double v = a * p.getX() + b * p.getY() + c;
         if (Math.abs(v) < MathHelper.EPSILON) {
-            return (p1.getX() < p.getX() &&  p.getX() < p2.getX() || p1.getX() > p.getX() && p.getX() > p2.getX())
-                    && (p1.getY() < p.getY() &&  p.getY() < p2.getY() || p1.getY() > p.getY() && p.getY() > p2.getY());
+            return (p1.getX() <= p.getX() &&  p.getX() <= p2.getX() || p1.getX() >= p.getX() && p.getX() >= p2.getX())
+                    && (p1.getY() <= p.getY() &&  p.getY() <= p2.getY() || p1.getY() >= p.getY() && p.getY() >= p2.getY());
         }
         return false;
     }

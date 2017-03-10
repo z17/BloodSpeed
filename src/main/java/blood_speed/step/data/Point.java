@@ -49,8 +49,8 @@ public class Point {
     @Override
     public String toString() {
         return "Point{" +
-                "x=" + getIntX() +
-                ", y=" + getIntY() +
+                "x=" + getX() +
+                ", y=" + getY() +
                 '}';
     }
 }

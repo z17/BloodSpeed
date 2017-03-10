@@ -28,8 +28,8 @@ public class MathHelper {
                 new Point(segment.getP2().getX() - circleCenter.getX(), segment.getP2().getY() - circleCenter.getY())
         );
 
-        double x0 = - (segmentNormalize.getA() * segmentNormalize.getC()) / (Math.pow(segmentNormalize.getA(), 2) + Math.pow(segmentNormalize.getB(),2));
-        double y0 = - (segmentNormalize.getB() * segmentNormalize.getC()) / (Math.pow(segmentNormalize.getA(), 2) + Math.pow(segmentNormalize.getB(),2));
+        double x0 = -(segmentNormalize.getA() * segmentNormalize.getC()) / (Math.pow(segmentNormalize.getA(), 2) + Math.pow(segmentNormalize.getB(), 2));
+        double y0 = -(segmentNormalize.getB() * segmentNormalize.getC()) / (Math.pow(segmentNormalize.getA(), 2) + Math.pow(segmentNormalize.getB(), 2));
 
         Point nearestNormalizePoint = new Point(x0, y0);
         double distanceToNearest = distance(new Point(0, 0), nearestNormalizePoint);
@@ -45,18 +45,20 @@ public class MathHelper {
             return null;
         }
 
-        double d = Math.sqrt(Math.pow(r, 2) - Math.pow(segmentNormalize.getC(), 2) / (Math.pow(segmentNormalize.getA(),2) + Math.pow(segmentNormalize.getB(),2)));
-        double mult = Math.sqrt(Math.pow(d, 2) / (Math.pow(segmentNormalize.getA(),2) + Math.pow(segmentNormalize.getB(),2)));
+        double d = Math.sqrt(Math.pow(r, 2) - Math.pow(segmentNormalize.getC(), 2) / (Math.pow(segmentNormalize.getA(), 2) + Math.pow(segmentNormalize.getB(), 2)));
+        double mult = Math.sqrt(Math.pow(d, 2) / (Math.pow(segmentNormalize.getA(), 2) + Math.pow(segmentNormalize.getB(), 2)));
 
-        Point a = new Point(x0 + segmentNormalize.getB() * mult, y0 - segmentNormalize.getA() * mult);
-        Point b = new Point(x0 - segmentNormalize.getB() * mult, y0 + segmentNormalize.getA() * mult);
+        Point a = new Point(x0 + segmentNormalize.getB() * mult + circleCenter.getX(), y0 - segmentNormalize.getA() * mult + circleCenter.getY());
+        Point b = new Point(x0 - segmentNormalize.getB() * mult + circleCenter.getX(), y0 + segmentNormalize.getA() * mult + circleCenter.getY());
 
-        if (segmentNormalize.isPointOnSegment(a) && !segmentNormalize.isPointOnSegment(b)) {
+        if (segment.isPointOnSegment(a) && !segment.isPointOnSegment(b)) {
             return a;
-        } else if (segmentNormalize.isPointOnSegment(b) && !segmentNormalize.isPointOnSegment(a)) {
+        } else if (segment.isPointOnSegment(b) && !segment.isPointOnSegment(a)) {
             return b;
+        } else if (segment.isPointOnSegment(a) && segment.isPointOnSegment(b)) {
+            throw new RuntimeException("Both points on segment");
         }
 
-        throw new RuntimeException("Both points on segment");
+        return null;
     }
 }

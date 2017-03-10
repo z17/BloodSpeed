@@ -22,16 +22,20 @@ public class MiddleLineSelector extends Step<List<Point>> {
     private final int[][] contour;
     private final int[][] sumMatrix;
     private final String outputPrefix;
+    private final int regionSize;
+    private final int maxSpeed;
 
     private final static String MIDDLE_POINTS_IMAGE_FILENAME = "middle-points.bmp";
     private final static String MIDDLE_FULL_POINTS_IMAGE_FILENAME = "middle-full-points.bmp";
     public final static String MIDDLE_FULL_POINTS_POSITION_FILENAME = "middle-full-points.txt";
 
-    public MiddleLineSelector(Point start, Images data, int[][] contour, int sumMatrix[][], String outputFolder, final String outputPrefix) {
+    public MiddleLineSelector(Point start, Images data, int[][] contour, int sumMatrix[][], String outputFolder, final String outputPrefix, int regionSize, int maxSpeed) {
         this.start = start;
         this.data = data;
         this.contour = contour;
         this.sumMatrix = sumMatrix;
+        this.regionSize = regionSize;
+        this.maxSpeed = maxSpeed;
         FunctionHelper.checkOutputFolders(outputFolder);
         this.outputPrefix = outputFolder + "/" + outputPrefix + "_";
     }
@@ -44,41 +48,86 @@ public class MiddleLineSelector extends Step<List<Point>> {
 //        int[][] contour = BmpHelper.readBmp("data/backgroundSelector_v2/circuit-image.bmp");
 
         // изображение суммы
-        int[][] summImage = MatrixHelper.readMatrix("data/backgroundSelector_v2/sum.txt");
+        int[][] sumImage = MatrixHelper.readMatrix("data/backgroundSelector_v2/sum.txt");
 
         // выбираем стартовую точку
-        final Point start = new Point(44, 112);
+        final Point startPoint = new Point(44, 112);
 //        final Point start = new Point(47, 140);
-        MiddleLineSelector selector = new MiddleLineSelector(start, images, contour, summImage, "data/middle-line/", "v1");
+
+        MiddleLineSelector selector = new MiddleLineSelector(
+                startPoint,
+                images,
+                contour,
+                sumImage,
+                "data/middle-line/",
+                "v1",
+                3,
+                15
+        );
         selector.process();
     }
 
     @Override
     public List<Point> process() {
-        final int regionSize = 3;
-        final int maxSpeed = 15;
-
-//        Direction currentDirection = Direction.TOP;
-
         final List<Point> centralPoints = getCentralPoints(start, regionSize, maxSpeed);
 
         List<Point> neighboringPoints = getNeighboringPoints(centralPoints);
 
-        return refinePoints(neighboringPoints, Math.sqrt(2));
+        List<Point> refinedPoints = refinePoints(neighboringPoints, 3);
+        List<Point> result = refinePoints(refinedPoints, 1);
+        int[][] visualise = MatrixHelper.copyMatrix(contour);
+        for (Point p : result) {
+            visualise[p.getIntY()][p.getIntX()] = 125;
+        }
+
+        BmpHelper.writeBmp(outputPrefix + "refined_image.bmp", visualise);
+        FunctionHelper.writePointsList(outputPrefix + MIDDLE_FULL_POINTS_POSITION_FILENAME, result);
+        return result;
     }
 
     private List<Point> refinePoints(final List<Point> points, final double distance) {
-        Point currentPoint = points.get(0);
-        Point nextPoint = points.get(1);
+        List<Point> result = new ArrayList<>();
 
-        LineSegment segment = new LineSegment(currentPoint, nextPoint);
+        int currentPointIndex = 0;
+
+        int currentSegmentEndIndex = 1;
+        int currentSegmentStartIndex = 0;
+        Point currentPoint = points.get(currentPointIndex);
+        result.add(currentPoint);
+
+        while (currentSegmentEndIndex != points.size() - 1) {
+            Point currentSegmentStartPoint = currentPoint;
+            Point currentSegmentEndPoint = points.get(currentSegmentEndIndex);
+
+            Point nextPointCandidate;
+            while (true) {
+                LineSegment segment = new LineSegment(currentSegmentStartPoint, currentSegmentEndPoint);
+                nextPointCandidate = MathHelper.getInterSectionPointWithCircleAndSegment(segment, currentPoint, distance);
+                if (nextPointCandidate != null) {
+                    break;
+                }
+
+                currentSegmentStartIndex++;
+                currentSegmentEndIndex++;
+                currentSegmentStartPoint = points.get(currentSegmentStartIndex);
+                if (currentSegmentEndIndex == points.size() - 1) {
+                    break;
+                }
+                currentSegmentEndPoint = points.get(currentSegmentEndIndex);
+            }
+
+            if (nextPointCandidate != null) {
+                currentPoint = nextPointCandidate;
+                result.add(currentPoint);
+            }
+        }
+
         //todo: implement this
-        return null;
+        return result;
 
     }
 
     private List<Point> getNeighboringPoints(final List<Point> centralPoints) {
-        final int[][] pointsImage = MatrixHelper.copyMatrix(contour);
         List<Point> resultPoints = new ArrayList<>();
         for (int i = 0; i < centralPoints.size() - 1; i++) {
             final Point startPoint = centralPoints.get(i);
@@ -115,12 +164,9 @@ public class MiddleLineSelector extends Step<List<Point>> {
                 }
                 currentPoint = nextPoint;
                 resultPoints.add(currentPoint);
-                pointsImage[currentPoint.getIntY()][currentPoint.getIntX()] = 187;
             }
         }
 
-        BmpHelper.writeBmp(outputPrefix + MIDDLE_FULL_POINTS_IMAGE_FILENAME, pointsImage);
-        FunctionHelper.writePointsList(outputPrefix + MIDDLE_FULL_POINTS_POSITION_FILENAME, resultPoints);
         return resultPoints;
     }
 
