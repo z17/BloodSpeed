@@ -1,10 +1,19 @@
 package blood_speed.helper;
 
+import blood_speed.step.data.Line;
 import blood_speed.step.data.LineSegment;
 import blood_speed.step.data.Point;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 public class MathHelper {
-    public static final double EPSILON = 0.001;
+    public static final double EPSILON = 0.1;
+
+    public static boolean doubleEquals(double a, double b) {
+        return Math.abs(a - b) < EPSILON;
+    }
 
     public static double distancePointToLine(double a, double b, double c, double x, double y) {
         return Math.abs(a * x + b * y + c) / Math.sqrt(a * a + b * b);
@@ -22,10 +31,19 @@ public class MathHelper {
         return Math.sqrt(Math.pow(centerX - x, 2) + Math.pow(centerY - y, 2)) < r;
     }
 
-    public static Point getInterSectionPointWithCircleAndSegment(final LineSegment segment, final Point circleCenter, final double r) {
+    public static List<Point> getInterSectionPointWithCircleAndLine(final Line line, final Point circleCenter, final double r) {
+        Point p1, p2;
+        if (!doubleEquals(line.getA(), 0)) {
+            p1 = new Point(line.getX(10), 10);
+            p2 = new Point(line.getX(11), 11);
+        } else {
+            p1 = new Point(10, line.getY(10));
+            p2 = new Point(11, line.getY(11));
+        }
+
         LineSegment segmentNormalize = new LineSegment(
-                new Point(segment.getP1().getX() - circleCenter.getX(), segment.getP1().getY() - circleCenter.getY()),
-                new Point(segment.getP2().getX() - circleCenter.getX(), segment.getP2().getY() - circleCenter.getY())
+                new Point(p1.getX() - circleCenter.getX(), p1.getY() - circleCenter.getY()),
+                new Point(p2.getX() - circleCenter.getX(), p2.getY() - circleCenter.getY())
         );
 
         double x0 = -(segmentNormalize.getA() * segmentNormalize.getC()) / (Math.pow(segmentNormalize.getA(), 2) + Math.pow(segmentNormalize.getB(), 2));
@@ -34,14 +52,13 @@ public class MathHelper {
         Point nearestNormalizePoint = new Point(x0, y0);
         double distanceToNearest = distance(new Point(0, 0), nearestNormalizePoint);
 
-        if (distanceToNearest > r) {
-            return null;
+        if (doubleEquals(distanceToNearest, r)) {
+            return Collections.singletonList(
+                    new Point(nearestNormalizePoint.getX() + circleCenter.getX(), nearestNormalizePoint.getY() + circleCenter.getY())
+            );
         }
-        // todo: check this with epsilon
-        if (distanceToNearest == r) {
-            if (segmentNormalize.isPointOnSegment(nearestNormalizePoint)) {
-                return new Point(nearestNormalizePoint.getX() + circleCenter.getX(), nearestNormalizePoint.getY() + circleCenter.getY());
-            }
+
+        if (distanceToNearest > r) {
             return null;
         }
 
@@ -51,14 +68,54 @@ public class MathHelper {
         Point a = new Point(x0 + segmentNormalize.getB() * mult + circleCenter.getX(), y0 - segmentNormalize.getA() * mult + circleCenter.getY());
         Point b = new Point(x0 - segmentNormalize.getB() * mult + circleCenter.getX(), y0 + segmentNormalize.getA() * mult + circleCenter.getY());
 
-        if (segment.isPointOnSegment(a) && !segment.isPointOnSegment(b)) {
-            return a;
-        } else if (segment.isPointOnSegment(b) && !segment.isPointOnSegment(a)) {
-            return b;
-        } else if (segment.isPointOnSegment(a) && segment.isPointOnSegment(b)) {
-            throw new RuntimeException("Both points on segment");
+        return Arrays.asList(a, b);
+    }
+
+    public static Point getInterSectionPointWithCircleAndSegment(final LineSegment segment, final Point circleCenter, final double r) {
+        List<Point> points = getInterSectionPointWithCircleAndLine(segment, circleCenter, r);
+
+        if (points == null || points.isEmpty()) {
+            return null;
         }
 
-        return null;
+        if (points.size() == 1) {
+            Point a = points.get(0);
+            if (segment.isPointOnSegment(a)) {
+                return a;
+            }
+            return null;
+        }
+
+        if (points.size() == 2) {
+            Point a = points.get(0);
+            Point b = points.get(1);
+            if (segment.isPointOnSegment(a) && !segment.isPointOnSegment(b)) {
+                return a;
+            } else if (segment.isPointOnSegment(b) && !segment.isPointOnSegment(a)) {
+                return b;
+            } else if (segment.isPointOnSegment(a) && segment.isPointOnSegment(b)) {
+                throw new RuntimeException("Both points on segment");
+            }
+            return null;
+        }
+
+        throw new RuntimeException("We can't be here");
+    }
+
+    /** билиейная интерполяция
+     * https://ru.wikipedia.org/wiki/%D0%91%D0%B8%D0%BB%D0%B8%D0%BD%D0%B5%D0%B9%D0%BD%D0%B0%D1%8F_%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%BF%D0%BE%D0%BB%D1%8F%D1%86%D0%B8%D1%8F
+     */
+    public static double getPointValue(Point point, int[][] matrix) {
+        double x = point.getX();
+        double y = point.getY();
+        int x1 = (int) Math.floor(x);
+        int y1 = (int) Math.floor(y);
+        int x2 = x1 + 1;
+        int y2 = y1 + 1;
+
+        double r1 = (x2 - x) / (x2 - x1) * matrix[y1][x1] + (x - x1) / (x2 - x1) * matrix[y1][x2];
+        double r2 = (x2 - x) / (x2 - x1) * matrix[y2][x1] + (x - x1) / (x2 - x1) * matrix[y2][x2];
+
+        return (y2 - y) / (y2 - y1) * r1 + (y - y1) / (y2 - y1) * r2;
     }
 }

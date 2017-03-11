@@ -9,8 +9,8 @@ public class Point {
     }
 
     public Point(double x, double y) {
-        this.x = x;
-        this.y = y;
+        this.x = !Double.isNaN(x) ? x : 0;
+        this.y = !Double.isNaN(y) ? y : 0;
     }
 
     private final double x;

@@ -80,7 +80,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
             visualise[p.getIntY()][p.getIntX()] = 125;
         }
 
-        BmpHelper.writeBmp(outputPrefix + "refined_image.bmp", visualise);
+        BmpHelper.writeBmp(outputPrefix + MIDDLE_FULL_POINTS_IMAGE_FILENAME, visualise);
         FunctionHelper.writePointsList(outputPrefix + MIDDLE_FULL_POINTS_POSITION_FILENAME, result);
         return result;
     }
@@ -122,7 +122,6 @@ public class MiddleLineSelector extends Step<List<Point>> {
             }
         }
 
-        //todo: implement this
         return result;
 
     }

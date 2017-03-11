@@ -7,29 +7,14 @@ import java.util.Objects;
 /**
  * Line aX + bY + c = 0
  */
-public class LineSegment {
+public class LineSegment extends Line {
     private final Point p1;
     private final Point p2;
-    private final double a;
-    private final double b;
-    private final double c;
 
     public LineSegment(Point p1, Point p2) {
+        super(p1, p2);
         this.p1 = p1;
         this.p2 = p2;
-
-        double a = p2.getY() - p1.getY();
-        double b = p1.getX() - p2.getX();
-        double c = -(p1.getX() * p2.getY() - p2.getX() * p1.getY());
-
-        if (a < 0) {
-            a = - a;
-            b = -b;
-            c = -c;
-        }
-        this.a = a;
-        this.b = b;
-        this.c = c;
     }
 
     public Point getP1() {
@@ -38,18 +23,6 @@ public class LineSegment {
 
     public Point getP2() {
         return p2;
-    }
-
-    public double getA() {
-        return a;
-    }
-
-    public double getB() {
-        return b;
-    }
-
-    public double getC() {
-        return c;
     }
 
     @Override
@@ -83,10 +56,11 @@ public class LineSegment {
 
     public boolean isPointOnSegment(final Point p) {
         double v = a * p.getX() + b * p.getY() + c;
-        if (Math.abs(v) < MathHelper.EPSILON) {
-            return (p1.getX() <= p.getX() &&  p.getX() <= p2.getX() || p1.getX() >= p.getX() && p.getX() >= p2.getX())
-                    && (p1.getY() <= p.getY() &&  p.getY() <= p2.getY() || p1.getY() >= p.getY() && p.getY() >= p2.getY());
+        if (MathHelper.doubleEquals(v, 0)) {
+            return (p1.getX() < p.getX() &&  p.getX() < p2.getX() || p1.getX() > p.getX() && p.getX() > p2.getX() || MathHelper.doubleEquals(p.getX(), p1.getX()) || MathHelper.doubleEquals(p.getX(), p2.getX()))
+                    && (p1.getY() < p.getY() &&  p.getY() < p2.getY() || p1.getY() > p.getY() && p.getY() > p2.getY() || MathHelper.doubleEquals(p.getY(), p1.getY()) || MathHelper.doubleEquals(p.getY(), p2.getY()));
         }
         return false;
     }
+
 }

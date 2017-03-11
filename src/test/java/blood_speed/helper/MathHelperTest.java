@@ -4,7 +4,8 @@ import blood_speed.step.data.LineSegment;
 import blood_speed.step.data.Point;
 import org.junit.Test;
 
-import static java.util.Objects.isNull;
+
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
@@ -56,5 +57,46 @@ public class MathHelperTest {
         Point inter = MathHelper.getInterSectionPointWithCircleAndSegment(segment, center, r);
 
         assertThat(inter, is(new Point(4, 4)));
+    }
+
+    @Test
+    public void getInterSectionPointWithCircleAnLineValue() throws Exception {
+        Point p1 = new Point(44,109);
+        Point p2 = new Point(44,108);
+        LineSegment segment = new LineSegment(p1, p2);
+
+        Point center = new Point(44,111);
+        double r = 3;
+
+        Point point = MathHelper.getInterSectionPointWithCircleAndSegment(segment, center, r);
+        assertThat(point, is(notNullValue()));
+    }
+
+    @Test
+    public void getInterSectionPointWithCircleAnLineValue2() throws Exception {
+        Point p1 = new Point(34,24);
+        Point p2 = new Point(34,23);
+        LineSegment segment = new LineSegment(p1, p2);
+
+        Point center = new Point(36.1161,25.116);
+        double r = 3;
+
+        Point point = MathHelper.getInterSectionPointWithCircleAndSegment(segment, center, r);
+        System.out.println(point);
+        assertThat(point, is(notNullValue()));
+    }
+
+    @Test
+    public void getInterSectionPointWithCircleAnLineValue3() throws Exception {
+        Point p1 = new Point(34,23);
+        Point p2 = new Point(33,23);
+        LineSegment segment = new LineSegment(p1, p2);
+
+        Point center = new Point(36.11617445270761,25.11617445270763);
+        double r = 3;
+
+        Point point = MathHelper.getInterSectionPointWithCircleAndSegment(segment, center, r);
+        System.out.println(point);
+        assertThat(point, is(notNullValue()));
     }
 }
