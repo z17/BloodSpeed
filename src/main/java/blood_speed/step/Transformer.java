@@ -42,10 +42,10 @@ public class Transformer extends Step<Images> {
     }
 
     public static void main(String[] args) {
-        List<Point> middleLine = FunctionHelper.readPointsList("data/tests/all_cap_smolensk/middle-line/v1_" + MiddleLineSelector.MIDDLE_FULL_POINTS_POSITION_FILENAME);
-        Images data = BackgroundSelector.loadOutputData("data/tests/all_cap_smolensk/backgroundSelector/");
-        int[][] contour = BmpHelper.readBmp("data/tests/all_cap_smolensk/backgroundSelector/contour-image-photoshop.bmp");
-        Step<Images> step = new Transformer(middleLine, data, contour, "data/tests/all_cap_smolensk/transformedImages", 4, 1, 5);
+        List<Point> middleLine = FunctionHelper.readPointsList("data/tests/dec94_pasha4_cap1/middle-line/v1_" + MiddleLineSelector.MIDDLE_FULL_POINTS_POSITION_FILENAME);
+        Images data = BackgroundSelector.loadOutputData("data/tests/dec94_pasha4_cap1/backgroundSelector/");
+        int[][] contour = BmpHelper.readBmp("data/tests/dec94_pasha4_cap1/backgroundSelector/contour-image-photoshop.bmp");
+        Step<Images> step = new Transformer(middleLine, data, contour, "data/tests/dec94_pasha4_cap1/transformedImages", 4, 1, 5);
         step.process();
     }
 

@@ -20,6 +20,12 @@ public class BackgroundSelector extends Step<Images> {
         FunctionHelper.checkIOFolders(null, outputFolder);
     }
 
+    public static void main(String[] args) {
+        Images images = loadInputData("data/tests/dec94_pasha4_cap1/out2b/");
+        BackgroundSelector backgroundSelector = new BackgroundSelector(images, "data/tests/dec94_pasha4_cap1/backgroundSelector/");
+        backgroundSelector.process();
+    }
+
     @Override
     public Images process() {
         // сумма всех изображений
@@ -121,7 +127,7 @@ public class BackgroundSelector extends Step<Images> {
         for (int i = 0; i < images.getRows(); i++) {
             for (int j = 0; j < images.getCols(); j++) {
                 double coefficient2 = ((double) max2 - min2) / 256;
-                sumImage2[i][j] = (int) Math.round((sumImage2[i][j] - min2) / coefficient2);
+                sumImage2[i][j] = 255 - (int) Math.round((sumImage2[i][j] - min2) / coefficient2);
             }
         }
         BmpHelper.writeBmp(outputFolder + "/sum-image2.bmp", sumImage2);
@@ -132,18 +138,12 @@ public class BackgroundSelector extends Step<Images> {
 
     public static Images loadInputData(final String inputFolder) {
         final Images result = new Images();
-        for (int i = 800; i <= 1199; i++) {
+        for (int i = 0; i <= 1648; i++) {
 //            int[][] bmp = BmpHelper.readBmpColors(inputFolder + "img0_00000_" + String.format("%05d", i) + ".bmp");
-            int[][] bmp = BmpHelper.readBmp(inputFolder + "img0_00000_" + String.format("%05d", i) + ".bmp");
+            int[][] bmp = BmpHelper.readBmp(inputFolder + "img1_00000_" + String.format("%05d", i) + ".bmp");
             result.add(bmp);
         }
         return result;
-    }
-
-    public static void main(String[] args) {
-        Images images = loadInputData("data/tests/all_cap_smolensk/step2_stab/");
-        BackgroundSelector backgroundSelector = new BackgroundSelector(images, "data/tests/all_cap_smolensk/backgroundSelector/");
-        backgroundSelector.process();
     }
 
     public static Images loadOutputData(final String inputFolder) {

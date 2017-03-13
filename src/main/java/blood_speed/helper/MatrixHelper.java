@@ -56,7 +56,7 @@ public final class MatrixHelper {
         for (int[] m : matrix) {
             StringBuilder stringBuilder = new StringBuilder();
             for (int k : m) {
-                stringBuilder.append(String.format("%7d", k));
+                stringBuilder.append(String.format("%10d", k));
             }
             lines.add(stringBuilder.toString());
         }
