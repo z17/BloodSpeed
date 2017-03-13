@@ -45,18 +45,18 @@ public class MiddleLineSelector extends Step<List<Point>> {
     }
 
     public static void main(String[] args) {
-        Images images = BackgroundSelector.loadOutputData("data/tests/dec94_pasha4_cap1/backgroundSelector/");
+        Images images = BackgroundSelector.loadOutputData("data/tests/test2/backgroundSelector/");
 
         // контур
-        int[][] contour = BmpHelper.readBmp("data/tests/dec94_pasha4_cap1/backgroundSelector/contour-image-photoshop.bmp");
+        int[][] contour = BmpHelper.readBmp("data/tests/test2/backgroundSelector/contour-image-photoshop.bmp");
 //        int[][] contour = BmpHelper.readBmp("data/backgroundSelector_v2/circuit-image.bmp");
 
         // изображение суммы
-        int[][] sumMatrix = MatrixHelper.readMatrix("data/tests/dec94_pasha4_cap1/backgroundSelector/sum.txt");
-        int[][] sumImage = BmpHelper.readBmp("data/tests/dec94_pasha4_cap1/backgroundSelector/sum-image.bmp");
+        int[][] sumMatrix = MatrixHelper.readMatrix("data/tests/test2/backgroundSelector/sum.txt");
+        int[][] sumImage = BmpHelper.readBmp("data/tests/test2/backgroundSelector/sum-image.bmp");
 
         // выбираем стартовую точку
-        final Point startPoint = new Point(25, 152);
+        final Point startPoint = new Point(51, 200);
 //        final Point start = new Point(47, 140);
 
         MiddleLineSelector selector = new MiddleLineSelector(
@@ -65,7 +65,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
                 contour,
                 sumMatrix,
                 sumImage,
-                "data/tests/dec94_pasha4_cap1/middle-line/",
+                "data/tests/test2/middle-line/",
                 "v1",
                 3,
                 15,
@@ -229,7 +229,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
             currentPoint = nextPoint;
 //            currentDirection = nextDirection;
             // todo: придумать как ограничить поиск
-            if (n > 21) {
+            if (n > 26) {
                 break;
             }
             n++;
@@ -285,7 +285,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
         int[][] dissynchronizationFactor = new int[2 * maxSpeed + 1][2 * maxSpeed + 1];
         for (int i = point.getIntY() - maxSpeed; i <= point.getIntY() + maxSpeed; i++) {
             for (int j = point.getIntX() - maxSpeed; j <= point.getIntX() + maxSpeed; j++) {
-                if (i < pointRegionSize || j < pointRegionSize || i > data.getRows() - pointRegionSize - 1 || j > data.getCols() - pointRegionSize - 1) {
+                if (i <= pointRegionSize || j <= pointRegionSize || i >= data.getRows() - pointRegionSize - 1 || j >= data.getCols() - pointRegionSize - 1) {
                     // если проверяемая точка стоит на границе изображения
                     continue;
                 }
