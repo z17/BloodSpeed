@@ -87,6 +87,7 @@ public class BackgroundSelector extends Step<Images> {
             }
         }
 
+        int[][] sumImage2 = new int[images.getRows()][images.getCols()];
         // вычитаем минимум из каждой точки и сохраняем изображение
         int currentNumber = 0;
         for (int[][] matrix : images.getImagesList()) {
@@ -94,11 +95,36 @@ public class BackgroundSelector extends Step<Images> {
             for (int i = 0; i < images.getRows(); i++) {
                 for (int j = 0; j < images.getCols(); j++) {
                     result[i][j] = (matrix[i][j] - minValues[i][j]) * 2;
+                    sumImage2[i][j] += result[i][j];
                 }
             }
             BmpHelper.writeBmp(outputFolder + "/background_" + currentNumber + ".bmp", result);
             currentNumber++;
         }
+
+        // максимум и минимум суммы
+        int min2 = sumImage2[0][0];
+        int max2 = sumImage2[0][0];
+        for (int i = 0; i < images.getRows(); i++) {
+            for (int j = 0; j < images.getCols(); j++) {
+                if (min2 > sumImage2[i][j]) {
+                    min2 = sumImage2[i][j];
+                }
+                if (max2 < sumImage2[i][j]) {
+                    max2 = sumImage2[i][j];
+                }
+            }
+        }
+
+        MatrixHelper.writeMatrix(outputFolder + "/sum2.txt", sumImage2);
+        // формируем суммированное изображение
+        for (int i = 0; i < images.getRows(); i++) {
+            for (int j = 0; j < images.getCols(); j++) {
+                double coefficient2 = ((double) max2 - min2) / 256;
+                sumImage2[i][j] = (int) Math.round((sumImage2[i][j] - min2) / coefficient2);
+            }
+        }
+        BmpHelper.writeBmp(outputFolder + "/sum-image2.bmp", sumImage2);
 
         return null;
     }
@@ -106,16 +132,17 @@ public class BackgroundSelector extends Step<Images> {
 
     public static Images loadInputData(final String inputFolder) {
         final Images result = new Images();
-        for (int i = 0; i < 300; i++) {
-            int[][] bmp = BmpHelper.readBmpColors(inputFolder + "img1_00000_" + String.format("%05d", i) + ".bmp");
+        for (int i = 800; i <= 1199; i++) {
+//            int[][] bmp = BmpHelper.readBmpColors(inputFolder + "img0_00000_" + String.format("%05d", i) + ".bmp");
+            int[][] bmp = BmpHelper.readBmp(inputFolder + "img0_00000_" + String.format("%05d", i) + ".bmp");
             result.add(bmp);
         }
         return result;
     }
 
     public static void main(String[] args) {
-        Images images = loadInputData("data/test2/out2b/");
-        BackgroundSelector backgroundSelector = new BackgroundSelector(images, "data/backgroundSelector_v2/");
+        Images images = loadInputData("data/tests/all_cap_smolensk/step2_stab/");
+        BackgroundSelector backgroundSelector = new BackgroundSelector(images, "data/tests/all_cap_smolensk/backgroundSelector/");
         backgroundSelector.process();
     }
 

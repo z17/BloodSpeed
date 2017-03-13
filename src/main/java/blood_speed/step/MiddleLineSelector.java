@@ -21,6 +21,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
     private final Images data;
     private final int[][] contour;
     private final int[][] sumMatrix;
+    private final int[][] sumImage;
     private final String outputPrefix;
     private final int regionSize;
     private final int maxSpeed;
@@ -29,11 +30,12 @@ public class MiddleLineSelector extends Step<List<Point>> {
     private final static String MIDDLE_FULL_POINTS_IMAGE_FILENAME = "middle-full-points.bmp";
     public final static String MIDDLE_FULL_POINTS_POSITION_FILENAME = "middle-full-points.txt";
 
-    public MiddleLineSelector(Point start, Images data, int[][] contour, int sumMatrix[][], String outputFolder, final String outputPrefix, int regionSize, int maxSpeed) {
+    public MiddleLineSelector(Point start, Images data, int[][] contour, int sumMatrix[][],int sumImage[][], String outputFolder, final String outputPrefix, int regionSize, int maxSpeed) {
         this.start = start;
         this.data = data;
         this.contour = contour;
         this.sumMatrix = sumMatrix;
+        this.sumImage = sumImage;
         this.regionSize = regionSize;
         this.maxSpeed = maxSpeed;
         FunctionHelper.checkOutputFolders(outputFolder);
@@ -41,28 +43,30 @@ public class MiddleLineSelector extends Step<List<Point>> {
     }
 
     public static void main(String[] args) {
-        Images images = BackgroundSelector.loadOutputData("data/backgroundSelector_v2/");
+        Images images = BackgroundSelector.loadOutputData("data/tests/all_cap_smolensk/backgroundSelector/");
 
         // контур
-        int[][] contour = BmpHelper.readBmp("data/backgroundSelector_v2/circuit-image_photoshop.bmp");
+        int[][] contour = BmpHelper.readBmp("data/tests/all_cap_smolensk/backgroundSelector/contour-image-photoshop.bmp");
 //        int[][] contour = BmpHelper.readBmp("data/backgroundSelector_v2/circuit-image.bmp");
 
         // изображение суммы
-        int[][] sumImage = MatrixHelper.readMatrix("data/backgroundSelector_v2/sum.txt");
+        int[][] sumMatrix = MatrixHelper.readMatrix("data/tests/all_cap_smolensk/backgroundSelector/sum.txt");
+        int[][] sumImage = BmpHelper.readBmp("data/tests/all_cap_smolensk/backgroundSelector/sum-image.bmp");
 
         // выбираем стартовую точку
-        final Point startPoint = new Point(44, 112);
+        final Point startPoint = new Point(22, 121);
 //        final Point start = new Point(47, 140);
 
         MiddleLineSelector selector = new MiddleLineSelector(
                 startPoint,
                 images,
                 contour,
+                sumMatrix,
                 sumImage,
-                "data/middle-line/",
+                "data/tests/all_cap_smolensk/middle-line/",
                 "v1",
                 3,
-                15
+                5
         );
         selector.process();
     }
@@ -70,18 +74,26 @@ public class MiddleLineSelector extends Step<List<Point>> {
     @Override
     public List<Point> process() {
         final List<Point> centralPoints = getCentralPoints(start, regionSize, maxSpeed);
+        drowTrack(centralPoints, "middle_points1.bmp");
 
         List<Point> neighboringPoints = getNeighboringPoints(centralPoints);
+        drowTrack(neighboringPoints, "middle_points2.bmp");
 
         List<Point> refinedPoints = refinePoints(neighboringPoints, 3);
+        drowTrack(refinedPoints, "middle_points3.bmp");
         List<Point> result = refinePoints(refinedPoints, 1);
-        int[][] visualise = MatrixHelper.copyMatrix(contour);
-        for (Point p : result) {
-            visualise[p.getIntY()][p.getIntX()] = 125;
-        }
+        drowTrack(result, "middle_points4.bmp");
 
-        BmpHelper.writeBmp(outputPrefix + MIDDLE_FULL_POINTS_IMAGE_FILENAME, visualise);
-        FunctionHelper.writePointsList(outputPrefix + MIDDLE_FULL_POINTS_POSITION_FILENAME, result);
+
+        List<Point> result2 = getNeighboringPoints(result);
+        drowTrack(result2, "middle_points5.bmp");
+
+        List<Point> result3= refinePoints(result2, 2);
+        drowTrack(result3, "middle_points6.bmp");
+        List<Point> result4 = refinePoints(result3, 1);
+        drowTrack(result4, "middle_points7.bmp");
+
+        FunctionHelper.writePointsList(outputPrefix + MIDDLE_FULL_POINTS_POSITION_FILENAME, result4);
         return result;
     }
 
@@ -178,7 +190,6 @@ public class MiddleLineSelector extends Step<List<Point>> {
     }
 
     private List<Point> getCentralPoints(final Point startPoint, final int regionSize, final int maxSpeed) {
-        final int[][] pointsImage = MatrixHelper.copyMatrix(contour);
         final List<Point> points = new ArrayList<>();
         int n = 0;
 
@@ -209,22 +220,19 @@ public class MiddleLineSelector extends Step<List<Point>> {
             Point nextHalfPoint = getBestMiddlePoint(currentPoint, nextPoint);
 
             if (nextHalfPoint != null) {
-                pointsImage[nextHalfPoint.getIntY()][nextHalfPoint.getIntX()] = 50;
                 points.add(nextHalfPoint);
             }
 
-            pointsImage[currentPoint.getIntY()][currentPoint.getIntX()] = 127;
 
             currentPoint = nextPoint;
 //            currentDirection = nextDirection;
             // todo: придумать как ограничить поиск
-            if (n > 20) {
+            if (n > 115) {
                 break;
             }
             n++;
         }
 
-        BmpHelper.writeBmp(outputPrefix + MIDDLE_POINTS_IMAGE_FILENAME, pointsImage);
         return points;
     }
 
@@ -496,5 +504,13 @@ public class MiddleLineSelector extends Step<List<Point>> {
             }
         }
         return false;
+    }
+
+    private void drowTrack(List<Point> points, final String name) {
+        int[][] visualise = MatrixHelper.copyMatrix(sumImage);
+        for (Point p : points) {
+            visualise[p.getIntY()][p.getIntX()] = 125;
+        }
+        BmpHelper.writeBmp(outputPrefix + name, visualise);
     }
 }

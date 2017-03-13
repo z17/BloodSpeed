@@ -62,9 +62,9 @@ public final class FunctionHelper {
         StringBuilder stringBuilder = new StringBuilder();
         for (Point p : points) {
             stringBuilder
-                    .append(p.getIntX())
+                    .append(p.getX())
                     .append(" ")
-                    .append(p.getIntY())
+                    .append(p.getY())
                     .append(System.lineSeparator());
         }
 
@@ -88,7 +88,7 @@ public final class FunctionHelper {
                 int spacePosition = s.indexOf(" ");
                 String x = s.substring(0, spacePosition);
                 String y = s.substring(spacePosition + 1);
-                result.add(new Point(Integer.valueOf(x), Integer.valueOf(y)));
+                result.add(new Point(Double.valueOf(x), Double.valueOf(y)));
             }
             return result;
         } catch (IOException e) {
