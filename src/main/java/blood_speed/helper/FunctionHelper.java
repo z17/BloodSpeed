@@ -70,7 +70,7 @@ public final class FunctionHelper {
 
         lines.add(stringBuilder.toString());
         try {
-            Files.write(Paths.get(name), lines, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+            Files.write(Paths.get(name), lines, StandardCharsets.UTF_8, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -94,5 +94,21 @@ public final class FunctionHelper {
         } catch (IOException e) {
             throw new RuntimeException("Cant read file " + name, e);
         }
+    }
+
+    public static void drawPointsOnImage(List<Point> points, final String name, final int[][] image) {
+        int[][] visualise = MatrixHelper.copyMatrix(image);
+        for (Point p : points) {
+            int y = p.getIntY();
+            int x = p.getIntX();
+//            if (visualise[y][x] > 100) {
+//                visualise[y][x] = 0;
+//            } else {
+//                visualise[y][x] = 255;
+//            }
+            visualise[y][x] = 255;
+
+        }
+        BmpHelper.writeBmp(name, visualise);
     }
 }

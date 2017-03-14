@@ -61,7 +61,7 @@ public final class MatrixHelper {
             lines.add(stringBuilder.toString());
         }
         try {
-            Files.write(Paths.get(name), lines, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+            Files.write(Paths.get(name), lines, StandardCharsets.UTF_8, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -76,7 +76,7 @@ public final class MatrixHelper {
 
         lines.add(stringBuilder.toString());
         try {
-            Files.write(Paths.get(name), lines, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+            Files.write(Paths.get(name), lines, StandardCharsets.UTF_8, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

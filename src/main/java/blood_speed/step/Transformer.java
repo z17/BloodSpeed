@@ -3,13 +3,13 @@ package blood_speed.step;
 import blood_speed.helper.BmpHelper;
 import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MathHelper;
+import blood_speed.helper.MatrixHelper;
 import blood_speed.step.data.Images;
 import blood_speed.step.data.Line;
 import blood_speed.step.data.LineSegment;
 import blood_speed.step.data.Point;
-import blood_speed.step.util.Direction;
+import javafx.util.Pair;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -42,18 +42,20 @@ public class Transformer extends Step<Images> {
     }
 
     public static void main(String[] args) {
-        List<Point> middleLine = FunctionHelper.readPointsList("data/tests/dec94_pasha4_cap1/middle-line/v1_" + MiddleLineSelector.MIDDLE_FULL_POINTS_POSITION_FILENAME);
-        Images data = BackgroundSelector.loadOutputData("data/tests/dec94_pasha4_cap1/backgroundSelector/");
-        int[][] contour = BmpHelper.readBmp("data/tests/dec94_pasha4_cap1/backgroundSelector/contour-image-photoshop.bmp");
-        Step<Images> step = new Transformer(middleLine, data, contour, "data/tests/dec94_pasha4_cap1/transformedImages", 4, 1, 5);
+        List<Point> middleLine = FunctionHelper.readPointsList("data/tests/test2/middle-line/v1_" + MiddleLineSelector.MIDDLE_FULL_POINTS_POSITION_FILENAME);
+        Images data = BackgroundSelector.loadOutputData("data/tests/test2/backgroundSelector/");
+        int[][] contour = BmpHelper.readBmp("data/tests/test2/backgroundSelector/contour-image-photoshop.bmp");
+        Step<Images> step = new Transformer(middleLine, data, contour, "data/tests/test2/transformedImages", 2, 1, 5);
         step.process();
     }
 
 
     @Override
     public Images process() {
+        int[][] image = MatrixHelper.copyMatrix(contour);
         int currentNumberFile = 0;
         for (int[][] matrix : data.getImagesList()) {
+            int currentStep = 0;
             int[][] result = new int[stepsCount * 2 + 1][middleLine.size()];
             for (int i = indent; i < middleLine.size() - indent; i++) {
                 Point p1 = middleLine.get(i - indent);
@@ -72,24 +74,32 @@ public class Transformer extends Step<Images> {
 
                 for (int k = 1; k <= stepsCount; k++) {
                     double r = oneStepSize * k;
-                    List<Point> points = MathHelper.getInterSectionPointWithCircleAndLine(perpendicularLine, middlePoint, r);
-                    if (points == null || points.size() != 2) {
-                        throw new RuntimeException("Error");
+                    Pair<Point, Point> points = MathHelper.getInterSectionPointWithCircleAndLine(perpendicularLine, middlePoint, r);
+                    if (points == null || points.getValue() == null) {
+                        throw new RuntimeException("Unknown error");
                     }
-                    Point a = points.get(0);
-                    Point b = points.get(1);
-                    Direction byPointA = Direction.getByPoints(middlePoint, a);
-                    if (Arrays.asList(Direction.BOTTOM, Direction.BOTTOM_LEFT, Direction.LEFT, Direction.BOTTOM_RIGHT, Direction.TOP_LEFT).contains(byPointA)) {
+
+                    Point a = points.getKey();
+                    Point b = points.getValue();
+
+                    if (getVectorDirection(p1, a, middlePoint)) {
+                        if (currentStep % 7 == 0 && currentNumberFile == 0) {
+                            image[a.getIntY()][a.getIntX()] = 200;
+                        }
                         result[stepsCount - k][i] = (int) Math.ceil(MathHelper.getPointValue(a, matrix));
                         result[stepsCount + k][i] = (int) Math.ceil(MathHelper.getPointValue(b, matrix));
                     } else {
+                        if (currentStep % 7 == 0 && currentNumberFile == 0) {
+                            image[b.getIntY()][b.getIntX()] = 200;
+                        }
                         result[stepsCount - k][i] = (int) Math.ceil(MathHelper.getPointValue(b, matrix));
                         result[stepsCount + k][i] = (int) Math.ceil(MathHelper.getPointValue(a, matrix));
                     }
-//                    result[stepsCount - k][i] = (int)Math.ceil(MathHelper.getPointValue(a, matrix));
-//                    result[stepsCount + k][i] = (int)Math.ceil(MathHelper.getPointValue(b, matrix));
 
                 }
+
+                currentStep++;
+                image[middleLine.get(i).getIntY()][middleLine.get(i).getIntX()] = 160;
 
 //                int[][] contourTemp = MatrixHelper.copyMatrix(contour);
 //                for (int y1 = 0; y1 < data.getRows(); y1++) {
@@ -119,6 +129,15 @@ public class Transformer extends Step<Images> {
             BmpHelper.writeBmp(outputDir + "/result_" + currentNumberFile + ".bmp", result);
             currentNumberFile++;
         }
+
+        BmpHelper.writeBmp(outputDir + "/track.bmp", image);
         return null;
+    }
+
+    // если произведение векторов из одной точки больше нуля, то второй вектор направлен влево от первого
+    private boolean getVectorDirection(final Point a, final Point b, final Point start) {
+        Point pointVector = new Point(b.getX() - start.getX(), b.getY() - start.getY());
+        Point vectorA = new Point(a.getX() - start.getX(), a.getY() - start.getY());
+        return 1 / pointVector.getX() * vectorA.getY() - pointVector.getY() * vectorA.getX() < 0;
     }
 }

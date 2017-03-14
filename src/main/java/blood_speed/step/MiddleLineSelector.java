@@ -96,7 +96,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
         drawTrack(result4, "middle_points7.bmp");
 
         FunctionHelper.writePointsList(outputPrefix + MIDDLE_FULL_POINTS_POSITION_FILENAME, result4);
-        return result;
+        return result4;
     }
 
     private List<Point> refinePoints(final List<Point> points, final double distance) {
@@ -509,18 +509,6 @@ public class MiddleLineSelector extends Step<List<Point>> {
     }
 
     private void drawTrack(List<Point> points, final String name) {
-        int[][] visualise = MatrixHelper.copyMatrix(sumImage);
-        for (Point p : points) {
-            int y = p.getIntY();
-            int x = p.getIntX();
-//            if (visualise[y][x] > 100) {
-//                visualise[y][x] = 0;
-//            } else {
-//                visualise[y][x] = 255;
-//            }
-            visualise[y][x] = 255;
-
-        }
-        BmpHelper.writeBmp(outputPrefix + name, visualise);
+        FunctionHelper.drawPointsOnImage(points, outputPrefix + name, sumImage);
     }
 }
