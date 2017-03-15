@@ -3,7 +3,10 @@ package blood_speed.helper;
 import blood_speed.step.data.Line;
 import blood_speed.step.data.LineSegment;
 import blood_speed.step.data.Point;
-import javafx.util.Pair;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class MathHelper {
     public static final double EPSILON = 0.1;
@@ -28,7 +31,7 @@ public class MathHelper {
         return Math.sqrt(Math.pow(centerX - x, 2) + Math.pow(centerY - y, 2)) < r;
     }
 
-    public static Pair<Point, Point> getInterSectionPointWithCircleAndLine(final Line line, final Point circleCenter, final double r) {
+    public static List<Point> getInterSectionPointWithCircleAndLine(final Line line, final Point circleCenter, final double r) {
         Point p1, p2;
         if (!doubleEquals(line.getA(), 0)) {
             p1 = new Point(line.getX(10), 10);
@@ -50,7 +53,7 @@ public class MathHelper {
         double distanceToNearest = distance(new Point(0, 0), nearestNormalizePoint);
 
         if (doubleEquals(distanceToNearest, r)) {
-            return new Pair<>(new Point(nearestNormalizePoint.getX() + circleCenter.getX(), nearestNormalizePoint.getY() + circleCenter.getY()), null);
+            return Collections.singletonList(new Point(nearestNormalizePoint.getX() + circleCenter.getX(), nearestNormalizePoint.getY() + circleCenter.getY()));
         }
 
         if (distanceToNearest > r) {
@@ -63,18 +66,18 @@ public class MathHelper {
         Point a = new Point(x0 + segmentNormalize.getB() * mult + circleCenter.getX(), y0 - segmentNormalize.getA() * mult + circleCenter.getY());
         Point b = new Point(x0 - segmentNormalize.getB() * mult + circleCenter.getX(), y0 + segmentNormalize.getA() * mult + circleCenter.getY());
 
-        return new Pair<Point, Point>(a, b);
+        return Arrays.asList(a, b);
     }
 
     public static Point getInterSectionPointWithCircleAndSegment(final LineSegment segment, final Point circleCenter, final double r) {
-        Pair<Point, Point> points = getInterSectionPointWithCircleAndLine(segment, circleCenter, r);
+        List<Point> points = getInterSectionPointWithCircleAndLine(segment, circleCenter, r);
 
-        if (points == null || points.getKey() == null) {
+        if (points == null || points.size() == 0) {
             return null;
         }
 
-        if (points.getValue() == null) {
-            Point a = points.getKey();
+        if (points.size() == 1) {
+            Point a = points.get(0);
             if (segment.isPointOnSegment(a)) {
                 return a;
             }
@@ -82,8 +85,8 @@ public class MathHelper {
         }
 
 
-        Point a = points.getKey();
-        Point b = points.getValue();
+        Point a = points.get(0);
+        Point b = points.get(1);
         if (segment.isPointOnSegment(a) && !segment.isPointOnSegment(b)) {
             return a;
         } else if (segment.isPointOnSegment(b) && !segment.isPointOnSegment(a)) {

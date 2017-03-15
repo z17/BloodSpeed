@@ -10,7 +10,6 @@ import blood_speed.step.data.LineSegment;
 import blood_speed.step.data.Point;
 import blood_speed.step.util.Direction;
 import blood_speed.step.util.Distances;
-import javafx.util.Pair;
 
 import java.util.*;
 
@@ -85,6 +84,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
 
         List<Point> refinedPoints = refinePointsByLength(neighboringPoints, 3);
         drawTrack(refinedPoints, "middle_points3.bmp");
+
         List<Point> result = refinePointsByLength(refinedPoints, 1);
         drawTrack(result, "middle_points4.bmp");
 
@@ -101,7 +101,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
         drawTrack(result5, "middle_points8.bmp");
 
         FunctionHelper.writePointsList(outputPrefix + MIDDLE_FULL_POINTS_POSITION_FILENAME, result5);
-        return result4;
+        return result5;
     }
 
     private List<Point> refinePoints(List<Point> points) {
@@ -118,12 +118,11 @@ public class MiddleLineSelector extends Step<List<Point>> {
             candidates.add(middlePoint);
             candidates.add(points.get(i));
             for (int k =1; k < 4; k++) {
-                Pair<Point, Point> pointsCandidates = MathHelper.getInterSectionPointWithCircleAndLine(perpendicular, middlePoint, k);
-                if (pointsCandidates == null || pointsCandidates.getKey() == null) {
+                List<Point> pointsCandidates = MathHelper.getInterSectionPointWithCircleAndLine(perpendicular, middlePoint, k);
+                if (pointsCandidates == null || pointsCandidates.size() != 2) {
                     throw new RuntimeException("Unknown error");
                 }
-                candidates.add(pointsCandidates.getKey());
-                candidates.add(pointsCandidates.getValue());
+                candidates.addAll(pointsCandidates);
             }
             result.add(choiceBestPoint(candidates));
         }
@@ -227,13 +226,20 @@ public class MiddleLineSelector extends Step<List<Point>> {
     }
 
     private List<Point> getCentralPoints(final Point startPoint, final int regionSize, final int maxSpeed) {
+        int[][] visualise = MatrixHelper.copyMatrix(sumImage);
         final List<Point> points = new ArrayList<>();
         int n = 0;
 
         Point currentPoint = startPoint;
+        int color = 0;
         while (true) {
             int[][] dissynchronizationFactor = findDissynchronizationFactor(currentPoint, regionSize, maxSpeed);
             Point minDissynchronizationPoint = getMinDissynchronizationPoint(dissynchronizationFactor, currentPoint, maxSpeed);
+            drawLine(currentPoint, minDissynchronizationPoint, visualise, color);
+            color+= 80;
+            if (color > 255) {
+                color = 0;
+            }
 
             // получаем точки окружности, с центром в текущей точек и радиусом = расстояние от текущей до минимума десинхронизации
             double r = MathHelper.distance(minDissynchronizationPoint, currentPoint);
@@ -242,15 +248,14 @@ public class MiddleLineSelector extends Step<List<Point>> {
 
             List<Point> candidates = getCandidates(circle, minDissynchronizationPoint, r, angleLimit);
 
-
             Point nextPoint = choiceBestPoint(candidates);
 
             if (nextPoint == null) {
                 break;
             }
 
-            Direction nextDirection = Direction.getByPoints(currentPoint, nextPoint);
-            System.err.println(nextDirection);
+            // направление точки
+            // Direction nextDirection = Direction.getByPoints(currentPoint, nextPoint);
             points.add(currentPoint);
 
 //             добавляем промежуточную точку, выбирая её с радиусом 1/2 расстояния между текуей и след
@@ -270,7 +275,26 @@ public class MiddleLineSelector extends Step<List<Point>> {
             n++;
         }
 
+        BmpHelper.writeBmp(outputPrefix + "vectors.bmp", visualise);
         return points;
+    }
+
+    private void drawLine(final Point startPoint, final Point endPoint, final int[][] visualise, final int color) {
+        final LineSegment segment = new LineSegment(startPoint, endPoint);
+
+        double distance = MathHelper.distance(startPoint, endPoint);
+        for (int i = 1; i < distance; i++) {
+            List<Point> points = MathHelper.getInterSectionPointWithCircleAndLine(segment, startPoint, i);
+            if (points == null) {
+                throw new RuntimeException();
+            }
+
+            if (segment.isPointOnSegment(points.get(0))) {
+                visualise[points.get(0).getIntY()][points.get(0).getIntX()] = color;
+            } else {
+                visualise[points.get(1).getIntY()][points.get(1).getIntX()] = color;
+            }
+        }
     }
 
     private Point getMinDissynchronizationPoint(final int[][] dissynchronizationFactor, final Point currentPoint, final int maxSpeed) {

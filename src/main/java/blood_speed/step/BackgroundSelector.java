@@ -5,19 +5,22 @@ import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MatrixHelper;
 import blood_speed.step.data.Images;
 
-import java.util.Arrays;
-
 /**
  * Класс для выделения контура, суммированного изображения и компенсации фона
  */
 public class BackgroundSelector extends Step<Images> {
+
     private final Images images;
     private final String outputFolder;
+
+    private final static String SUM_IMAGE_NAME = "sum-image.bmp";
+    private final static String SUM_FILE_NAME = "sum.txt";
+    private static final String CONTOUR_IMAGE_NAME = "contour-image.bmp";
 
     public BackgroundSelector(Images images, String outputFolder) {
         this.images = images;
         this.outputFolder = outputFolder;
-        FunctionHelper.checkIOFolders(null, outputFolder);
+        FunctionHelper.checkOutputFolders(outputFolder);
     }
 
     public static void main(String[] args) {
@@ -28,6 +31,59 @@ public class BackgroundSelector extends Step<Images> {
 
     @Override
     public Images process() {
+
+        createSumImage();
+        return brightnessCompensation();
+    }
+
+    private Images brightnessCompensation() {
+        double[][] middleValues = new double[images.getRows()][images.getCols()];
+        for (int k = 0; k <= 20; k++) {
+            int[][] current = images.getImagesList().get(k);
+            for (int i = 0; i < images.getRows(); i++) {
+                for (int j = 0; j < images.getCols(); j++) {
+                    middleValues[i][j] += current[i][j] / 21;
+                }
+            }
+        }
+
+        Images resultImages = new Images();
+        for (int currentNumber = 0; currentNumber < images.getImagesList().size(); currentNumber++) {
+
+            // для первых 11 и последних 10 кадров пропускаем изменение middleValue
+            if (currentNumber > 10 && currentNumber < images.getImagesList().size() - 10) {
+                int[][] deletedFrame = images.getImagesList().get(currentNumber - 11);
+                // из среднего значения вычитаем 1 кадр, который вышел за рамки области -10 кадров..текущий..+10 кадров
+                for (int i = 0; i < images.getRows(); i++) {
+                    for (int j = 0; j < images.getCols(); j++) {
+                        middleValues[i][j] -= deletedFrame[i][j] / 21;
+                    }
+                }
+
+                int[][] addedFrame = images.getImagesList().get(currentNumber + 10);
+                // из среднего значения добавляем 1 кадр, который попал в рамки  области -10 кадров..текущий..+10 кадров
+                for (int i = 0; i < images.getRows(); i++) {
+                    for (int j = 0; j < images.getCols(); j++) {
+                        middleValues[i][j] += addedFrame[i][j] / 21;
+                    }
+                }
+            }
+
+            int[][] currentImage = images.getImagesList().get(currentNumber);
+            int[][] currentResult = new int[images.getRows()][images.getCols()];
+            for (int i = 0; i < images.getRows(); i++) {
+                for (int j = 0; j < images.getCols(); j++) {
+                    currentResult[i][j] = (int) Math.round(currentImage[i][j] - middleValues[i][j] + 127);
+                }
+            }
+
+            resultImages.add(currentResult);
+            BmpHelper.writeBmp(outputFolder + "/background_" + currentNumber + ".bmp", currentResult);
+        }
+        return resultImages;
+    }
+
+    private void createSumImage() {
         // сумма всех изображений
         int[][] sumImage = new int[images.getRows()][images.getCols()];
         for (int[][] matrix : images.getImagesList()) {
@@ -38,7 +94,7 @@ public class BackgroundSelector extends Step<Images> {
             }
         }
 
-        MatrixHelper.writeMatrix(outputFolder + "/sum.txt", sumImage);
+        MatrixHelper.writeMatrix(outputFolder + SUM_FILE_NAME, sumImage);
 
         // максимум и минимум суммы
         int min = sumImage[0][0];
@@ -58,13 +114,14 @@ public class BackgroundSelector extends Step<Images> {
         int sum = 0;
         for (int i = 0; i < images.getRows(); i++) {
             for (int j = 0; j < images.getCols(); j++) {
-                double coefficient = ((double) max - min) / 256;
+                double coefficient = ((double) max - min) / 255;
                 sumImage[i][j] = (int) Math.round((sumImage[i][j] - min) / coefficient);
                 sum += sumImage[i][j];
             }
         }
+
         int middleSumImage = (int) (sum / (images.getRows() * images.getCols() * 1.56));
-        BmpHelper.writeBmp(outputFolder + "/sum-image.bmp", sumImage);
+        BmpHelper.writeBmp(outputFolder + SUM_IMAGE_NAME, sumImage);
 
         // формируем контур капилляра
         int[][] contourImage = new int[images.getRows()][images.getCols()];
@@ -73,68 +130,8 @@ public class BackgroundSelector extends Step<Images> {
                 contourImage[i][j] = sumImage[i][j] > middleSumImage ? 255 : 0;
             }
         }
-        BmpHelper.writeBmp(outputFolder + "/contour-image.bmp", contourImage);
-
-
-        // вычиcляем минимум в каждой точки для всего ряда
-        int[][] minValues = new int[images.getRows()][];
-        int[][] first = images.getImagesList().get(0);
-        for (int i = 0; i < first.length; i++) {
-            minValues[i] = Arrays.copyOf(first[i], first[i].length);
-        }
-
-        for (int[][] matrix : images.getImagesList()) {
-            for (int i = 0; i < images.getRows(); i++) {
-                for (int j = 0; j < images.getCols(); j++) {
-                    if (minValues[i][j] > matrix[i][j]) {
-                        minValues[i][j] = matrix[i][j];
-                    }
-                }
-            }
-        }
-
-        int[][] sumImage2 = new int[images.getRows()][images.getCols()];
-        // вычитаем минимум из каждой точки и сохраняем изображение
-        int currentNumber = 0;
-        for (int[][] matrix : images.getImagesList()) {
-            int[][] result = new int[images.getRows()][images.getCols()];
-            for (int i = 0; i < images.getRows(); i++) {
-                for (int j = 0; j < images.getCols(); j++) {
-                    result[i][j] = (matrix[i][j] - minValues[i][j]) * 2;
-                    sumImage2[i][j] += result[i][j];
-                }
-            }
-            BmpHelper.writeBmp(outputFolder + "/background_" + currentNumber + ".bmp", result);
-            currentNumber++;
-        }
-
-        // максимум и минимум суммы
-        int min2 = sumImage2[0][0];
-        int max2 = sumImage2[0][0];
-        for (int i = 0; i < images.getRows(); i++) {
-            for (int j = 0; j < images.getCols(); j++) {
-                if (min2 > sumImage2[i][j]) {
-                    min2 = sumImage2[i][j];
-                }
-                if (max2 < sumImage2[i][j]) {
-                    max2 = sumImage2[i][j];
-                }
-            }
-        }
-
-        MatrixHelper.writeMatrix(outputFolder + "/sum2.txt", sumImage2);
-        // формируем суммированное изображение
-        for (int i = 0; i < images.getRows(); i++) {
-            for (int j = 0; j < images.getCols(); j++) {
-                double coefficient2 = ((double) max2 - min2) / 256;
-                sumImage2[i][j] = 255 - (int) Math.round((sumImage2[i][j] - min2) / coefficient2);
-            }
-        }
-        BmpHelper.writeBmp(outputFolder + "/sum-image2.bmp", sumImage2);
-
-        return null;
+        BmpHelper.writeBmp(outputFolder + CONTOUR_IMAGE_NAME, contourImage);
     }
-
 
     public static Images loadInputData(final String inputFolder) {
         final Images result = new Images();
