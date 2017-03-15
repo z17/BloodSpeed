@@ -66,10 +66,7 @@ public class Transformer extends Step<Images> {
                 double xMiddle = (p1.getIntX() + p2.getIntX()) / 2;
                 final Point middlePoint = new Point(xMiddle, yMiddle);
 
-                double A1 = -segmentP1P2.getB();
-                double B1 = segmentP1P2.getA();
-                double C1 = -segmentP1P2.getA() * yMiddle + segmentP1P2.getB() * xMiddle;
-                final Line perpendicularLine = new Line(A1, B1, C1);
+                final Line perpendicularLine = segmentP1P2.getPerpendicular(middlePoint);
                 result[stepsCount][i] = (int) Math.ceil(MathHelper.getPointValue(middlePoint, matrix));
 
                 for (int k = 1; k <= stepsCount; k++) {

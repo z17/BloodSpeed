@@ -5,10 +5,12 @@ import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MathHelper;
 import blood_speed.helper.MatrixHelper;
 import blood_speed.step.data.Images;
+import blood_speed.step.data.Line;
 import blood_speed.step.data.LineSegment;
 import blood_speed.step.data.Point;
 import blood_speed.step.util.Direction;
 import blood_speed.step.util.Distances;
+import javafx.util.Pair;
 
 import java.util.*;
 
@@ -81,25 +83,58 @@ public class MiddleLineSelector extends Step<List<Point>> {
         List<Point> neighboringPoints = getNeighboringPoints(centralPoints);
         drawTrack(neighboringPoints, "middle_points2.bmp");
 
-        List<Point> refinedPoints = refinePoints(neighboringPoints, 3);
+        List<Point> refinedPoints = refinePointsByLength(neighboringPoints, 3);
         drawTrack(refinedPoints, "middle_points3.bmp");
-        List<Point> result = refinePoints(refinedPoints, 1);
+        List<Point> result = refinePointsByLength(refinedPoints, 1);
         drawTrack(result, "middle_points4.bmp");
 
-
-        List<Point> result2 = getNeighboringPoints(result);
+        List<Point> result2 = refinePoints(result);
         drawTrack(result2, "middle_points5.bmp");
 
-        List<Point> result3= refinePoints(result2, 3);
+        List<Point> result3= refinePointsByLength(result2, 3);
         drawTrack(result3, "middle_points6.bmp");
-        List<Point> result4 = refinePoints(result3, 1);
+
+        List<Point> result4 = refinePoints(result3);
         drawTrack(result4, "middle_points7.bmp");
 
-        FunctionHelper.writePointsList(outputPrefix + MIDDLE_FULL_POINTS_POSITION_FILENAME, result4);
+        List<Point> result5 = refinePointsByLength(result4, 1);
+        drawTrack(result5, "middle_points8.bmp");
+
+        FunctionHelper.writePointsList(outputPrefix + MIDDLE_FULL_POINTS_POSITION_FILENAME, result5);
         return result4;
     }
 
-    private List<Point> refinePoints(final List<Point> points, final double distance) {
+    private List<Point> refinePoints(List<Point> points) {
+        List<Point> result = new ArrayList<>();
+        result.add(points.get(0));
+        for (int i = 1; i < points.size() - 1; i++) {
+            Point a = points.get(i - 1);
+            Point b = points.get(i + 1);
+            Point middlePoint = new Point((a.getX() + b.getIntX()) / 2, (a.getY() +  b.getY()) / 2);
+
+            LineSegment segment = new LineSegment(a,b);
+            Line perpendicular = segment.getPerpendicular(middlePoint);
+            List<Point> candidates = new ArrayList<>();
+            candidates.add(middlePoint);
+            candidates.add(points.get(i));
+            for (int k =1; k < 4; k++) {
+                Pair<Point, Point> pointsCandidates = MathHelper.getInterSectionPointWithCircleAndLine(perpendicular, middlePoint, k);
+                if (pointsCandidates == null || pointsCandidates.getKey() == null) {
+                    throw new RuntimeException("Unknown error");
+                }
+                candidates.add(pointsCandidates.getKey());
+                candidates.add(pointsCandidates.getValue());
+            }
+            result.add(choiceBestPoint(candidates));
+        }
+        result.add(points.get(points.size() - 1));
+        return result;
+    }
+
+    /**
+     * Из ряда точек получаем другой ряд, точки которого стоян на расстоянии distance
+     */
+    private List<Point> refinePointsByLength(final List<Point> points, final double distance) {
         List<Point> result = new ArrayList<>();
 
         int currentPointIndex = 0;

@@ -52,4 +52,10 @@ public class Line {
         return (-a * x - c) / b;
     }
 
+    public Line getPerpendicular(final Point point) {
+        double A1 = - getB();
+        double B1 = getA();
+        double C1 = - getA() * point.getY() + getB() * point.getX();
+        return new Line(A1, B1, C1);
+    }
 }
