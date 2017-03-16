@@ -57,40 +57,45 @@ public final class BmpHelper {
 
     public static int[][] readBmp(final String name) {
         try {
-            BufferedImage read = ImageIO.read(new File(name));
-            int[] nullArray = null;
-            int[] pixels = read.getRaster().getPixels(0, 0, read.getWidth(), read.getHeight(), nullArray);
-            int[][] result = new int[read.getHeight()][ read.getWidth()];
-            for (int i = 0; i < read.getHeight(); i++ ) {
-                for (int k = 0; k < read.getWidth(); k++) {
-                    int index = k + i * read.getWidth();
-                    result[i][k] = pixels[index];
-                }
+            BufferedImage image = ImageIO.read(new File(name));
+            if (image.getType() == BufferedImage.TYPE_3BYTE_BGR) {
+                return readBmp3ByteBGR(image);
+            } else if (image.getType() == BufferedImage.TYPE_BYTE_GRAY) {
+                return readBmpByteGray(image);
             }
-            return result;
+
+            throw new RuntimeException("Unknown image type (not TYPE_3BYTE_BGR or TYPE_BYTE_GRAY");
         } catch (IOException e) {
             throw new RuntimeException("Cant read file " + name, e);
         }
     }
 
-    public static int[][] readBmpColors(final String name) {
-        try {
-            BufferedImage image = ImageIO.read(new File(name));
-            int[] nullArray = null;
-            final int[][] result = new int[image.getHeight()][image.getWidth()];
-
-            int[] pixels = image.getData().getPixels(0, 0, image.getWidth(), image.getHeight(), nullArray);
-
-            for (int i = 0; i < pixels.length; i = i + 3) {
-                int positionNumber = i / 3;
-                int row = positionNumber / image.getWidth();
-                int col = positionNumber % image.getWidth();
-                result[row][col] = (pixels[i] +  pixels[i + 1] +  pixels[i + 2]) / 3;
+    @SuppressWarnings("ConstantConditions")
+    private static int[][] readBmpByteGray(final BufferedImage image) {
+        int[] nullArray = null;
+        int[] pixels = image.getRaster().getPixels(0, 0, image.getWidth(), image.getHeight(), nullArray);
+        int[][] result = new int[image.getHeight()][image.getWidth()];
+        for (int i = 0; i < image.getHeight(); i++) {
+            for (int k = 0; k < image.getWidth(); k++) {
+                int index = k + i * image.getWidth();
+                result[i][k] = pixels[index];
             }
-            return result;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
+        return result;
     }
 
+    @SuppressWarnings("ConstantConditions")
+    private static int[][] readBmp3ByteBGR(final BufferedImage image) {
+        int[] nullArray = null;
+        int[] pixels = image.getData().getPixels(0, 0, image.getWidth(), image.getHeight(), nullArray);
+
+        final int[][] result = new int[image.getHeight()][image.getWidth()];
+        for (int i = 0; i < pixels.length; i = i + 3) {
+            int positionNumber = i / 3;
+            int row = positionNumber / image.getWidth();
+            int col = positionNumber % image.getWidth();
+            result[row][col] = (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3;
+        }
+        return result;
+    }
 }
