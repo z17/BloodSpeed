@@ -45,10 +45,10 @@ public class Transformer extends Step<Images> {
     }
 
     public static void main(String[] args) {
-        List<Point> middleLine = FunctionHelper.readPointsList("data/tests/test2/middle-line/v1_" + MiddleLineSelector.MIDDLE_FULL_POINTS_POSITION_FILENAME);
-        Images data = BackgroundSelector.loadOutputData("data/tests/test2/backgroundSelector/");
-        int[][] sum = BmpHelper.readBmp("data/tests/test2/backgroundSelector/sum-image.bmp");
-        Step<Images> step = new Transformer(middleLine, data, sum, 12, "data/tests/test2/transformedImages", 2, 1, 5);
+        List<Point> middleLine = FunctionHelper.readPointsList("data/tests/all_cap_smolensk/middle-line/v1_" + MiddleLineSelector.MIDDLE_FULL_POINTS_POSITION_FILENAME);
+        Images data = BackgroundSelector.loadOutputData("data/tests/all_cap_smolensk/backgroundSelector/");
+        int[][] sum = BmpHelper.readBmp("data/tests/all_cap_smolensk/backgroundSelector/sum-image.bmp");
+        Step<Images> step = new Transformer(middleLine, data, sum, 12, "data/tests/all_cap_smolensk/transformedImages", 2, 1, 7);
         step.process();
     }
 

@@ -70,7 +70,7 @@ public final class FunctionHelper {
 
         lines.add(stringBuilder.toString());
         try {
-            Files.write(Paths.get(name), lines, StandardCharsets.UTF_8, StandardOpenOption.TRUNCATE_EXISTING);
+            Files.write(Paths.get(name), lines, StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

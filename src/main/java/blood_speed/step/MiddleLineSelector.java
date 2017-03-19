@@ -46,19 +46,18 @@ public class MiddleLineSelector extends Step<List<Point>> {
     }
 
     public static void main(String[] args) {
-        Images images = BackgroundSelector.loadOutputData("data/tests/test2/backgroundSelector/");
+        Images images = BackgroundSelector.loadOutputData("data/tests/all_cap_smolensk/backgroundSelector/");
 
         // контур
-        int[][] contour = BmpHelper.readBmp("data/tests/test2/backgroundSelector/contour-image-photoshop.bmp");
+        int[][] contour = BmpHelper.readBmp("data/tests/all_cap_smolensk/backgroundSelector/contour-image-photoshop.bmp");
 //        int[][] contour = BmpHelper.readBmp("data/backgroundSelector_v2/circuit-image.bmp");
 
         // изображение суммы
-        int[][] sumMatrix = MatrixHelper.readMatrix("data/tests/test2/backgroundSelector/sum.txt");
-        int[][] sumImage = BmpHelper.readBmp("data/tests/test2/backgroundSelector/sum-image.bmp");
+        int[][] sumMatrix = MatrixHelper.readMatrix("data/tests/all_cap_smolensk/backgroundSelector/sum.txt");
+        int[][] sumImage = BmpHelper.readBmp("data/tests/all_cap_smolensk/backgroundSelector/sum-image.bmp");
 
         // выбираем стартовую точку
-        final Point startPoint = new Point(51, 200);
-//        final Point start = new Point(47, 140);
+        final Point startPoint = new Point(22, 121);
 
         MiddleLineSelector selector = new MiddleLineSelector(
                 startPoint,
@@ -66,11 +65,11 @@ public class MiddleLineSelector extends Step<List<Point>> {
                 contour,
                 sumMatrix,
                 sumImage,
-                "data/tests/test2/middle-line/",
+                "data/tests/all_cap_smolensk/middle-line/",
                 "v1",
                 3,
-                15,
-                30);
+                5,
+                35);
         selector.process();
     }
 
@@ -82,26 +81,23 @@ public class MiddleLineSelector extends Step<List<Point>> {
         List<Point> neighboringPoints = getNeighboringPoints(centralPoints);
         drawTrack(neighboringPoints, "middle_points2.bmp");
 
-        List<Point> refinedPoints = refinePointsByLength(neighboringPoints, 3);
+        List<Point> refinedPoints = refinePointsByLength(neighboringPoints, 4);
         drawTrack(refinedPoints, "middle_points3.bmp");
 
-        List<Point> result = refinePointsByLength(refinedPoints, 1);
+        List<Point> result = refinePoints(refinedPoints);
         drawTrack(result, "middle_points4.bmp");
 
         List<Point> result2 = refinePoints(result);
         drawTrack(result2, "middle_points5.bmp");
 
-        List<Point> result3= refinePointsByLength(result2, 3);
+        List<Point> result3 = refinePointsByLength(result2, 3);
         drawTrack(result3, "middle_points6.bmp");
 
-        List<Point> result4 = refinePoints(result3);
+        List<Point> result4 = refinePointsByLength(result3, 1);
         drawTrack(result4, "middle_points7.bmp");
 
-        List<Point> result5 = refinePointsByLength(result4, 1);
-        drawTrack(result5, "middle_points8.bmp");
-
-        FunctionHelper.writePointsList(outputPrefix + MIDDLE_FULL_POINTS_POSITION_FILENAME, result5);
-        return result5;
+        FunctionHelper.writePointsList(outputPrefix + MIDDLE_FULL_POINTS_POSITION_FILENAME, result4);
+        return result4;
     }
 
     private List<Point> refinePoints(List<Point> points) {
@@ -269,7 +265,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
             currentPoint = nextPoint;
 //            currentDirection = nextDirection;
             // todo: придумать как ограничить поиск
-            if (n > 26) {
+            if (n > 115) {
                 break;
             }
             n++;
