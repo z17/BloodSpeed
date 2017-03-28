@@ -24,8 +24,8 @@ public class BackgroundSelector extends Step<Images> {
     }
 
     public static void main(String[] args) {
-        Images images = loadInputData("data/tests/all_cap_smolensk/step2_stab/");
-        BackgroundSelector backgroundSelector = new BackgroundSelector(images, "data/tests/all_cap_smolensk/backgroundSelector/");
+        Images images = loadInputData("data/tests/kris_2017_03_06_kr1_4/init/");
+        BackgroundSelector backgroundSelector = new BackgroundSelector(images, "data/tests/kris_2017_03_06_kr1_4/backgroundSelector/");
         backgroundSelector.process();
     }
 
@@ -135,7 +135,7 @@ public class BackgroundSelector extends Step<Images> {
 
     public static Images loadInputData(final String inputFolder) {
         final Images result = new Images();
-        for (int i = 0; i <= 300; i++) {
+        for (int i = 0; i <= 500; i++) {
             int[][] bmp = BmpHelper.readBmp(inputFolder + "img1_00000_" + String.format("%05d", i) + ".bmp");
             result.add(bmp);
         }
@@ -144,7 +144,7 @@ public class BackgroundSelector extends Step<Images> {
 
     public static Images loadOutputData(final String inputFolder) {
         final Images result = new Images();
-        for (int i = 0; i < 300; i++) {
+        for (int i = 0; i < 500; i++) {
             int[][] bmp = BmpHelper.readBmp(inputFolder + "background_" + i + ".bmp");
             result.add(bmp);
         }
