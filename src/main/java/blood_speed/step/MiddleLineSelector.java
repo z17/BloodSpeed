@@ -27,12 +27,13 @@ public class MiddleLineSelector extends Step<List<Point>> {
     private final int regionSize;
     private final int maxSpeed;
     private final int angleLimit;
+    private final int maxCentralPoints;
 
     private final static String MIDDLE_POINTS_IMAGE_FILENAME = "middle-points.bmp";
     private final static String MIDDLE_FULL_POINTS_IMAGE_FILENAME = "middle-full-points.bmp";
     public final static String MIDDLE_FULL_POINTS_POSITION_FILENAME = "middle-full-points.txt";
 
-    public MiddleLineSelector(Point start, Images data, int[][] contour, int sumMatrix[][], int sumImage[][], String outputFolder, final String outputPrefix, int regionSize, int maxSpeed, int angleLimit) {
+    public MiddleLineSelector(Point start, Images data, int[][] contour, int sumMatrix[][], int sumImage[][], String outputFolder, final String outputPrefix, int regionSize, int maxSpeed, int angleLimit, int maxCentralPoints) {
         this.start = start;
         this.data = data;
         this.contour = contour;
@@ -43,21 +44,21 @@ public class MiddleLineSelector extends Step<List<Point>> {
         this.angleLimit = angleLimit;
         FunctionHelper.checkOutputFolders(outputFolder);
         this.outputPrefix = outputFolder + "/" + outputPrefix + "_";
+        this.maxCentralPoints = maxCentralPoints;
     }
 
     public static void main(String[] args) {
         Images images = BackgroundSelector.loadOutputData("data/tests/kris_2017_03_06_kr1_4/backgroundSelector/");
 
         // контур
-        int[][] contour = BmpHelper.readBmp("data/tests/kris_2017_03_06_kr1_4/backgroundSelector/contour-image.bmp");
-//        int[][] contour = BmpHelper.readBmp("data/backgroundSelector_v2/circuit-image.bmp");
+        int[][] contour = BmpHelper.readBmp("data/tests/kris_2017_03_06_kr1_4/backgroundSelector/contour-image-photoshop.bmp");
 
         // изображение суммы
         int[][] sumMatrix = MatrixHelper.readMatrix("data/tests/kris_2017_03_06_kr1_4/backgroundSelector/sum.txt");
         int[][] sumImage = BmpHelper.readBmp("data/tests/kris_2017_03_06_kr1_4/backgroundSelector/sum-image.bmp");
 
         // выбираем стартовую точку
-        final Point startPoint = new Point(275, 176);
+        final Point startPoint = new Point(50, 271);
 
         MiddleLineSelector selector = new MiddleLineSelector(
                 startPoint,
@@ -67,37 +68,43 @@ public class MiddleLineSelector extends Step<List<Point>> {
                 sumImage,
                 "data/tests/kris_2017_03_06_kr1_4/middle-line/",
                 "v1",
-                3,
+                4,
                 20,
+                40,
                 30);
         selector.process();
     }
 
     @Override
     public List<Point> process() {
-        final List<Point> centralPoints = getCentralPoints(start, regionSize, maxSpeed);
+        final List<Point> centralPoints = getCentralPoints(start, regionSize, maxSpeed, maxCentralPoints);
         drawTrack(centralPoints, "middle_points1.bmp");
 
-        List<Point> neighboringPoints = getNeighboringPoints(centralPoints);
-        drawTrack(neighboringPoints, "middle_points2.bmp");
+        List<Point> result;
 
-        List<Point> refinedPoints = refinePointsByLength(neighboringPoints, 5);
-        drawTrack(refinedPoints, "middle_points3.bmp");
+        result = refinePoints(centralPoints);
+        drawTrack(result, "middle_points2.bmp");
 
-        List<Point> result = refinePoints(refinedPoints);
+        result = refinePointsByLength(result, 2);
+        drawTrack(result, "middle_points3.bmp");
+
+        result = refinePointsByLength(result, 7);
         drawTrack(result, "middle_points4.bmp");
 
-        List<Point> result2 = refinePoints(result);
-        drawTrack(result2, "middle_points5.bmp");
+        result = refinePoints(result);
+        drawTrack(result, "middle_points5.bmp");
 
-        List<Point> result3 = refinePointsByLength(result2, 3);
-        drawTrack(result3, "middle_points6.bmp");
+        result = refinePoints(result);
+        drawTrack(result, "middle_points6.bmp");
 
-        List<Point> result4 = refinePointsByLength(result3, 1);
-        drawTrack(result4, "middle_points7.bmp");
+        result = refinePointsByLength(result, 3);
+        drawTrack(result, "middle_points7.bmp");
 
-        FunctionHelper.writePointsList(outputPrefix + MIDDLE_FULL_POINTS_POSITION_FILENAME, result4);
-        return result4;
+        result = refinePointsByLength(result, 1);
+        drawTrack(result, "middle_points8.bmp");
+
+        FunctionHelper.writePointsList(outputPrefix + MIDDLE_FULL_POINTS_POSITION_FILENAME, result);
+        return result;
     }
 
     private List<Point> refinePoints(List<Point> points) {
@@ -106,14 +113,14 @@ public class MiddleLineSelector extends Step<List<Point>> {
         for (int i = 1; i < points.size() - 1; i++) {
             Point a = points.get(i - 1);
             Point b = points.get(i + 1);
-            Point middlePoint = new Point((a.getX() + b.getIntX()) / 2, (a.getY() +  b.getY()) / 2);
+            Point middlePoint = new Point((a.getX() + b.getIntX()) / 2, (a.getY() + b.getY()) / 2);
 
-            LineSegment segment = new LineSegment(a,b);
+            LineSegment segment = new LineSegment(a, b);
             Line perpendicular = segment.getPerpendicular(middlePoint);
             List<Point> candidates = new ArrayList<>();
             candidates.add(middlePoint);
             candidates.add(points.get(i));
-            for (int k =1; k < 4; k++) {
+            for (int k = 1; k < 4; k++) {
                 List<Point> pointsCandidates = MathHelper.getInterSectionPointWithCircleAndLine(perpendicular, middlePoint, k);
                 if (pointsCandidates == null || pointsCandidates.size() != 2) {
                     throw new RuntimeException("Unknown error");
@@ -221,7 +228,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
         return choiceBestPoint(halfCandidates);
     }
 
-    private List<Point> getCentralPoints(final Point startPoint, final int regionSize, final int maxSpeed) {
+    private List<Point> getCentralPoints(final Point startPoint, final int regionSize, final int maxSpeed, int maxCentralPoints) {
         int[][] visualise = MatrixHelper.copyMatrix(sumImage);
         final List<Point> points = new ArrayList<>();
         int n = 0;
@@ -232,7 +239,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
             int[][] dissynchronizationFactor = findDissynchronizationFactor(currentPoint, regionSize, maxSpeed);
             Point minDissynchronizationPoint = getMinDissynchronizationPoint(dissynchronizationFactor, currentPoint, maxSpeed);
             drawLine(currentPoint, minDissynchronizationPoint, visualise, color);
-            color+= 80;
+            color += 80;
             if (color > 255) {
                 color = 0;
             }
@@ -265,7 +272,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
             currentPoint = nextPoint;
 //            currentDirection = nextDirection;
             // todo: придумать как ограничить поиск
-            if (n > 10) {
+            if (n > maxCentralPoints) {
                 break;
             }
             n++;
@@ -363,28 +370,27 @@ public class MiddleLineSelector extends Step<List<Point>> {
 
                 Point currentPoint = new Point(j, i);
                 for (int k = 0; k < data.getImagesList().size() - 1; k++) {
-                    int[][] img1 = data.getImagesList().get(k + 1);
+                    int[][] img1 = data.getImagesList().get(k);
                     int regionSum1 = getRegionSum(img1, point, pointRegionSize);
 
-                    int[][] img2 = data.getImagesList().get(k);
+                    int[][] img2 = data.getImagesList().get(k + 1);
                     int regionSum2 = getRegionSum(img2, currentPoint, pointRegionSize);
                     dissynchronizationFactor[i - point.getIntY() + maxSpeed][j - point.getIntX() + maxSpeed] += Math.abs(regionSum1 - regionSum2);
                 }
             }
         }
 
-//        BmpHelper.writeBmp("data/dissynchronizationFactor.bmp", dissynchronizationFactor);
-//        MatrixHelper.writeMatrix("data/dissynchronizationFactor.txt", dissynchronizationFactor);
-
+//        BmpHelper.writeBmp("data/dissynchronizationFactor"+qw+".bmp", dissynchronizationFactor);
         return dissynchronizationFactor;
     }
+
 
     private int getRegionSum(int[][] image, Point point, int radius) {
         int sum = 0;
         for (int i = point.getIntY() - radius; i < point.getIntY() + radius; i++) {
             for (int j = point.getIntX() - radius; j < point.getIntX() + radius; j++) {
                 boolean inRegion = Math.sqrt(Math.pow(point.getIntY() - i, 2) + Math.pow(point.getIntX() - j, 2)) < radius;
-                if (inRegion) {
+                if (!inRegion) {
                     continue;
                 }
 

@@ -60,7 +60,7 @@ public final class BmpHelper {
             BufferedImage image = ImageIO.read(new File(name));
             if (image.getType() == BufferedImage.TYPE_3BYTE_BGR) {
                 return readBmp3ByteBGR(image);
-            } else if (image.getType() == BufferedImage.TYPE_BYTE_GRAY) {
+            } else if (image.getType() == BufferedImage.TYPE_BYTE_GRAY || image.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
                 return readBmpByteGray(image);
             }
 
