@@ -48,20 +48,20 @@ public class Transformer extends Step<Void> {
     }
 
     public static void main(String[] args) {
-        List<Point> middleLine = FunctionHelper.readPointsList("data/tests/kris_2017_030_1/middle-line/v1_" + MiddleLineSelector.MIDDLE_FULL_POINTS_POSITION_FILENAME);
-        Images data = BackgroundSelector.loadOutputData("data/tests/kris_2017_030_1/backgroundSelector/");
-        int[][] sum = BmpHelper.readBmp("data/tests/kris_2017_030_1/backgroundSelector/sum-image.bmp");
-        int[][] contour = BmpHelper.readBmp("data/tests/kris_2017_030_1/backgroundSelector/contour-image-photoshop.png");
+        List<Point> middleLine = FunctionHelper.readPointsList("data/tests/capillary_dec94_pasha4_cap1/middle-line/v1_" + MiddleLineSelector.MIDDLE_FULL_POINTS_POSITION_FILENAME);
+        Images data = BackgroundSelector.loadOutputData("data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/");
+        int[][] sum = BmpHelper.readBmp("data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/sum-image.bmp");
+        int[][] contour = BmpHelper.readBmp("data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/contour-image-photoshop.bmp");
         Step<Void> step = new Transformer(
                 middleLine,
                 data,
                 sum,
                 contour,
                 7,
-                "data/tests/kris_2017_030_1/transformedImages",
+                "data/tests/capillary_dec94_pasha4_cap1/transformedImages",
                 4,
                 1,
-                15);
+                6);
         step.process();
     }
 
@@ -71,14 +71,26 @@ public class Transformer extends Step<Void> {
         int currentNumberFile = 0;
         for (int[][] matrix : data.getImagesList()) {
             if (currentNumberFile == 0) {
-                transformImage(matrix, "result_" + currentNumberFile + ".bmp", true);
+                int[][] result = transformImage(matrix, true);
+                BmpHelper.writeBmp(outputDir + "/result_" + currentNumberFile + ".bmp", result);
             } else {
-                transformImage(matrix, "result_" + currentNumberFile + ".bmp", false);
+                int[][] result = transformImage(matrix, false);
+                BmpHelper.writeBmp(outputDir + "/result_" + currentNumberFile + ".bmp", result);
             }
             currentNumberFile++;
         }
 
-        transformImage(contour, "contour.bmp", false);
+        int[][] contourTransformed = transformImage(contour, false);
+        for (int i = 0; i < contourTransformed.length; i++) {
+            for (int j = 0; j < contourTransformed[i].length; j++) {
+                if (contourTransformed[i][j] > 128) {
+                    contourTransformed[i][j] = 0;
+                } else {
+                    contourTransformed[i][j] = 255;
+                }
+            }
+        }
+        BmpHelper.writeBmp(outputDir + "/contour.bmp", contourTransformed);
         return null;
     }
 
@@ -87,7 +99,7 @@ public class Transformer extends Step<Void> {
     Можно сделать оптимальнее: сначала рассчитать координаты точек, которые войдут в трансформированное изображение, а потом уже получать значения этих точек для каждого изображения
     Сейчас координаты рассчитываются для каждого отдельно, при том что они всегда одинаковые.
      */
-    private void transformImage(int[][] image, final String outputName, boolean drawPerpendiculars) {
+    private int[][] transformImage(int[][] image, boolean drawPerpendiculars) {
 
         // todo: отрефакторить момент записи перпендикуляров
         int[][] imagePerpendicularOne = null;
@@ -99,7 +111,7 @@ public class Transformer extends Step<Void> {
         }
 
         int currentStep = 0;
-        int[][] result = new int[stepsCount * 2 + 1][middleLine.size()];
+        int[][] result = new int[stepsCount * 2 + 1][middleLine.size() - 2 * indent];
         for (int i = indent; i < middleLine.size() - indent; i++) {
             Point p1 = middleLine.get(i - indent);
             Point p2 = middleLine.get(i + indent);
@@ -110,7 +122,7 @@ public class Transformer extends Step<Void> {
             final Point middlePoint = new Point(xMiddle, yMiddle);
 
             final Line perpendicularLine = segmentP1P2.getPerpendicular(middlePoint);
-            result[stepsCount][i] = (int) Math.ceil(MathHelper.getPointValue(middlePoint, image));
+            result[stepsCount][i - indent] = (int) Math.ceil(MathHelper.getPointValue(middlePoint, image));
 
             for (int k = 1; k <= stepsCount; k++) {
                 double r = oneStepSize * k;
@@ -127,15 +139,15 @@ public class Transformer extends Step<Void> {
                         imagePerpendicularOne[a.getIntY()][a.getIntX()] = 200;
                         imagePerpendicularTwo[b.getIntY()][b.getIntX()] = 200;
                     }
-                    result[stepsCount - k][i] = (int) Math.ceil(MathHelper.getPointValue(a, image));
-                    result[stepsCount + k][i] = (int) Math.ceil(MathHelper.getPointValue(b, image));
+                    result[stepsCount - k][i - indent] = (int) Math.ceil(MathHelper.getPointValue(a, image));
+                    result[stepsCount + k][i - indent] = (int) Math.ceil(MathHelper.getPointValue(b, image));
                 } else {
                     if (currentStep % perpendicularStep == 0 && drawPerpendiculars) {
                         imagePerpendicularOne[b.getIntY()][b.getIntX()] = 200;
                         imagePerpendicularTwo[a.getIntY()][a.getIntX()] = 200;
                     }
-                    result[stepsCount - k][i] = (int) Math.ceil(MathHelper.getPointValue(b, image));
-                    result[stepsCount + k][i] = (int) Math.ceil(MathHelper.getPointValue(a, image));
+                    result[stepsCount - k][i - indent] = (int) Math.ceil(MathHelper.getPointValue(b, image));
+                    result[stepsCount + k][i - indent] = (int) Math.ceil(MathHelper.getPointValue(a, image));
                 }
             }
 
@@ -153,7 +165,7 @@ public class Transformer extends Step<Void> {
             BmpHelper.writeBmp(outputDir + "/__track2.bmp", imagePerpendicularTwo);
         }
 
-        BmpHelper.writeBmp(outputDir + "/" + outputName, result);
+        return result;
     }
 
     // если произведение векторов из одной точки больше нуля, то второй вектор направлен влево от первого
