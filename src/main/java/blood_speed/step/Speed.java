@@ -15,16 +15,14 @@ public class Speed extends Step<int[][]> {
     private final String outputNameClearImage;
     private final String outputNameImageFile;
     private final SpeedImages images;
-    private final int resultCoefficient;
 
-    public Speed(final String outputFolder, String outputNameClearFile, String outputNameClearImage, String outputNameImageFile, final SpeedImages images, final int resultCoefficient) {
+    public Speed(final String outputFolder, String outputNameClearFile, String outputNameClearImage, String outputNameImageFile, final SpeedImages images) {
         this.outputNameClearFile = outputNameClearFile;
         this.outputNameClearImage = outputNameClearImage;
         this.outputNameImageFile = outputNameImageFile;
         FunctionHelper.checkIOFolders(null, outputFolder);
         this.outputFolder = outputFolder;
         this.images = images;
-        this.resultCoefficient = resultCoefficient;
     }
 
     public int[][] process() {
@@ -42,7 +40,8 @@ public class Speed extends Step<int[][]> {
         BmpHelper.writeBmp(outputFolder + outputNameClearImage, resultMatrix);
         MatrixHelper.writeMatrix(outputFolder + outputNameClearFile, resultMatrix);
 
-        int[][] resultMatrixCoef = MatrixHelper.multiplyMatrix(resultMatrix, resultCoefficient);
+
+        int[][] resultMatrixCoef = BmpHelper.transformToImage(resultMatrix);
         BmpHelper.writeBmp(outputFolder + outputNameImageFile, resultMatrixCoef);
 
         return resultMatrix;

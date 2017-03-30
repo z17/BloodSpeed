@@ -55,8 +55,7 @@ public final class StepRunner {
                 data.step3OutputNameClearFile,
                 data.step3OutputNameClearImage,
                 data.step3OoutputNameImageFile,
-                blurImages,
-                data.resultCoefficient
+                blurImages
         );
         int[][] speedMatrix = step3.process();
 
@@ -73,7 +72,7 @@ public final class StepRunner {
     }
 
     static final class StepData {
-        private byte[] counter = new byte[26];
+        private byte[] counter = new byte[25];
 
         // common
         private String filePrefix;
@@ -105,7 +104,6 @@ public final class StepRunner {
         private String step3OutputNameClearFile;
         private String step3OutputNameClearImage;
         private String step3OoutputNameImageFile;
-        private int resultCoefficient;
 
         // step4 : middle speed
         private String middleStepOutputFile;
@@ -239,39 +237,34 @@ public final class StepRunner {
             return this;
         }
 
-        StepData setResultCoefficient(int resultCoefficient) {
-            this.resultCoefficient = resultCoefficient;
-            counter[20] = 1;
-            return this;
-        }
 
         StepData setMiddleStepOutputFile(String middleStepOutputFile) {
             this.middleStepOutputFile = middleStepOutputFile;
-            counter[21] = 1;
+            counter[20] = 1;
             return this;
         }
 
         StepData setAffectedCols(int affectedCols) {
             this.affectedCols = affectedCols;
-            counter[22] = 1;
+            counter[21] = 1;
             return this;
         }
 
         StepData setStep3OutputNameClearFile(String step3OutputNameClearFile) {
             this.step3OutputNameClearFile = step3OutputNameClearFile;
-            counter[23] = 1;
+            counter[22] = 1;
             return this;
         }
 
         StepData setStep3OutputNameClearImage(String step3OutputNameClearImage) {
             this.step3OutputNameClearImage = step3OutputNameClearImage;
-            counter[24] = 1;
+            counter[23] = 1;
             return this;
         }
 
         StepData setStep3OoutputNameImageFile(String step3OoutputNameImageFile) {
             this.step3OoutputNameImageFile = step3OoutputNameImageFile;
-            counter[25] = 1;
+            counter[24] = 1;
             return this;
         }
     }

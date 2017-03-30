@@ -59,9 +59,9 @@ public class Transformer extends Step<Void> {
                 contour,
                 7,
                 "data/tests/capillary_dec94_pasha4_cap1/transformedImages",
-                4,
+                3,
                 1,
-                6);
+                8);
         step.process();
     }
 

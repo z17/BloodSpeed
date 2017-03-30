@@ -35,7 +35,6 @@ public class Main {
         int s2dn1 = Integer.valueOf(properties.getProperty("s2dn1"));
         int s2dn2 = Integer.valueOf(properties.getProperty("s2dn2"));
 
-        int resultCoefficient = Integer.valueOf(properties.getProperty("result_coefficient"));
         String speedOutputImage = properties.getProperty("speed_output_image");
         String speedOutputFile = properties.getProperty("speed_output_file");
         String speedOutputImageWithCoufficient = properties.getProperty("speed_output_image_with_coufficient");
@@ -76,7 +75,6 @@ public class Main {
                 .setS2dn2(s2dn2)
 
                 .setStep3OutputFolder(step3FolderOutput)
-                .setResultCoefficient(resultCoefficient)
                 .setStep3OutputNameClearFile(speedOutputFile)
                 .setStep3OutputNameClearImage(speedOutputImage)
                 .setStep3OoutputNameImageFile(speedOutputImageWithCoufficient)
@@ -106,7 +104,6 @@ public class Main {
         int s2dn1 = Integer.valueOf(properties.getProperty("stage2_s2dn1"));
         int s2dn2 = Integer.valueOf(properties.getProperty("stage2_s2dn2"));
 
-        int resultCoefficient = Integer.valueOf(properties.getProperty("result_coefficient"));
         String speedOutputImage = properties.getProperty("stage2_speed_output_image");
         String speedOutputFile = properties.getProperty("stage2_speed_output_file");
         String speedOutputImageWithCoufficient = properties.getProperty("stage2_speed_output_image_with_coufficient");
@@ -150,7 +147,6 @@ public class Main {
                 .setS2dn2(s2dn2)
 
                 .setStep3OutputFolder(step3FolderOutput)
-                .setResultCoefficient(resultCoefficient)
                 .setStep3OutputNameClearFile(speedOutputFile)
                 .setStep3OutputNameClearImage(speedOutputImage)
                 .setStep3OoutputNameImageFile(speedOutputImageWithCoufficient)

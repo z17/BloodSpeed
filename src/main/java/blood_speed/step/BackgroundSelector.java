@@ -85,43 +85,27 @@ public class BackgroundSelector extends Step<Images> {
 
     private void createSumImage() {
         // сумма всех изображений
-        int[][] sumImage = new int[images.getRows()][images.getCols()];
+        int[][] sumMatrix = new int[images.getRows()][images.getCols()];
         for (int[][] matrix : images.getImagesList()) {
             for (int i = 0; i < images.getRows(); i++) {
                 for (int j = 0; j < images.getCols(); j++) {
-                    sumImage[i][j] += matrix[i][j];
+                    sumMatrix[i][j] += matrix[i][j];
                 }
             }
         }
 
-        MatrixHelper.writeMatrix(outputFolder + SUM_FILE_NAME, sumImage);
+        MatrixHelper.writeMatrix(outputFolder + SUM_FILE_NAME, sumMatrix);
 
-        // максимум и минимум суммы
-        int min = sumImage[0][0];
-        int max = sumImage[0][0];
-        for (int i = 0; i < images.getRows(); i++) {
-            for (int j = 0; j < images.getCols(); j++) {
-                if (min > sumImage[i][j]) {
-                    min = sumImage[i][j];
-                }
-                if (max < sumImage[i][j]) {
-                    max = sumImage[i][j];
-                }
-            }
-        }
-
-        // формируем суммированное изображение
+        int[][] sumImage = BmpHelper.transformToImage(sumMatrix);
         int sum = 0;
         for (int i = 0; i < images.getRows(); i++) {
             for (int j = 0; j < images.getCols(); j++) {
-                double coefficient = ((double) max - min) / 255;
-                sumImage[i][j] = (int) Math.round((sumImage[i][j] - min) / coefficient);
                 sum += sumImage[i][j];
             }
         }
 
         int middleSumImage = (int) (sum / (images.getRows() * images.getCols() * 1.56));
-        BmpHelper.writeBmp(outputFolder + SUM_IMAGE_NAME, sumImage);
+        BmpHelper.writeBmp(outputFolder + SUM_IMAGE_NAME, sumMatrix);
 
         // формируем контур капилляра
         int[][] contourImage = new int[images.getRows()][images.getCols()];
