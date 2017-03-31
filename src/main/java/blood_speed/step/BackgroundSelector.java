@@ -12,37 +12,43 @@ public class BackgroundSelector extends Step<Images> {
 
     private final Images images;
     private final String outputFolder;
+    private final int blurDepth;
 
     private final static String SUM_IMAGE_NAME = "sum-image.bmp";
     private final static String SUM_FILE_NAME = "sum.txt";
     private static final String CONTOUR_IMAGE_NAME = "contour-image.bmp";
 
-    public BackgroundSelector(Images images, String outputFolder) {
+    public BackgroundSelector(final Images images, final String outputFolder, final int blurDepth) {
         this.images = images;
         this.outputFolder = outputFolder;
+        this.blurDepth = blurDepth;
         FunctionHelper.checkOutputFolders(outputFolder);
     }
 
     public static void main(String[] args) {
-        Images images = loadInputData("data/tests/kris_2017_030_1/out2b/");
-        BackgroundSelector backgroundSelector = new BackgroundSelector(images, "data/tests/kris_2017_030_1/backgroundSelector/");
+        Images images = loadInputData("data/tests/capillary_dec94_pasha4_cap1/out2b/", 1600);
+        BackgroundSelector backgroundSelector = new BackgroundSelector(
+                images,
+                "data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/",
+                10
+        );
         backgroundSelector.process();
     }
 
     @Override
     public Images process() {
-
-        createSumImage();
+        createSumAndContourImages();
         return brightnessCompensation();
     }
 
     private Images brightnessCompensation() {
+        final int blurDivider = 2 * blurDepth + 1;
         double[][] middleValues = new double[images.getRows()][images.getCols()];
         for (int k = 0; k <= 20; k++) {
             int[][] current = images.getImagesList().get(k);
             for (int i = 0; i < images.getRows(); i++) {
                 for (int j = 0; j < images.getCols(); j++) {
-                    middleValues[i][j] += current[i][j] / 21;
+                    middleValues[i][j] += (double)current[i][j] / blurDivider;
                 }
             }
         }
@@ -51,20 +57,14 @@ public class BackgroundSelector extends Step<Images> {
         for (int currentNumber = 0; currentNumber < images.getImagesList().size(); currentNumber++) {
 
             // для первых 11 и последних 10 кадров пропускаем изменение middleValue
-            if (currentNumber > 10 && currentNumber < images.getImagesList().size() - 10) {
-                int[][] deletedFrame = images.getImagesList().get(currentNumber - 11);
+            if (currentNumber > blurDepth && currentNumber < images.getImagesList().size() - blurDepth) {
+                int[][] addedFrame = images.getImagesList().get(currentNumber + blurDepth);
+                int[][] deletedFrame = images.getImagesList().get(currentNumber - blurDepth - 1);
                 // из среднего значения вычитаем 1 кадр, который вышел за рамки области -10 кадров..текущий..+10 кадров
-                for (int i = 0; i < images.getRows(); i++) {
-                    for (int j = 0; j < images.getCols(); j++) {
-                        middleValues[i][j] -= deletedFrame[i][j] / 21;
-                    }
-                }
-
-                int[][] addedFrame = images.getImagesList().get(currentNumber + 10);
                 // из среднего значения добавляем 1 кадр, который попал в рамки  области -10 кадров..текущий..+10 кадров
                 for (int i = 0; i < images.getRows(); i++) {
                     for (int j = 0; j < images.getCols(); j++) {
-                        middleValues[i][j] += addedFrame[i][j] / 21;
+                        middleValues[i][j] = middleValues[i][j] - ((double)deletedFrame[i][j] / blurDivider) + ((double)addedFrame[i][j] / blurDivider);
                     }
                 }
             }
@@ -83,7 +83,7 @@ public class BackgroundSelector extends Step<Images> {
         return resultImages;
     }
 
-    private void createSumImage() {
+    private void createSumAndContourImages() {
         // сумма всех изображений
         int[][] sumMatrix = new int[images.getRows()][images.getCols()];
         for (int[][] matrix : images.getImagesList()) {
@@ -105,7 +105,7 @@ public class BackgroundSelector extends Step<Images> {
         }
 
         int middleSumImage = (int) (sum / (images.getRows() * images.getCols() * 1.56));
-        BmpHelper.writeBmp(outputFolder + SUM_IMAGE_NAME, sumMatrix);
+        BmpHelper.writeBmp(outputFolder + SUM_IMAGE_NAME, sumImage);
 
         // формируем контур капилляра
         int[][] contourImage = new int[images.getRows()][images.getCols()];
@@ -117,18 +117,18 @@ public class BackgroundSelector extends Step<Images> {
         BmpHelper.writeBmp(outputFolder + CONTOUR_IMAGE_NAME, contourImage);
     }
 
-    public static Images loadInputData(final String inputFolder) {
+    public static Images loadInputData(final String inputFolder, final int count) {
         final Images result = new Images();
-        for (int i = 0; i <= 500; i++) {
+        for (int i = 0; i <= count; i++) {
             int[][] bmp = BmpHelper.readBmp(inputFolder + "img1_00000_" + String.format("%05d", i) + ".bmp");
             result.add(bmp);
         }
         return result;
     }
 
-    public static Images loadOutputData(final String inputFolder) {
+    public static Images loadOutputData(final String inputFolder, final int count) {
         final Images result = new Images();
-        for (int i = 0; i < 1600; i++) {
+        for (int i = 0; i < count; i++) {
             int[][] bmp = BmpHelper.readBmp(inputFolder + "background_" + i + ".bmp");
             result.add(bmp);
         }

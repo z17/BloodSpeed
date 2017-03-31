@@ -26,7 +26,8 @@ public final class StepRunner {
                 data.step1InputFolder,
                 data.step1OutputFolder,
                 data.circuitImageName,
-                data.filePrefix,
+                data.inputFilePrefix,
+                data.outputFilePrefix,
                 data.maxSpeed,
                 data.stepsNumber,
                 data.startStep,
@@ -40,7 +41,7 @@ public final class StepRunner {
         Step<SpeedImages> step2 = new Blur(
                 step1Result,
                 data.blurStepOutputFolder,
-                data.filePrefix,
+                data.outputFilePrefix,
                 data.s1dn1,
                 data.s1dn2,
                 data.s1dn1st,
@@ -72,12 +73,13 @@ public final class StepRunner {
     }
 
     static final class StepData {
-        private byte[] counter = new byte[25];
+        private int counter = 1;
 
         // common
-        private String filePrefix;
+        private String outputFilePrefix;
 
         // step1 : get speed
+        private String inputFilePrefix;
         private String step1InputFolder;
         private String step1OutputFolder;
         private int numberOfDigitsInStep1FileNames;
@@ -110,161 +112,162 @@ public final class StepRunner {
         private int affectedCols;
 
         boolean ready() {
-            for (byte b : counter) {
-                if (b != 1)
-                    return false;
-            }
-            return true;
+            return counter == 26;
         }
 
-        StepData setFilePrefix(String filePrefix) {
-            this.filePrefix = filePrefix;
-            counter[0] = 1;
+        StepData setInputFilePrefix(String inputFilePrefix) {
+            this.inputFilePrefix = inputFilePrefix;
+            return this;
+        }
+
+        StepData setOutputFilePrefix(String filePrefix) {
+            this.outputFilePrefix = filePrefix;
+            counter++;
             return this;
         }
 
         StepData setStep1InputFolder(String step1InputFolder) {
             this.step1InputFolder = step1InputFolder;
-            counter[1] = 1;
+            counter++;
             return this;
         }
 
         StepData setStep1OutputFolder(String step1OutputFolder) {
             this.step1OutputFolder = step1OutputFolder;
-            counter[2] = 1;
+            counter++;
             return this;
         }
 
         StepData setNumberOfDigitsInStep1FileNames(int numberOfDigitsInStep1FileNames) {
             this.numberOfDigitsInStep1FileNames = numberOfDigitsInStep1FileNames;
-            counter[3] = 1;
+            counter++;
             return this;
         }
 
         StepData setCircuitImageName(String circuitImageName) {
             this.circuitImageName = circuitImageName;
-            counter[4] = 1;
+            counter++;
             return this;
         }
 
         StepData setMaxSpeed(int maxSpeed) {
             this.maxSpeed = maxSpeed;
-            counter[5] = 1;
+            counter++;
             return this;
         }
 
         StepData setStepsNumber(int stepsNumber) {
             this.stepsNumber = stepsNumber;
-            counter[6] = 1;
+            counter++;
             return this;
         }
 
         StepData setStartStep(int startStep) {
             this.startStep = startStep;
-            counter[7] = 1;
+            counter++;
             return this;
         }
 
         StepData setFramesNumber(int framesNumber) {
             this.framesNumber = framesNumber;
-            counter[8] = 1;
+            counter++;
             return this;
         }
 
         StepData setR(int r) {
             this.r = r;
-            counter[9] = 1;
+            counter++;
             return this;
         }
 
         StepData setDr(int dr) {
             this.dr = dr;
-            counter[10] = 1;
+            counter++;
             return this;
         }
 
         StepData setDt(int dt) {
             this.dt = dt;
-            counter[11] = 1;
+            counter++;
             return this;
         }
 
         StepData setBlurStepOutputFolder(String blurStepOutputFolder) {
             this.blurStepOutputFolder = blurStepOutputFolder;
-            counter[12] = 1;
+            counter++;
             return this;
         }
 
         StepData setS1dn1(int s1dn1) {
             this.s1dn1 = s1dn1;
-            counter[13] = 1;
+            counter++;
             return this;
         }
 
         StepData setS1dn2(int s1dn2) {
             this.s1dn2 = s1dn2;
-            counter[14] = 1;
+            counter++;
             return this;
         }
 
         StepData setS1dn1st(int s1dn1st) {
             this.s1dn1st = s1dn1st;
-            counter[15] = 1;
+            counter++;
             return this;
         }
 
         StepData setS1dn2st(int s1dn2st) {
             this.s1dn2st = s1dn2st;
-            counter[16] = 1;
+            counter++;
             return this;
         }
 
         StepData setS2dn1(int s2dn1) {
             this.s2dn1 = s2dn1;
-            counter[17] = 1;
+            counter++;
             return this;
         }
 
         StepData setS2dn2(int s2dn2) {
             this.s2dn2 = s2dn2;
-            counter[18] = 1;
+            counter++;
             return this;
         }
 
         StepData setStep3OutputFolder(String step3OutputFolder) {
             this.step3OutputFolder = step3OutputFolder;
-            counter[19] = 1;
+            counter++;
             return this;
         }
 
 
         StepData setMiddleStepOutputFile(String middleStepOutputFile) {
             this.middleStepOutputFile = middleStepOutputFile;
-            counter[20] = 1;
+            counter++;
             return this;
         }
 
         StepData setAffectedCols(int affectedCols) {
             this.affectedCols = affectedCols;
-            counter[21] = 1;
+            counter++;
             return this;
         }
 
         StepData setStep3OutputNameClearFile(String step3OutputNameClearFile) {
             this.step3OutputNameClearFile = step3OutputNameClearFile;
-            counter[22] = 1;
+            counter++;
             return this;
         }
 
         StepData setStep3OutputNameClearImage(String step3OutputNameClearImage) {
             this.step3OutputNameClearImage = step3OutputNameClearImage;
-            counter[23] = 1;
+            counter++;
             return this;
         }
 
         StepData setStep3OoutputNameImageFile(String step3OoutputNameImageFile) {
             this.step3OoutputNameImageFile = step3OoutputNameImageFile;
-            counter[24] = 1;
+            counter++;
             return this;
         }
     }

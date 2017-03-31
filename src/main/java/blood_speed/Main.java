@@ -24,7 +24,8 @@ public class Main {
         int r = Integer.valueOf(properties.getProperty("r"));                                   // радиус области
         int dr = Integer.valueOf(properties.getProperty("dr"));
         int dt = Integer.valueOf(properties.getProperty("dt"));                                 // скорее всего это step сравнения (сравниваем n кадра и n + dt)
-        String prefix = properties.getProperty("prefix");                                       // префикс имени входных файлов
+        String output_prefix = properties.getProperty("output_prefix");                                       // префикс имени выходных файлов
+        String inputPrefix = properties.getProperty("input_prefix");                                       // префикс имени входных файлов
 
         // радиусы и прочее для блюра
         int s1dn1 = Integer.valueOf(properties.getProperty("s1dn1"));
@@ -52,8 +53,8 @@ public class Main {
 
         StepRunner.StepData data = new StepRunner.StepData();
         data
-                .setFilePrefix(prefix)
-
+                .setInputFilePrefix(inputPrefix)
+                .setOutputFilePrefix(output_prefix)
                 .setStep1InputFolder(folderInput)
                 .setStep1OutputFolder(step1FolderOutput)
                 .setNumberOfDigitsInStep1FileNames(digitsInFileName)
@@ -94,7 +95,8 @@ public class Main {
         int r = Integer.valueOf(properties.getProperty("stage2_r"));
         int dr = Integer.valueOf(properties.getProperty("stage2_dr"));
         int dt = Integer.valueOf(properties.getProperty("stage2_dt"));
-        String prefix = properties.getProperty("prefix");
+        String inputPrefix = properties.getProperty("input_prefix");
+        String outputPrefix = properties.getProperty("output_prefix");
 
         // радиусы и прочее для блюра
         int s1dn1 = Integer.valueOf(properties.getProperty("stage2_s1dn1"));
@@ -126,7 +128,8 @@ public class Main {
 
         StepRunner.StepData data = new StepRunner.StepData();
         data
-                .setFilePrefix(prefix)
+                .setInputFilePrefix(inputPrefix)
+                .setOutputFilePrefix(outputPrefix)
 
                 .setStep1InputFolder(folderInput)
                 .setStep1OutputFolder(step1FolderOutput)

@@ -48,17 +48,17 @@ public class MiddleLineSelector extends Step<List<Point>> {
     }
 
     public static void main(String[] args) {
-        Images images = BackgroundSelector.loadOutputData("data/tests/kris_2017_030_1/backgroundSelector/");
+        Images images = BackgroundSelector.loadOutputData("data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/", 300);
 
         // контур
-        int[][] contour = BmpHelper.readBmp("data/tests/kris_2017_030_1/backgroundSelector/contour-image-photoshop.bmp");
+        int[][] contour = BmpHelper.readBmp("data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/contour-image-photoshop.bmp");
 
         // изображение суммы
-        int[][] sumMatrix = MatrixHelper.readMatrix("data/tests/kris_2017_030_1/backgroundSelector/sum.txt");
-        int[][] sumImage = BmpHelper.readBmp("data/tests/kris_2017_030_1/backgroundSelector/sum-image.bmp");
+        int[][] sumMatrix = MatrixHelper.readMatrix("data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/sum.txt");
+        int[][] sumImage = BmpHelper.readBmp("data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/sum-image.bmp");
 
         // выбираем стартовую точку
-        final Point startPoint = new Point(61, 76);
+        final Point startPoint = new Point(25, 152);
 
         MiddleLineSelector selector = new MiddleLineSelector(
                 startPoint,
@@ -66,12 +66,12 @@ public class MiddleLineSelector extends Step<List<Point>> {
                 contour,
                 sumMatrix,
                 sumImage,
-                "data/tests/kris_2017_030_1/middle-line/",
+                "data/tests/capillary_dec94_pasha4_cap1/middle-line/",
                 "v1",
                 4,
                 15,
-                35,
-                6);
+                30,
+                21);
         selector.process();
     }
 
@@ -85,22 +85,17 @@ public class MiddleLineSelector extends Step<List<Point>> {
         result = refinePoints(centralPoints);
         drawTrack(result, "middle_points2.bmp");
 
-        result = refinePointsByLength(result, 2);
+        result = refinePointsByLength(result, 3);
         drawTrack(result, "middle_points3.bmp");
 
         result = refinePoints(result);
         drawTrack(result, "middle_points4.bmp");
 
-        result = refinePointsByLength(result, 5);
+        result = refinePointsByLength(result, 3);
         drawTrack(result, "middle_points5.bmp");
 
-
-        result = refinePointsByLength(result, 7);
-        drawTrack(result, "middle_points7.bmp");
-
-
         result = refinePointsByLength(result, 1);
-        drawTrack(result, "middle_points8.bmp");
+        drawTrack(result, "middle_points6.bmp");
 
         FunctionHelper.writePointsList(outputPrefix + MIDDLE_FULL_POINTS_POSITION_FILENAME, result);
         return result;

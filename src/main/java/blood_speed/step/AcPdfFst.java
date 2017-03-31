@@ -16,6 +16,7 @@ public class AcPdfFst extends Step<SpeedImages> {
     private final int[][] circuitImage;
     private final String outputFolder;
     private final int numberOfDigitsInFileNames;
+    private final String inputFilePrefix;
     private final String outputFilePrefix;
     private final int maxSpeed;
     private final int stepsNumber;
@@ -34,6 +35,7 @@ public class AcPdfFst extends Step<SpeedImages> {
                     final String inputFolder,
                     final String outputFolder,
                     final String circuitImageName,
+                    final String inputFilePrefix,
                     final String outputFilePrefix,
                     final int maxSpeed,
                     final int stepsNumber,
@@ -49,6 +51,7 @@ public class AcPdfFst extends Step<SpeedImages> {
         this.imageWidth = FunctionHelper.cols(circuitImage);
         this.outputFolder = outputFolder;
         this.numberOfDigitsInFileNames = numberOfDigitsInFileNames;
+        this.inputFilePrefix = inputFilePrefix;
         this.outputFilePrefix = outputFilePrefix;
         this.maxSpeed = maxSpeed;
         this.stepsNumber = stepsNumber;
@@ -189,7 +192,7 @@ public class AcPdfFst extends Step<SpeedImages> {
 
     private int[][] readFile(final int n, final String dir) {
         final String formatted = String.format("%0" + numberOfDigitsInFileNames + "d", n);
-        final String name = dir + "/" + formatted + ".bmp";
+        final String name = dir + "/" + inputFilePrefix + formatted + ".bmp";
         return BmpHelper.readBmp(name);
     }
 }

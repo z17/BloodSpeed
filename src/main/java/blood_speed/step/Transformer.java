@@ -9,6 +9,8 @@ import blood_speed.step.data.Line;
 import blood_speed.step.data.LineSegment;
 import blood_speed.step.data.Point;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 /**
@@ -26,7 +28,9 @@ public class Transformer extends Step<Void> {
     // шаг построения перпендикуляров
     private final int perpendicularStep;
 
-    private final String outputDir;
+    private final Path outputDir;
+
+    private final String outputPrefix;
     // шаг для построения направления (линия берётся из точек (currentPointIndex - indent; currentPointIndex + indent)
     private final int indent;
     // размер шага по перпендикуляру
@@ -34,13 +38,14 @@ public class Transformer extends Step<Void> {
     // кол-во шагов по перпендикуляру
     private final int stepsCount;
 
-    public Transformer(final List<Point> middleLine, final Images data, int[][] sum, int[][] contour, int perpendicularStep, final String outputDir, int indent, double oneStepSize, int stepsCount) {
+    public Transformer(final List<Point> middleLine, final Images data, int[][] sum, int[][] contour, int perpendicularStep, final String outputDir, final String outputPrefix, int indent, double oneStepSize, int stepsCount) {
         this.middleLine = middleLine;
         this.data = data;
         this.sum = sum;
         this.contour = contour;
         this.perpendicularStep = perpendicularStep;
-        this.outputDir = outputDir;
+        this.outputDir = Paths.get(outputDir);
+        this.outputPrefix = outputPrefix;
         this.indent = indent;
         this.oneStepSize = oneStepSize;
         this.stepsCount = stepsCount;
@@ -49,7 +54,7 @@ public class Transformer extends Step<Void> {
 
     public static void main(String[] args) {
         List<Point> middleLine = FunctionHelper.readPointsList("data/tests/capillary_dec94_pasha4_cap1/middle-line/v1_" + MiddleLineSelector.MIDDLE_FULL_POINTS_POSITION_FILENAME);
-        Images data = BackgroundSelector.loadOutputData("data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/");
+        Images data = BackgroundSelector.loadOutputData("data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/", 1600);
         int[][] sum = BmpHelper.readBmp("data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/sum-image.bmp");
         int[][] contour = BmpHelper.readBmp("data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/contour-image-photoshop.bmp");
         Step<Void> step = new Transformer(
@@ -59,6 +64,7 @@ public class Transformer extends Step<Void> {
                 contour,
                 7,
                 "data/tests/capillary_dec94_pasha4_cap1/transformedImages",
+                "result_",
                 3,
                 1,
                 8);
@@ -70,12 +76,13 @@ public class Transformer extends Step<Void> {
     public Void process() {
         int currentNumberFile = 0;
         for (int[][] matrix : data.getImagesList()) {
+            final String name = outputPrefix + String.format("%05d", currentNumberFile )+ ".bmp";
             if (currentNumberFile == 0) {
                 int[][] result = transformImage(matrix, true);
-                BmpHelper.writeBmp(outputDir + "/result_" + currentNumberFile + ".bmp", result);
+                BmpHelper.writeBmp(outputDir.resolve(name).toString(), result);
             } else {
                 int[][] result = transformImage(matrix, false);
-                BmpHelper.writeBmp(outputDir + "/result_" + currentNumberFile + ".bmp", result);
+                BmpHelper.writeBmp(outputDir.resolve(name).toString(), result);
             }
             currentNumberFile++;
         }

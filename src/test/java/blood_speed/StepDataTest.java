@@ -14,7 +14,7 @@ public class StepDataTest {
         assertThat(data.ready(), is(false));
 
         data
-                .setFilePrefix(null)
+                .setOutputFilePrefix(null)
 
                 .setStep1InputFolder(null)
                 .setStep1OutputFolder(null)
@@ -39,8 +39,7 @@ public class StepDataTest {
                 .setS2dn1(6)
                 .setS2dn2(22)
 
-                .setStep3OutputFolder(null)
-                .setResultCoefficient(2);
+                .setStep3OutputFolder(null);
 
         assertThat(data.ready(), is(true));
     }
