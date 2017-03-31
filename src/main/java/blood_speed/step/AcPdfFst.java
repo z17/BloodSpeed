@@ -188,8 +188,8 @@ public class AcPdfFst extends Step<SpeedImages> {
     }
 
     private int[][] readFile(final int n, final String dir) {
-        final String formatted = "result_" +  n;
-        final String name = dir + formatted + ".bmp";
+        final String formatted = String.format("%0" + numberOfDigitsInFileNames + "d", n);
+        final String name = dir + "/" + formatted + ".bmp";
         return BmpHelper.readBmp(name);
     }
 }

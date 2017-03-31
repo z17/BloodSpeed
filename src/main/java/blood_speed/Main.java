@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class Main {
-    private final static int DIGITS_IN_FILES_NAME = 5;
     private final static String SETTINGS_FILE = "settings.ini";
 
     public static void main(final String[] args) {
@@ -49,6 +48,7 @@ public class Main {
         String step2FolderOutput = properties.getProperty("blur_folder");
         String step3FolderOutput = properties.getProperty("result_folder");
 
+        int digitsInFileName = Integer.valueOf(properties.getProperty("digits_in_file_name"));
 
         StepRunner.StepData data = new StepRunner.StepData();
         data
@@ -56,7 +56,7 @@ public class Main {
 
                 .setStep1InputFolder(folderInput)
                 .setStep1OutputFolder(step1FolderOutput)
-                .setNumberOfDigitsInStep1FileNames(DIGITS_IN_FILES_NAME)
+                .setNumberOfDigitsInStep1FileNames(digitsInFileName)
                 .setCircuitImageName(circuitImage)
                 .setMaxSpeed(maxSpeed)
                 .setStepsNumber(stepsNumber)
@@ -118,6 +118,8 @@ public class Main {
         String step2FolderOutput = properties.getProperty("stage2_blur_folder");
         String step3FolderOutput = properties.getProperty("stage2_result_folder");
 
+        int digitsInFileName = Integer.valueOf(properties.getProperty("digits_in_file_name"));
+
         int startStep = middleSpeed - speedDeviation;
         int maxSpeed = middleSpeed + speedDeviation;
         int stepsNumber = (maxSpeed - startStep) / stepSize;
@@ -128,7 +130,7 @@ public class Main {
 
                 .setStep1InputFolder(folderInput)
                 .setStep1OutputFolder(step1FolderOutput)
-                .setNumberOfDigitsInStep1FileNames(DIGITS_IN_FILES_NAME)
+                .setNumberOfDigitsInStep1FileNames(digitsInFileName)
                 .setCircuitImageName(circuitImage)
                 .setMaxSpeed(maxSpeed)
                 .setStepsNumber(stepsNumber)
