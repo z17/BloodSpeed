@@ -10,11 +10,11 @@ import java.util.List;
  * Класс для определения средней скорости
  */
 public class MiddleSpeed extends Step<Integer> {
-    private final int[][] speedMatrix;
+    private final double[][] speedMatrix;
     private final String outputFile;
     private final int affectedCols;
 
-    public MiddleSpeed(int[][] speedMatrix, String outputFile, int affectedCols) {
+    public MiddleSpeed(double[][] speedMatrix, String outputFile, int affectedCols) {
         this.speedMatrix = speedMatrix;
         this.outputFile = outputFile;
         this.affectedCols = affectedCols;

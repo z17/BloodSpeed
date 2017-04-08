@@ -104,6 +104,12 @@ public class MathHelper {
     public static double getPointValue(Point point, int[][] matrix) {
         double x = point.getX();
         double y = point.getY();
+
+        // если числа целые - возвращаем значение по ним
+        if (x == Math.floor(x) && y == Math.floor(y)) {
+            return matrix[point.getIntY()][point.getIntX()];
+        }
+
         int x1 = (int) Math.floor(x);
         int y1 = (int) Math.floor(y);
         int x2 = x1 + 1;
@@ -111,7 +117,6 @@ public class MathHelper {
 
         double r1 = (x2 - x) / (x2 - x1) * matrix[y1][x1] + (x - x1) / (x2 - x1) * matrix[y1][x2];
         double r2 = (x2 - x) / (x2 - x1) * matrix[y2][x1] + (x - x1) / (x2 - x1) * matrix[y2][x2];
-
         return (y2 - y) / (y2 - y1) * r1 + (y - y1) / (y2 - y1) * r2;
     }
 }

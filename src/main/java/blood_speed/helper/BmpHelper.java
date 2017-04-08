@@ -108,13 +108,13 @@ public final class BmpHelper {
         // максимум и минимум суммы
         int min = matrix[0][0];
         int max = matrix[0][0];
-        for (int i = 0; i < matrix.length; i++) {
-            for (int j = 0; j < matrix[i].length; j++) {
-                if (min > matrix[i][j]) {
-                    min = matrix[i][j];
+        for (int[] aMatrix : matrix) {
+            for (int anAMatrix : aMatrix) {
+                if (min > anAMatrix) {
+                    min = anAMatrix;
                 }
-                if (max < matrix[i][j]) {
-                    max = matrix[i][j];
+                if (max < anAMatrix) {
+                    max = anAMatrix;
                 }
             }
         }
@@ -122,6 +122,35 @@ public final class BmpHelper {
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix[i].length; j++) {
                 double coefficient = ((double) max - min) / 255;
+                result[i][j] = (int) Math.round((matrix[i][j] - min) / coefficient);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Преобразует значения матрицы в промежутке 0-255 для bmp формата
+     */
+    public static int[][] transformToImage(final double[][] matrix) {
+        int[][] result = new int[FunctionHelper.rows(matrix)][FunctionHelper.cols(matrix)];
+
+        // максимум и минимум суммы
+        double min = matrix[0][0];
+        double max = matrix[0][0];
+        for (double[] aMatrix : matrix) {
+            for (double anAMatrix : aMatrix) {
+                if (min > anAMatrix) {
+                    min = anAMatrix;
+                }
+                if (max < anAMatrix) {
+                    max = anAMatrix;
+                }
+            }
+        }
+
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[i].length; j++) {
+                double coefficient = (max - min) / 255;
                 result[i][j] = (int) Math.round((matrix[i][j] - min) / coefficient);
             }
         }

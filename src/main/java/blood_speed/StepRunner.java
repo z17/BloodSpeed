@@ -51,14 +51,14 @@ public final class StepRunner {
         );
         SpeedImages blurImages = step2.process();
 
-        Step<int[][]> step3 = new Speed(
+        Step<double[][]> step3 = new Speed(
                 data.step3OutputFolder,
                 data.step3OutputNameClearFile,
                 data.step3OutputNameClearImage,
                 data.step3OoutputNameImageFile,
                 blurImages
         );
-        int[][] speedMatrix = step3.process();
+        double[][] speedMatrix = step3.process();
 
         Step<Integer> middleSpeed = new MiddleSpeed(speedMatrix, data.middleStepOutputFile, data.affectedCols);
 

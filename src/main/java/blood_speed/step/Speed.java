@@ -8,7 +8,7 @@ import blood_speed.step.data.SpeedData;
 
 import java.util.List;
 
-public class Speed extends Step<int[][]> {
+public class Speed extends Step<double[][]> {
 
     private final String outputFolder;
     private final String outputNameClearFile;
@@ -25,10 +25,10 @@ public class Speed extends Step<int[][]> {
         this.images = images;
     }
 
-    public int[][] process() {
+    public double[][] process() {
         System.out.println("Started analyzing blur files");
 
-        int[][] resultMatrix = new int[images.getRows()][images.getCols()];
+        double[][] resultMatrix = new double[images.getRows()][images.getCols()];
 
         for (int currentRow = 0; currentRow < images.getRows(); currentRow++) {
             for (int currentCol = 0; currentCol < images.getCols(); currentCol++) {
@@ -47,9 +47,9 @@ public class Speed extends Step<int[][]> {
         return resultMatrix;
     }
 
-    private int getMinimum(int currentRow, int currentCol, List<SpeedData> imagesList) {
+    private double getMinimum(int currentRow, int currentCol, List<SpeedData> imagesList) {
         int minimum = imagesList.get(0).matrix[currentRow][currentCol];
-        int minimumNumber = 0;
+        double minimumNumber = 0;
 
         for (SpeedData current : imagesList) {
             if (current.matrix[currentRow][currentCol] < minimum) {

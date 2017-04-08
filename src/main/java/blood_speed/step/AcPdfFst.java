@@ -3,9 +3,11 @@ package blood_speed.step;
 import blood_speed.StepRunner;
 import blood_speed.helper.BmpHelper;
 import blood_speed.helper.FunctionHelper;
+import blood_speed.helper.MathHelper;
 import blood_speed.helper.MatrixHelper;
-import blood_speed.step.data.SpeedImages;
+import blood_speed.step.data.Point;
 import blood_speed.step.data.SpeedData;
+import blood_speed.step.data.SpeedImages;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +22,7 @@ public class AcPdfFst extends Step<SpeedImages> {
     private final String outputFilePrefix;
     private final int maxSpeed;
     private final int stepsNumber;
-    private final int startStep;
+    private final int startSpeed;
     private final int framesNumber;
     private final int imageWidth;
     private final int r;
@@ -39,7 +41,7 @@ public class AcPdfFst extends Step<SpeedImages> {
                     final String outputFilePrefix,
                     final int maxSpeed,
                     final int stepsNumber,
-                    final int startStep,
+                    final int startSpeed,
                     final int framesNumber,
                     final int r,
                     final int dr,
@@ -55,7 +57,7 @@ public class AcPdfFst extends Step<SpeedImages> {
         this.outputFilePrefix = outputFilePrefix;
         this.maxSpeed = maxSpeed;
         this.stepsNumber = stepsNumber;
-        this.startStep = startStep;
+        this.startSpeed = startSpeed;
         this.framesNumber = framesNumber;
         this.r = r;
         this.dr = dr;
@@ -68,26 +70,26 @@ public class AcPdfFst extends Step<SpeedImages> {
 
     @Override
     public SpeedImages process() {
-        System.out.println("Step1: getV7_ac_pdf_fst started, minDv1=" + startStep + "/" + stepsNumber);
+        System.out.println("Step1: getV7_ac_pdf_fst started, minDv1=" + startSpeed + "/" + stepsNumber);
 
         List<ForkJoinTask<SpeedData>> tasks = new ArrayList<>();
         ForkJoinPool executor = ForkJoinPool.commonPool();
 
         // цикл по всем шагам
-        for (int currentStep = startStep; currentStep < stepsNumber; currentStep++) {
+        for (int currentStep = 0; currentStep < stepsNumber; currentStep++) {
             final int step = currentStep;
             tasks.add(executor.submit(() -> oneStep(step)));
         }
 
         SpeedImages result = new SpeedImages();
-        for(ForkJoinTask<SpeedData> task : tasks) {
+        for (ForkJoinTask<SpeedData> task : tasks) {
             result.add(task.join());
         }
         return result;
     }
 
     private SpeedData oneStep(int currentStep) {
-        int currentSpeed = maxSpeed * currentStep / stepsNumber;
+        double currentSpeed = (((double) maxSpeed - startSpeed) / stepsNumber * currentStep) + startSpeed;
         int[][] pd = new int[framesNumber][imageWidth];
         int[][] pde = new int[framesNumber][imageWidth];
 
@@ -115,7 +117,7 @@ public class AcPdfFst extends Step<SpeedImages> {
 
             // цикл по ширине кадра
             for (int x = 0; x <= imageWidth - 1; x++) {
-                int shift = x + (maxSpeed * currentStep / stepsNumber);
+                double shift = x + currentSpeed;
 
                 if (shift < imageWidth && shift >= 0) {
                     double sumRate = 0;
@@ -126,27 +128,25 @@ public class AcPdfFst extends Step<SpeedImages> {
                                 continue;
                             }
 
-                            int yr0 = r - r1;
-                            int xr0 = x + r2;
-                            int yr1 = r - r1;
-                            int xr1 = shift + r2;
+                            final Point point0 = new Point(x + r2, r - r1);
+                            final Point point1 = new Point(shift + r2, r - r1);
 
-                            if (xr0 < 0 || xr0 >= imageWidth || xr1 < 0 || xr1 >= imageWidth) {
+                            if (point0.getX() < 0 || point0.getX() > imageWidth - 1 - MathHelper.EPSILON || point1.getX() < 0 || point1.getX() > imageWidth- 1 - MathHelper.EPSILON) {
                                 continue;
                             }
 
-                            if (yr0 < 0 || yr0 >= circuitImage.length || yr1 < 0 || yr1 >= circuitImage.length) {
+                            if (point0.getY() < 0 || point0.getY() > circuitImage.length - 1- MathHelper.EPSILON || point1.getY() < 0 || point1.getY() > circuitImage.length - 1- MathHelper.EPSILON) {
                                 continue;
                             }
 
-                            // если попадаем в контур
-                            if (circuitImage[yr0][xr0] > 0 &&
-                                    circuitImage[yr1][xr1] > 0) {
-                                double point_sh = (double) secondImage[yr0][xr0] - (double) firstImage[yr1][xr1];
-                                double g2 = g11[r1 + r][r2 + r];
-                                sumRate = sumRate + g2 * point_sh * point_sh;
-                                z1 = z1 + g2;
-                            }
+                                // если попадаем в контур
+                                if (circuitImage[point0.getIntY()][point0.getIntX()] > 0 &&
+                                        circuitImage[point1.getIntY()][point1.getIntX()] > 0) {
+                                    double point_sh = MathHelper.getPointValue(point0, secondImage) - MathHelper.getPointValue(point1, firstImage);
+                                    double g2 = g11[r1 + r][r2 + r];
+                                    sumRate = sumRate + g2 * point_sh * point_sh;
+                                    z1 = z1 + g2;
+                                }
                         }
                     }
                     pd[currentFrame][x] = (int) Math.round(sumRate / z1);

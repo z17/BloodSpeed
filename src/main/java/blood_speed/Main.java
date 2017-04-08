@@ -18,7 +18,7 @@ public class Main {
 
     private static int stage1(Properties properties) {
         int stepsNumber = Integer.valueOf(properties.getProperty("stepsNumber"));
-        int startStep = Integer.valueOf(properties.getProperty("startStep"));
+        int startStep = Integer.valueOf(properties.getProperty("startSpeed"));
         int framesNumber = Integer.valueOf(properties.getProperty("framesNumber"));             // количество кадров
         int maxSpeed = Integer.valueOf(properties.getProperty("maxSpeed"));
         int r = Integer.valueOf(properties.getProperty("r"));                                   // радиус области
@@ -90,7 +90,7 @@ public class Main {
 
     private static void stage2(Properties properties, int middleSpeed) {
         int speedDeviation = Integer.valueOf(properties.getProperty("stage2_speed_deviation"));
-        int stepSize= Integer.valueOf(properties.getProperty("stage2_step_size"));
+        double stepSize = Double.valueOf(properties.getProperty("stage2_step_size"));
         int framesNumber = Integer.valueOf(properties.getProperty("framesNumber"));
         int r = Integer.valueOf(properties.getProperty("stage2_r"));
         int dr = Integer.valueOf(properties.getProperty("stage2_dr"));
@@ -124,7 +124,7 @@ public class Main {
 
         int startStep = middleSpeed - speedDeviation;
         int maxSpeed = middleSpeed + speedDeviation;
-        int stepsNumber = (maxSpeed - startStep) / stepSize;
+        int stepsNumber = (int) Math.round((maxSpeed - startStep) / stepSize);
 
         StepRunner.StepData data = new StepRunner.StepData();
         data

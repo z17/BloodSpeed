@@ -38,6 +38,18 @@ public final class FunctionHelper {
         return matrix.length;
     }
 
+    public static int cols(double[][] matrix) {
+        long count = Arrays.stream(matrix).map(array -> array.length).distinct().count();
+        if (count > 1) {
+            throw new IllegalArgumentException("Not a matrix");
+        }
+        return matrix[0].length;
+    }
+
+    public static int rows(double[][] matrix) {
+        return matrix.length;
+    }
+
     public static void checkIOFolders(final String input, final String output) {
         if (input != null && !Files.exists(Paths.get(input))) {
             throw new RuntimeException("Input folder not found");

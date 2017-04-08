@@ -26,7 +26,7 @@ public class BackgroundSelector extends Step<Images> {
     }
 
     public static void main(String[] args) {
-        Images images = loadInputData("data/tests/capillary_test2/out2b/", 3001);
+        Images images = loadInputData("data/tests/capillary_test2/out2b/", 3000);
         BackgroundSelector backgroundSelector = new BackgroundSelector(
                 images,
                 "data/tests/capillary_test2/backgroundSelector/",

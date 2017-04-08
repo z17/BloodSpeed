@@ -67,6 +67,22 @@ public final class MatrixHelper {
         }
     }
 
+    public static void writeMatrix(final String name, final double[][] matrix) {
+        List<String> lines = new ArrayList<>();
+        for (double[] m : matrix) {
+            StringBuilder stringBuilder = new StringBuilder();
+            for (double k : m) {
+                stringBuilder.append(String.format("%10f", k));
+            }
+            lines.add(stringBuilder.toString());
+        }
+        try {
+            Files.write(Paths.get(name), lines, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static <T extends Number> void writeMatrix(final String name, final List<T> matrix) {
         List<String> lines = new ArrayList<>();
         StringBuilder stringBuilder = new StringBuilder();
