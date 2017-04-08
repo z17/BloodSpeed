@@ -53,17 +53,17 @@ public class Transformer extends Step<Void> {
     }
 
     public static void main(String[] args) {
-        List<Point> middleLine = FunctionHelper.readPointsList("data/tests/capillary_dec94_pasha4_cap1/middle-line/v1_" + MiddleLineSelector.MIDDLE_FULL_POINTS_POSITION_FILENAME);
-        Images data = BackgroundSelector.loadOutputData("data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/", 1600);
-        int[][] sum = BmpHelper.readBmp("data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/sum-image.bmp");
-        int[][] contour = BmpHelper.readBmp("data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/contour-image-photoshop.bmp");
+        List<Point> middleLine = FunctionHelper.readPointsList("data/tests/capillary_test2/middle-line/v1_" + MiddleLineSelector.MIDDLE_FULL_POINTS_POSITION_FILENAME);
+        Images data = BackgroundSelector.loadOutputData("data/tests/capillary_test2/backgroundSelector/", 3000);
+        int[][] sum = BmpHelper.readBmp("data/tests/capillary_test2/backgroundSelector/sum-image.bmp");
+        int[][] contour = BmpHelper.readBmp("data/tests/capillary_test2/backgroundSelector/contour-image-photoshop.bmp");
         Step<Void> step = new Transformer(
                 middleLine,
                 data,
                 sum,
                 contour,
                 7,
-                "data/tests/capillary_dec94_pasha4_cap1/transformedImages",
+                "data/tests/capillary_test2/transformedImages",
                 "result_",
                 3,
                 1,
@@ -85,6 +85,8 @@ public class Transformer extends Step<Void> {
                 BmpHelper.writeBmp(outputDir.resolve(name).toString(), result);
             }
             currentNumberFile++;
+
+            System.out.println("Image " + currentNumberFile + "/" + data.getImagesList().size() + "  complete");
         }
 
         int[][] contourTransformed = transformImage(contour, false);

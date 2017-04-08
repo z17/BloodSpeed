@@ -26,10 +26,10 @@ public class BackgroundSelector extends Step<Images> {
     }
 
     public static void main(String[] args) {
-        Images images = loadInputData("data/tests/capillary_dec94_pasha4_cap1/out2b/", 1600);
+        Images images = loadInputData("data/tests/capillary_test2/out2b/", 3001);
         BackgroundSelector backgroundSelector = new BackgroundSelector(
                 images,
-                "data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/",
+                "data/tests/capillary_test2/backgroundSelector/",
                 10
         );
         backgroundSelector.process();
@@ -79,6 +79,7 @@ public class BackgroundSelector extends Step<Images> {
 
             resultImages.add(currentResult);
             BmpHelper.writeBmp(outputFolder + "/background_" + currentNumber + ".bmp", currentResult);
+            System.out.println("Image " + currentNumber + "/" + images.getImagesList().size() + "  complete");
         }
         return resultImages;
     }
