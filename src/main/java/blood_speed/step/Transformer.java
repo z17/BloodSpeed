@@ -52,26 +52,6 @@ public class Transformer extends Step<Void> {
         FunctionHelper.checkOutputFolders(outputDir);
     }
 
-    public static void main(String[] args) {
-        List<Point> middleLine = FunctionHelper.readPointsList("data/tests/capillary_test2/middle-line/v1_" + MiddleLineSelector.MIDDLE_FULL_POINTS_POSITION_FILENAME);
-        Images data = BackgroundSelector.loadOutputData("data/tests/capillary_test2/backgroundSelector/", 3000);
-        int[][] sum = BmpHelper.readBmp("data/tests/capillary_test2/backgroundSelector/sum-image.bmp");
-        int[][] contour = BmpHelper.readBmp("data/tests/capillary_test2/backgroundSelector/contour-image-photoshop.bmp");
-        Step<Void> step = new Transformer(
-                middleLine,
-                data,
-                sum,
-                contour,
-                7,
-                "data/tests/capillary_test2/transformedImages",
-                "result_",
-                3,
-                1,
-                8);
-        step.process();
-    }
-
-
     @Override
     public Void process() {
         int currentNumberFile = 0;

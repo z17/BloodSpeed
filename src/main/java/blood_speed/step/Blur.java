@@ -1,6 +1,6 @@
 package blood_speed.step;
 
-import blood_speed.StepRunner;
+import blood_speed.runner.SpeedSteps;
 import blood_speed.helper.BmpHelper;
 import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MatrixHelper;
@@ -176,7 +176,7 @@ public class Blur extends Step<SpeedImages> {
 
         double g2 = 0;
         if (sqr <= ym * ym) {
-            g2 = StepRunner.G1[(int) Math.round(sqr * 100 / ym / ym)];
+            g2 = SpeedSteps.G1[(int) Math.round(sqr * 100 / ym / ym)];
         }
 
         return g2;

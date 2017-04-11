@@ -1,10 +1,11 @@
-package blood_speed;
+package blood_speed.runner;
 
 import blood_speed.step.*;
 import blood_speed.step.data.SpeedImages;
 
-public final class StepRunner {
+public final class SpeedSteps {
 
+    // todo: refactor this, find another place for G1
     public static final double[] G1 = initG1();
 
     private static double[] initG1() {

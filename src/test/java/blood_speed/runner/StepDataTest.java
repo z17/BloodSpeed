@@ -1,5 +1,6 @@
-package blood_speed;
+package blood_speed.runner;
 
+import blood_speed.runner.SpeedSteps;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -8,7 +9,7 @@ import static org.junit.Assert.*;
 public class StepDataTest {
     @Test
     public void ready() throws Exception {
-        StepRunner.StepData data = new StepRunner.StepData();
+        SpeedSteps.StepData data = new SpeedSteps.StepData();
 
 
         assertThat(data.ready(), is(false));

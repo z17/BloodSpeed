@@ -47,34 +47,6 @@ public class MiddleLineSelector extends Step<List<Point>> {
         this.maxCentralPoints = maxCentralPoints;
     }
 
-    public static void main(String[] args) {
-        Images images = BackgroundSelector.loadOutputData("data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/", 300);
-
-        // контур
-        int[][] contour = BmpHelper.readBmp("data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/contour-image-photoshop.bmp");
-
-        // изображение суммы
-        int[][] sumMatrix = MatrixHelper.readMatrix("data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/sum.txt");
-        int[][] sumImage = BmpHelper.readBmp("data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/sum-image.bmp");
-
-        // выбираем стартовую точку
-        final Point startPoint = new Point(25, 152);
-
-        MiddleLineSelector selector = new MiddleLineSelector(
-                startPoint,
-                images,
-                contour,
-                sumMatrix,
-                sumImage,
-                "data/tests/capillary_dec94_pasha4_cap1/middle-line/",
-                "v1",
-                4,
-                15,
-                30,
-                21);
-        selector.process();
-    }
-
     @Override
     public List<Point> process() {
         final List<Point> centralPoints = getCentralPoints(start, regionSize, maxSpeed, maxCentralPoints);

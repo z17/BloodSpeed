@@ -1,6 +1,6 @@
 package blood_speed.step;
 
-import blood_speed.StepRunner;
+import blood_speed.runner.SpeedSteps;
 import blood_speed.helper.BmpHelper;
 import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MathHelper;
@@ -175,7 +175,7 @@ public class AcPdfFst extends Step<SpeedImages> {
                     continue;
                 }
                 int index = Math.round(((r1 * r1 + r2 * r2) * 100) / (r * r));
-                g2[r + r1][r + r2] = StepRunner.G1[index];
+                g2[r + r1][r + r2] = SpeedSteps.G1[index];
             }
         }
         return g2;
