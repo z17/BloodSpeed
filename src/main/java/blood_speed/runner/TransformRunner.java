@@ -40,11 +40,8 @@ class TransformRunner implements AbstractRunner {
     }
 
     public static void main(String[] args) {
-        // todo central line file
-//        "data/tests/capillary_test2/middle-line/v1_" + MiddleLineSelector.MIDDLE_FULL_POINTS_POSITION_FILENAME
-
         new TransformRunner().run(
-                "",
+                "data/tests/capillary_test2/middle-line/middle-full-points.txt",
                 "data/tests/capillary_test2/backgroundSelector/",
                 "data/tests/capillary_test2/transformedImages",
                 "result_",

@@ -34,7 +34,7 @@ public class BackgroundSelector extends Step<Images> {
     private Images brightnessCompensation() {
         final int blurDivider = 2 * blurDepth + 1;
         double[][] middleValues = new double[images.getRows()][images.getCols()];
-        for (int k = 0; k <= 20; k++) {
+        for (int k = 0; k < blurDivider; k++) {
             int[][] current = images.getImagesList().get(k);
             for (int i = 0; i < images.getRows(); i++) {
                 for (int j = 0; j < images.getCols(); j++) {

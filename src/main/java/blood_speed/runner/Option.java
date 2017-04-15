@@ -1,10 +1,10 @@
 package blood_speed.runner;
 
 public enum Option {
-    Background("background", BackgroundSelectorRunner.class),
-    MiddleLine("middle-line", MiddleLineRunner.class),
-    Transform("transform", TransformRunner.class),
-    Speed("speed", SpeedRunner.class);
+    Background("-background", BackgroundSelectorRunner.class),
+    MiddleLine("-middle-line", MiddleLineRunner.class),
+    Transform("-transform", TransformRunner.class),
+    Speed("-speed", SpeedRunner.class);
 
     private final String key;
     private final Class<? extends AbstractRunner> runnerClass;

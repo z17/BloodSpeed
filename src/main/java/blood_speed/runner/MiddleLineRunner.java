@@ -15,6 +15,7 @@ class MiddleLineRunner implements AbstractRunner {
         String inputFolder = properties.getProperty("middle_input_folder");
         int count = Integer.valueOf(properties.getProperty("middle_count"));
         String outputFolder = properties.getProperty("middle_output_folder");
+        String outputPointsName = properties.getProperty("middle_output_file_name");
         String contourName = properties.getProperty("middle_contour");
         String sumMatrixName = properties.getProperty("middle_sum_matrix");
         String sumImageName = properties.getProperty("middle_sum_image");
@@ -30,6 +31,7 @@ class MiddleLineRunner implements AbstractRunner {
         run(inputFolder,
                 outputFolder,
                 "",
+                outputPointsName,
                 count,
                 contourName,
                 sumMatrixName,
@@ -46,7 +48,8 @@ class MiddleLineRunner implements AbstractRunner {
         new MiddleLineRunner().run(
                 "data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/",
                 "data/tests/capillary_dec94_pasha4_cap1/middle-line/",
-                "v1",
+                "v1_",
+                "middle-full-points.txt",
                 300,
                 "data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/contour-image-photoshop.bmp",
                 "data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/sum.txt",
@@ -62,6 +65,7 @@ class MiddleLineRunner implements AbstractRunner {
     private void run(String inputFolder,
                      String outputFolder,
                      String outputPrefix,
+                     String outputPointsName,
                      int count,
                      String contourName,
                      String sumMatrixName,
@@ -86,6 +90,7 @@ class MiddleLineRunner implements AbstractRunner {
                 sumImage,
                 outputFolder,
                 outputPrefix,
+                outputPointsName,
                 regionSize,
                 maxSpeed,
                 angleLimit,

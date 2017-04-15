@@ -24,52 +24,56 @@ public class MiddleLineSelector extends Step<List<Point>> {
     private final int[][] sumMatrix;
     private final int[][] sumImage;
     private final String outputPrefix;
+    private final String outputPointsName;
     private final int regionSize;
     private final int maxSpeed;
     private final int angleLimit;
     private final int maxCentralPoints;
 
-    private final static String MIDDLE_POINTS_IMAGE_FILENAME = "middle-points.bmp";
-    private final static String MIDDLE_FULL_POINTS_IMAGE_FILENAME = "middle-full-points.bmp";
-    public final static String MIDDLE_FULL_POINTS_POSITION_FILENAME = "middle-full-points.txt";
+    private final static String MIDDLE_POINTS_IMAGE_FILENAME = "middle-points%d.bmp";
 
-    public MiddleLineSelector(Point start, Images data, int[][] contour, int sumMatrix[][], int sumImage[][], String outputFolder, final String outputPrefix, int regionSize, int maxSpeed, int angleLimit, int maxCentralPoints) {
+    public MiddleLineSelector(Point start, Images data, int[][] contour, int sumMatrix[][], int sumImage[][], String outputFolder, final String outputPrefix, String outputPointsName, int regionSize, int maxSpeed, int angleLimit, int maxCentralPoints) {
         this.start = start;
         this.data = data;
         this.contour = contour;
         this.sumMatrix = sumMatrix;
         this.sumImage = sumImage;
+        this.outputPointsName = outputPointsName;
         this.regionSize = regionSize;
         this.maxSpeed = maxSpeed;
         this.angleLimit = angleLimit;
         FunctionHelper.checkOutputFolders(outputFolder);
-        this.outputPrefix = outputFolder + "/" + outputPrefix + "_";
+        this.outputPrefix = outputFolder + "/" + outputPrefix;
         this.maxCentralPoints = maxCentralPoints;
+
     }
 
     @Override
     public List<Point> process() {
+        System.out.println("Middle line started");
+        int numberOfFile = 0;
         final List<Point> centralPoints = getCentralPoints(start, regionSize, maxSpeed, maxCentralPoints);
-        drawTrack(centralPoints, "middle_points1.bmp");
+        drawTrack(centralPoints, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
 
         List<Point> result;
 
         result = refinePoints(centralPoints);
-        drawTrack(result, "middle_points2.bmp");
+        drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
 
         result = refinePointsByLength(result, 3);
-        drawTrack(result, "middle_points3.bmp");
+        drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
 
         result = refinePoints(result);
-        drawTrack(result, "middle_points4.bmp");
+        drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
 
         result = refinePointsByLength(result, 3);
-        drawTrack(result, "middle_points5.bmp");
+        drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
 
         result = refinePointsByLength(result, 1);
-        drawTrack(result, "middle_points6.bmp");
+        drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
 
-        FunctionHelper.writePointsList(outputPrefix + MIDDLE_FULL_POINTS_POSITION_FILENAME, result);
+        FunctionHelper.writePointsList(outputPrefix + outputPointsName, result);
+        System.out.println("Middle line complete");
         return result;
     }
 
@@ -534,6 +538,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
     }
 
     private void drawTrack(List<Point> points, final String name) {
+        System.out.println("Draw " + name);
         FunctionHelper.drawPointsOnImage(points, outputPrefix + name, sumImage);
     }
 }

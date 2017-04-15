@@ -3,7 +3,9 @@
 *.war
 *.ear
 
-/data
-/gradle
-/out
-/out3cr2
+.idea/
+bin/
+data/
+gradle/
+out/
+build/
