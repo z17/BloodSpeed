@@ -11,6 +11,13 @@ import java.util.List;
 public class MathHelper {
     public static final double EPSILON = 0.1;
 
+    public static boolean pointInImage(final Point p, final int width, final int height) {
+        if (p.getX() < 0 || p.getX() > width - 1 - MathHelper.EPSILON || p.getY() < 0 || p.getY() > height - 1 - MathHelper.EPSILON ) {
+            return false;
+        }
+        return true;
+    }
+
     public static boolean doubleEquals(double a, double b) {
         return Math.abs(a - b) < EPSILON;
     }

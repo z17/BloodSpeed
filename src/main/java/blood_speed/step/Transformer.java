@@ -85,7 +85,7 @@ public class Transformer extends Step<Void> {
 
 
     /*
-    Можно сделать оптимальнее: сначала рассчитать координаты точек, которые войдут в трансформированное изображение, а потом уже получать значения этих точек для каждого изображения
+    todo: Можно сделать оптимальнее: сначала рассчитать координаты точек, которые войдут в трансформированное изображение, а потом уже получать значения этих точек для каждого изображения
     Сейчас координаты рассчитываются для каждого отдельно, при том что они всегда одинаковые.
      */
     private int[][] transformImage(int[][] image, boolean drawPerpendiculars) {
@@ -123,20 +123,34 @@ public class Transformer extends Step<Void> {
                 Point a = points.get(0);
                 Point b = points.get(1);
 
+                final int aValue;
+                if (MathHelper.pointInImage(a, data.getCols(), data.getRows())) {
+                    aValue = (int) Math.ceil(MathHelper.getPointValue(a, image));
+                } else {
+                    aValue = 0;
+                }
+
+                final int bValue;
+                if (MathHelper.pointInImage(b, data.getCols(), data.getRows())) {
+                    bValue = (int) Math.ceil(MathHelper.getPointValue(b, image));
+                } else {
+                    bValue = 0;
+                }
+
                 if (getVectorDirection(p1, a, middlePoint)) {
                     if (currentStep % perpendicularStep == 0 && drawPerpendiculars) {
-                        imagePerpendicularOne[a.getIntY()][a.getIntX()] = 200;
-                        imagePerpendicularTwo[b.getIntY()][b.getIntX()] = 200;
+                        drawPoint(a, imagePerpendicularOne);
+                        drawPoint(b, imagePerpendicularTwo);
                     }
-                    result[stepsCount - k][i - indent] = (int) Math.ceil(MathHelper.getPointValue(a, image));
-                    result[stepsCount + k][i - indent] = (int) Math.ceil(MathHelper.getPointValue(b, image));
+                    result[stepsCount - k][i - indent] = aValue;
+                    result[stepsCount + k][i - indent] = bValue;
                 } else {
                     if (currentStep % perpendicularStep == 0 && drawPerpendiculars) {
-                        imagePerpendicularOne[b.getIntY()][b.getIntX()] = 200;
-                        imagePerpendicularTwo[a.getIntY()][a.getIntX()] = 200;
+                        drawPoint(b, imagePerpendicularOne);
+                        drawPoint(a, imagePerpendicularTwo);
                     }
-                    result[stepsCount - k][i - indent] = (int) Math.ceil(MathHelper.getPointValue(b, image));
-                    result[stepsCount + k][i - indent] = (int) Math.ceil(MathHelper.getPointValue(a, image));
+                    result[stepsCount - k][i - indent] = bValue;
+                    result[stepsCount + k][i - indent] = aValue;
                 }
             }
 
@@ -162,5 +176,11 @@ public class Transformer extends Step<Void> {
         Point pointVector = new Point(b.getX() - start.getX(), b.getY() - start.getY());
         Point vectorA = new Point(a.getX() - start.getX(), a.getY() - start.getY());
         return 1 / pointVector.getX() * vectorA.getY() - pointVector.getY() * vectorA.getX() < 0;
+    }
+
+    private void drawPoint(Point p, int[][] imagePerpendicular) {
+        if (MathHelper.pointInImage(p, data.getCols(), data.getRows())) {
+            imagePerpendicular[p.getIntY()][p.getIntX()] = 200;
+        }
     }
 }

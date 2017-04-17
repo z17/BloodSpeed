@@ -339,10 +339,10 @@ public class MiddleLineSelector extends Step<List<Point>> {
 
                 Point currentPoint = new Point(j, i);
                 for (int k = 0; k < data.getImagesList().size() - 1; k++) {
-                    int[][] img1 = data.getImagesList().get(k);
+                    int[][] img1 = data.getImagesList().get(k + 1);
                     int regionSum1 = getRegionSum(img1, point, pointRegionSize);
 
-                    int[][] img2 = data.getImagesList().get(k + 1);
+                    int[][] img2 = data.getImagesList().get(k);
                     int regionSum2 = getRegionSum(img2, currentPoint, pointRegionSize);
                     dissynchronizationFactor[i - point.getIntY() + maxSpeed][j - point.getIntX() + maxSpeed] += Math.abs(regionSum1 - regionSum2);
                 }

@@ -17,7 +17,7 @@ public class Main {
         option.getRunner().run(properties);
     }
 
-    private static Properties getSettings() {
+    public static Properties getSettings() {
         final Properties properties = new Properties();
         try {
             properties.load(new FileInputStream(SETTINGS_FILE));

@@ -46,19 +46,19 @@ class MiddleLineRunner implements AbstractRunner {
 
     public static void main(String[] args) {
         new MiddleLineRunner().run(
-                "data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/",
-                "data/tests/capillary_dec94_pasha4_cap1/middle-line/",
-                "v1_",
+                "data/tests/kris_2017_03_06_kr1_4/backgroundSelector/",
+                "data/tests/kris_2017_03_06_kr1_4/middle-line/",
+                "v3_",
                 "middle-full-points.txt",
-                300,
-                "data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/contour-image-photoshop.bmp",
-                "data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/sum.txt",
-                "data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/sum-image.bmp",
-                new Point(25, 152),
-                4,
+                500,
+                "data/tests/kris_2017_03_06_kr1_4/backgroundSelector/contour-image-photoshop.bmp",
+                "data/tests/kris_2017_03_06_kr1_4/backgroundSelector/sum.txt",
+                "data/tests/kris_2017_03_06_kr1_4/backgroundSelector/sum-image.bmp",
+                new Point(295, 171),
+                5,
                 15,
-                30,
-                21
+                35,
+                24
         );
     }
 

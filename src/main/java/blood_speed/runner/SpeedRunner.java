@@ -1,5 +1,7 @@
 package blood_speed.runner;
 
+import blood_speed.Main;
+
 import java.util.Properties;
 
 class SpeedRunner implements AbstractRunner {
@@ -11,6 +13,10 @@ class SpeedRunner implements AbstractRunner {
         System.out.println();
         System.err.println("Stage 2");
         stage2(properties, middleSpeed);
+    }
+
+    public static void main(String[] args) {
+        new SpeedRunner().run(Main.getSettings());
     }
 
     private static int stage1(Properties properties) {
