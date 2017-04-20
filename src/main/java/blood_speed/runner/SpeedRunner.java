@@ -40,7 +40,7 @@ class SpeedRunner implements AbstractRunner {
 
         String speedOutputImage = properties.getProperty("speed_output_image");
         String speedOutputFile = properties.getProperty("speed_output_file");
-        String speedOutputImageWithCoufficient = properties.getProperty("speed_output_image_with_coufficient");
+        String speedOutputImageWithCoefficient = properties.getProperty("speed_output_image_with_coefficient");
 
         int middleStepAffectedCols = Integer.valueOf(properties.getProperty("affected_cols"));
         String middleStepOutputFile = properties.getProperty("middle_output_file");
@@ -81,7 +81,7 @@ class SpeedRunner implements AbstractRunner {
                 .setStep3OutputFolder(step3FolderOutput)
                 .setStep3OutputNameClearFile(speedOutputFile)
                 .setStep3OutputNameClearImage(speedOutputImage)
-                .setStep3OoutputNameImageFile(speedOutputImageWithCoufficient)
+                .setStep3OoutputNameImageFile(speedOutputImageWithCoefficient)
 
                 .setMiddleStepOutputFile(middleStepOutputFile)
                 .setAffectedCols(middleStepAffectedCols);
@@ -111,7 +111,7 @@ class SpeedRunner implements AbstractRunner {
 
         String speedOutputImage = properties.getProperty("stage2_speed_output_image");
         String speedOutputFile = properties.getProperty("stage2_speed_output_file");
-        String speedOutputImageWithCoufficient = properties.getProperty("stage2_speed_output_image_with_coufficient");
+        String speedOutputImageWithCoefficient = properties.getProperty("stage2_speed_output_image_with_coefficient");
 
         int middleStepAffectedCols = Integer.valueOf(properties.getProperty("affected_cols"));
         String middleStepOutputFile = properties.getProperty("stage2_middle_output_file");
@@ -157,7 +157,7 @@ class SpeedRunner implements AbstractRunner {
                 .setStep3OutputFolder(step3FolderOutput)
                 .setStep3OutputNameClearFile(speedOutputFile)
                 .setStep3OutputNameClearImage(speedOutputImage)
-                .setStep3OoutputNameImageFile(speedOutputImageWithCoufficient)
+                .setStep3OoutputNameImageFile(speedOutputImageWithCoefficient)
 
                 .setMiddleStepOutputFile(middleStepOutputFile)
                 .setAffectedCols(middleStepAffectedCols);

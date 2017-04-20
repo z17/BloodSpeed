@@ -26,6 +26,7 @@ public class AcPdfFst extends Step<SpeedImages> {
     private final int framesNumber;
     private final int imageWidth;
     private final int r;
+    private final int middleHeight;
     private final int dr;
     private final int dt;
 
@@ -63,10 +64,9 @@ public class AcPdfFst extends Step<SpeedImages> {
         this.dr = dr;
         this.dt = dt;
         this.inputFiles = readInputFolder(inputFolder, framesNumber);
-
+        this.middleHeight = circuitImage.length / 2;
         this.g11 = gr11_(r, dr);
     }
-
 
     @Override
     public SpeedImages process() {
@@ -128,8 +128,8 @@ public class AcPdfFst extends Step<SpeedImages> {
                                 continue;
                             }
 
-                            final Point point0 = new Point(x + r2, r - r1);
-                            final Point point1 = new Point(shift + r2, r - r1);
+                            final Point point0 = new Point(x + r2, middleHeight - r1);
+                            final Point point1 = new Point(x + currentSpeed + r2, middleHeight - r1);
 
                             if (point0.getX() < 0 || point0.getX() > imageWidth - 1 - MathHelper.EPSILON || point1.getX() < 0 || point1.getX() > imageWidth- 1 - MathHelper.EPSILON) {
                                 continue;
@@ -161,6 +161,10 @@ public class AcPdfFst extends Step<SpeedImages> {
 
         String txtName = outputFolder + "/" + outputFilePrefix + "m" + maxSpeed + "_" + currentSpeed + ".txt";
         MatrixHelper.writeMatrix(txtName, pd);
+
+        String bmpName = outputFolder + "/" + outputFilePrefix + "m" + maxSpeed + "_" + currentSpeed + ".bmp";
+        MatrixHelper.writeMatrix(bmpName, BmpHelper.transformToImage(pd));
+
         String bmpName1 = outputFolder + "/" + outputFilePrefix + "me" + maxSpeed + "_" + currentSpeed + ".bmp";
         BmpHelper.writeBmp(bmpName1, pde);
 
