@@ -24,9 +24,9 @@ class BackgroundSelectorRunner implements AbstractRunner {
 
     public static void main(String[] args) {
         new BackgroundSelectorRunner().run(
-                "data/tests/kris_2017_03_06_kr1_4/init/",
-                "data/tests/kris_2017_03_06_kr1_4/backgroundSelector/",
-                700,
+                "data/tests/capillary_cap11/out2b/",
+                "data/tests/capillary_cap11/my/backgroundSelector/",
+                1649,
                 10
         );
     }

@@ -7,9 +7,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.DoubleStream;
 
@@ -108,7 +108,7 @@ public final class FunctionHelper {
         }
     }
 
-    public static void drawPointsOnImage(List<Point> points, final String name, final int[][] image) {
+    public static void drawPointsOnImage(Collection<Point> points, final String name, final int[][] image) {
         int[][] visualise = MatrixHelper.copyMatrix(image);
         for (Point p : points) {
             int y = p.getIntY();

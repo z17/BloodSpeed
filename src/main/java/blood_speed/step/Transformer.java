@@ -73,9 +73,9 @@ public class Transformer extends Step<Void> {
         for (int i = 0; i < contourTransformed.length; i++) {
             for (int j = 0; j < contourTransformed[i].length; j++) {
                 if (contourTransformed[i][j] > 128) {
-                    contourTransformed[i][j] = 0;
+//                    contourTransformed[i][j] = 0;
                 } else {
-                    contourTransformed[i][j] = 255;
+//                    contourTransformed[i][j] = 255;
                 }
             }
         }

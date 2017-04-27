@@ -12,6 +12,7 @@ import blood_speed.step.util.Direction;
 import blood_speed.step.util.Distances;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Класс для выделения центральной линии капилляра
@@ -66,7 +67,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
         result = refinePoints(result);
         drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
 
-        result = refinePointsByLength(result, 3);
+        result = refinePointsByLength(result, 2);
         drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
 
         result = refinePointsByLength(result, 1);
@@ -205,8 +206,9 @@ public class MiddleLineSelector extends Step<List<Point>> {
         Point currentPoint = startPoint;
         int color = 0;
         while (true) {
-            int[][] dissynchronizationFactor = findDissynchronizationFactor(currentPoint, regionSize, maxSpeed);
-            Point minDissynchronizationPoint = getMinDissynchronizationPoint(dissynchronizationFactor, currentPoint, maxSpeed);
+            final int[][] dissynchronizationFactor = findDissynchronizationFactor(currentPoint, regionSize, maxSpeed);
+            final Collection<Point> dissynchronizationPoints = getDissynchronizationPoints(dissynchronizationFactor, currentPoint, maxSpeed);
+            final Point minDissynchronizationPoint = getMinDissynchronizationPoint(dissynchronizationFactor, currentPoint, maxSpeed);
             drawLine(currentPoint, minDissynchronizationPoint, visualise, color);
             color += 80;
             if (color > 255) {
@@ -218,9 +220,10 @@ public class MiddleLineSelector extends Step<List<Point>> {
 
             Set<Point> circle = getCirclePoints(currentPoint, r);
 
-            List<Point> candidates = getCandidates(circle, minDissynchronizationPoint, r, angleLimit);
+            final List<Point> candidates = getCandidates(circle, minDissynchronizationPoint, r, angleLimit);
+            final List<Point> filteredCandidates = filterCandidates(candidates, dissynchronizationPoints);
 
-            Point nextPoint = choiceBestPoint(candidates);
+            Point nextPoint = choiceBestPoint(filteredCandidates);
 
             if (nextPoint == null) {
                 break;
@@ -248,6 +251,26 @@ public class MiddleLineSelector extends Step<List<Point>> {
         }
 
         BmpHelper.writeBmp(outputPrefix + "vectors.bmp", visualise);
+        return points;
+    }
+
+    private List<Point> filterCandidates(final List<Point> candidates, final Collection<Point> dissynchronizationPoints) {
+        return candidates.stream()
+                .filter(dissynchronizationPoints::contains)
+                .collect(Collectors.toList());
+    }
+
+    private Collection<Point> getDissynchronizationPoints(int[][] dissynchronizationFactor, Point currentPoint, int maxSpeed) {
+        Collection<Point> points = new HashSet<>();
+        for (int i = 0; i < dissynchronizationFactor.length; i++) {
+            for (int j = 0; j < dissynchronizationFactor[i].length; j++) {
+                if (dissynchronizationFactor[i][j] == 0) {
+                    continue;
+                }
+                points.add(new Point(currentPoint.getIntX() + j - maxSpeed, currentPoint.getIntY() + i - maxSpeed));
+            }
+        }
+
         return points;
     }
 
@@ -339,10 +362,10 @@ public class MiddleLineSelector extends Step<List<Point>> {
 
                 Point currentPoint = new Point(j, i);
                 for (int k = 0; k < data.getImagesList().size() - 1; k++) {
-                    int[][] img1 = data.getImagesList().get(k + 1);
+                    int[][] img1 = data.getImagesList().get(k);
                     int regionSum1 = getRegionSum(img1, point, pointRegionSize);
 
-                    int[][] img2 = data.getImagesList().get(k);
+                    int[][] img2 = data.getImagesList().get(k + 1);
                     int regionSum2 = getRegionSum(img2, currentPoint, pointRegionSize);
                     dissynchronizationFactor[i - point.getIntY() + maxSpeed][j - point.getIntX() + maxSpeed] += Math.abs(regionSum1 - regionSum2);
                 }
@@ -537,7 +560,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
         return false;
     }
 
-    private void drawTrack(List<Point> points, final String name) {
+    private void drawTrack(Collection<Point> points, final String name) {
         System.out.println("Draw " + name);
         FunctionHelper.drawPointsOnImage(points, outputPrefix + name, sumImage);
     }

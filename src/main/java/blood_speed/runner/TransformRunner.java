@@ -41,17 +41,17 @@ class TransformRunner implements AbstractRunner {
 
     public static void main(String[] args) {
         new TransformRunner().run(
-                "data/tests/kris_2017_03_06_kr1_4/middle-line/v1_middle-full-points.txt",
-                "data/tests/kris_2017_03_06_kr1_4/backgroundSelector/",
-                "data/tests/kris_2017_03_06_kr1_4/transformedImages",
+                "data/tests/capillary_cap11/my/middle-line/middle-full-points.txt",
+                "data/tests/capillary_cap11/my/backgroundSelector/",
+                "data/tests/capillary_cap11/my/transformedImages",
                 "result_",
-                700,
-                "data/tests/kris_2017_03_06_kr1_4/backgroundSelector/sum-image.bmp",
-                "data/tests/kris_2017_03_06_kr1_4/backgroundSelector/contour-image-photoshop.bmp",
+                1649,
+                "data/tests/capillary_cap11/my/backgroundSelector/sum-image.bmp",
+                "data/tests/capillary_cap11/my/res3_gr2.bmp",
                 7,
                 4,
                 1,
-                23
+                8
         );
     }
 
