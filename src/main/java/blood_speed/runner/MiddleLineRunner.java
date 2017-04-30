@@ -39,26 +39,24 @@ class MiddleLineRunner implements AbstractRunner {
                 new Point(x, y),
                 regionSize,
                 maxSpeed,
-                angleLimit,
-                maxCentralPoints
+                angleLimit
         );
     }
 
     public static void main(String[] args) {
         new MiddleLineRunner().run(
-                "data/tests/capillary_cap11/my/backgroundSelector/",
-                "data/tests/capillary_cap11/my/middle-line/",
+                "data/tests/capillary_2k_m2/my/backgroundSelector/",
+                "data/tests/capillary_2k_m2/my/middle-line/",
                 "",
                 "middle-full-points.txt",
                 500,
-                "data/tests/capillary_cap11/my/res3_gr2.bmp",
-                "data/tests/capillary_cap11/my/backgroundSelector/sum.txt",
-                "data/tests/capillary_cap11/my/backgroundSelector/sum-image.bmp",
-                new Point(28, 187),
+                "data/tests/capillary_2k_m2/my/res3_gr2.bmp",
+                "data/tests/capillary_2k_m2/my/backgroundSelector/sum.txt",
+                "data/tests/capillary_2k_m2/my/backgroundSelector/sum-image.bmp",
+                new Point(32, 93),
                 5,
-                18,
-                30,
-                20
+                15,
+                35
         );
     }
 
@@ -73,20 +71,9 @@ class MiddleLineRunner implements AbstractRunner {
                      Point startPoint,
                      int regionSize,
                      int maxSpeed,
-                     int angleLimit,
-                     int maxCentralPoints) {
+                     int angleLimit) {
         Images images = BackgroundSelector.loadOutputData(inputFolder, count);
         int[][] contour = BmpHelper.readBmp(contourName);
-        for (int i = 0; i < contour.length; i++) {
-            for (int j = 0; j < contour[i].length; j++) {
-                if (contour[i][j] != 0) {
-                    contour[i][j] = 0;
-                } else {
-                    contour[i][j] = 255;
-                }
-            }
-        }
-
         // изображение суммы
         int[][] sumMatrix = MatrixHelper.readMatrix(sumMatrixName);
         int[][] sumImage = BmpHelper.readBmp(sumImageName);
@@ -102,8 +89,7 @@ class MiddleLineRunner implements AbstractRunner {
                 outputPointsName,
                 regionSize,
                 maxSpeed,
-                angleLimit,
-                maxCentralPoints);
+                angleLimit);
         selector.process();
     }
 }

@@ -29,11 +29,10 @@ public class MiddleLineSelector extends Step<List<Point>> {
     private final int regionSize;
     private final int maxSpeed;
     private final int angleLimit;
-    private final int maxCentralPoints;
 
     private final static String MIDDLE_POINTS_IMAGE_FILENAME = "middle-points%d.bmp";
 
-    public MiddleLineSelector(Point start, Images data, int[][] contour, int sumMatrix[][], int sumImage[][], String outputFolder, final String outputPrefix, String outputPointsName, int regionSize, int maxSpeed, int angleLimit, int maxCentralPoints) {
+    public MiddleLineSelector(Point start, Images data, int[][] contour, int sumMatrix[][], int sumImage[][], String outputFolder, final String outputPrefix, String outputPointsName, int regionSize, int maxSpeed, int angleLimit) {
         this.start = start;
         this.data = data;
         this.contour = contour;
@@ -45,7 +44,6 @@ public class MiddleLineSelector extends Step<List<Point>> {
         this.angleLimit = angleLimit;
         FunctionHelper.checkOutputFolders(outputFolder);
         this.outputPrefix = outputFolder + "/" + outputPrefix;
-        this.maxCentralPoints = maxCentralPoints;
 
     }
 
@@ -53,7 +51,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
     public List<Point> process() {
         System.out.println("Middle line started");
         int numberOfFile = 0;
-        final List<Point> centralPoints = getCentralPoints(start, regionSize, maxSpeed, maxCentralPoints);
+        final List<Point> centralPoints = getCentralPoints(start, regionSize, maxSpeed);
         drawTrack(centralPoints, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
 
         List<Point> result;
@@ -81,17 +79,35 @@ public class MiddleLineSelector extends Step<List<Point>> {
     private List<Point> refinePoints(List<Point> points) {
         List<Point> result = new ArrayList<>();
         result.add(points.get(0));
-        for (int i = 1; i < points.size() - 1; i++) {
-            Point a = points.get(i - 1);
-            Point b = points.get(i + 1);
+        for (int i = 0; i < points.size(); i++) {
+            Point a;
+            Point b;
+            if (i < 2) {
+                a = points.get(0);
+            } else {
+                a = points.get(i - 2);
+            }
+            if (i >= points.size() - 2) {
+                b = points.get(points.size() - 1);
+            } else {
+                b = points.get(i + 2);
+            }
+
             Point middlePoint = new Point((a.getX() + b.getIntX()) / 2, (a.getY() + b.getY()) / 2);
+            if (i < 2) {
+                middlePoint = a;
+            }
+
+            if (i >= points.size() - 2) {
+                middlePoint = b;
+            }
 
             LineSegment segment = new LineSegment(a, b);
             Line perpendicular = segment.getPerpendicular(middlePoint);
-            List<Point> candidates = new ArrayList<>();
+            Set<Point> candidates = new HashSet<>();
             candidates.add(middlePoint);
             candidates.add(points.get(i));
-            for (int k = 1; k < 4; k++) {
+            for (int k = 1; k < 5; k++) {
                 List<Point> pointsCandidates = MathHelper.getInterSectionPointWithCircleAndLine(perpendicular, middlePoint, k);
                 if (pointsCandidates == null || pointsCandidates.size() != 2) {
                     throw new RuntimeException("Unknown error");
@@ -198,17 +214,23 @@ public class MiddleLineSelector extends Step<List<Point>> {
         return choiceBestPoint(halfCandidates);
     }
 
-    private List<Point> getCentralPoints(final Point startPoint, final int regionSize, final int maxSpeed, int maxCentralPoints) {
+    private List<Point> getCentralPoints(final Point startPoint, final int regionSize, final int maxSpeed) {
         int[][] visualise = MatrixHelper.copyMatrix(sumImage);
         final List<Point> points = new ArrayList<>();
-        int n = 0;
 
         Point currentPoint = startPoint;
+        Direction currentDirection = null;
         int color = 0;
         while (true) {
             final int[][] dissynchronizationFactor = findDissynchronizationFactor(currentPoint, regionSize, maxSpeed);
-            final Collection<Point> dissynchronizationPoints = getDissynchronizationPoints(dissynchronizationFactor, currentPoint, maxSpeed);
-            final Point minDissynchronizationPoint = getMinDissynchronizationPoint(dissynchronizationFactor, currentPoint, maxSpeed);
+            List<Point> dissynchronizationPoints = getDissynchronizationPoints(dissynchronizationFactor, currentPoint, maxSpeed);
+
+            dissynchronizationPoints = filterDissynchronizationPoints(dissynchronizationPoints, currentPoint, currentDirection);
+
+            if (dissynchronizationPoints.size() == 0) {
+                break;
+            }
+            final Point minDissynchronizationPoint = getMinDissynchronizationPoint(dissynchronizationFactor, dissynchronizationPoints, currentPoint, maxSpeed);
             drawLine(currentPoint, minDissynchronizationPoint, visualise, color);
             color += 80;
             if (color > 255) {
@@ -225,33 +247,48 @@ public class MiddleLineSelector extends Step<List<Point>> {
 
             Point nextPoint = choiceBestPoint(filteredCandidates);
 
+            points.add(currentPoint);
+
             if (nextPoint == null) {
                 break;
             }
 
             // направление точки
-            // Direction nextDirection = Direction.getByPoints(currentPoint, nextPoint);
-            points.add(currentPoint);
+            Direction nextDirection = Direction.getByPoints(currentPoint, nextPoint);
 
-//             добавляем промежуточную точку, выбирая её с радиусом 1/2 расстояния между текуей и след
+            // добавляем промежуточную точку, выбирая её с радиусом 1/2 расстояния между текуей и след
             Point nextHalfPoint = getBestMiddlePoint(currentPoint, nextPoint);
 
             if (nextHalfPoint != null) {
                 points.add(nextHalfPoint);
             }
 
-
             currentPoint = nextPoint;
-//            currentDirection = nextDirection;
-            // todo: придумать как ограничить поиск
-            if (n > maxCentralPoints) {
-                break;
-            }
-            n++;
+            currentDirection = nextDirection;
         }
 
         BmpHelper.writeBmp(outputPrefix + "vectors.bmp", visualise);
         return points;
+    }
+
+    // todo: as stream filter
+    private List<Point> filterDissynchronizationPoints(List<Point> dissynchronizationPoints, Point currentPoint, Direction prevDirection) {
+
+        if (prevDirection == null) {
+            return dissynchronizationPoints;
+        }
+
+        List<Point> result = new ArrayList<>();
+        for (Point p : dissynchronizationPoints) {
+            Direction nextDirection = Direction.getByPoints(currentPoint, p);
+            Direction[] oppositeDirection = nextDirection.getOppositeDirection();
+            if (Arrays.asList(oppositeDirection).contains(prevDirection)) {
+                continue;
+            }
+
+            result.add(p);
+        }
+        return result;
     }
 
     private List<Point> filterCandidates(final List<Point> candidates, final Collection<Point> dissynchronizationPoints) {
@@ -260,14 +297,15 @@ public class MiddleLineSelector extends Step<List<Point>> {
                 .collect(Collectors.toList());
     }
 
-    private Collection<Point> getDissynchronizationPoints(int[][] dissynchronizationFactor, Point currentPoint, int maxSpeed) {
-        Collection<Point> points = new HashSet<>();
+    private List<Point> getDissynchronizationPoints(int[][] dissynchronizationFactor, Point currentPoint, int maxSpeed) {
+        List<Point> points = new ArrayList<>();
         for (int i = 0; i < dissynchronizationFactor.length; i++) {
             for (int j = 0; j < dissynchronizationFactor[i].length; j++) {
                 if (dissynchronizationFactor[i][j] == 0) {
                     continue;
                 }
-                points.add(new Point(currentPoint.getIntX() + j - maxSpeed, currentPoint.getIntY() + i - maxSpeed));
+                Point p = new Point(currentPoint.getIntX() + j - maxSpeed, currentPoint.getIntY() + i - maxSpeed);
+                points.add(p);
             }
         }
 
@@ -292,25 +330,22 @@ public class MiddleLineSelector extends Step<List<Point>> {
         }
     }
 
-    private Point getMinDissynchronizationPoint(final int[][] dissynchronizationFactor, final Point currentPoint, final int maxSpeed) {
-        int minFactor = Integer.MAX_VALUE;
-        int directionX = 0;
-        int directionY = 0;
-        for (int i = 0; i < dissynchronizationFactor.length; i++) {
-            for (int j = 0; j < dissynchronizationFactor[i].length; j++) {
-                if (dissynchronizationFactor[i][j] == 0) {
-                    continue;
-                }
+    private Point getMinDissynchronizationPoint(final int[][] dissynchronizationFactor, List<Point> dissynchronizationPoints, Point currentPoint, final int maxSpeed) {
+        // координаты начала diss factor
+        final int x0 = currentPoint.getIntX() - maxSpeed;
+        final int y0 = currentPoint.getIntY() - maxSpeed;
 
-                if (dissynchronizationFactor[i][j] < minFactor) {
-                    minFactor = dissynchronizationFactor[i][j];
-                    directionX = j;
-                    directionY = i;
-                }
+        Point minDissPoint = dissynchronizationPoints.get(0);
+        int minFactor = dissynchronizationFactor[minDissPoint.getIntY() - y0][minDissPoint.getIntX() - x0];
+
+        for (Point p : dissynchronizationPoints) {
+            int curFactor = dissynchronizationFactor[p.getIntY() - y0][p.getIntX() - x0];
+            if (curFactor < minFactor) {
+                minFactor = curFactor;
+                minDissPoint = p;
             }
         }
-
-        return new Point(currentPoint.getIntX() + directionX - maxSpeed, currentPoint.getIntY() + directionY - maxSpeed);
+        return minDissPoint;
     }
 
     private int[][] findDissynchronizationFactor(Point point, int pointRegionSize, int maxSpeed) {
@@ -372,7 +407,6 @@ public class MiddleLineSelector extends Step<List<Point>> {
             }
         }
 
-//        BmpHelper.writeBmp("data/dissynchronizationFactor"+qw+".bmp", dissynchronizationFactor);
         return dissynchronizationFactor;
     }
 
@@ -394,7 +428,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
     private Distances findBorderDistance(final Point p) {
         int x = p.getIntX();
         int y = p.getIntY();
-        if (contour[y][x] != 0) {
+        if (!inContour(x, y)) {
             throw new RuntimeException("error");
         }
 
@@ -404,25 +438,25 @@ public class MiddleLineSelector extends Step<List<Point>> {
         tempY = y;
         do {
             tempY--;
-        } while (tempY >= 0 && contour[tempY][x] != 255);
+        } while (tempY >= 0 && inContour(x, tempY));
         int distanceTop = Math.abs(y - tempY);
 
         tempX = x;
         do {
             tempX++;
-        } while (tempX < data.getCols() && contour[y][tempX] != 255);
+        } while (tempX < data.getCols() && inContour(tempX, y));
         int distanceRight = Math.abs(x - tempX);
 
         tempY = y;
         do {
             tempY++;
-        } while (tempY < data.getRows() && contour[tempY][x] != 255);
+        } while (tempY < data.getRows() && inContour(x, tempY));
         int distanceBottom = Math.abs(y - tempY);
 
         tempX = x;
         do {
             tempX--;
-        } while (tempX >= 0 && contour[y][tempX] != 255);
+        } while (tempX >= 0 && inContour(tempX, y));
         int distanceLeft = Math.abs(x - tempX);
 
         tempY = y;
@@ -430,7 +464,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
         do {
             tempY--;
             tempX--;
-        } while (tempY >= 0 && tempX >= 0 && contour[tempY][tempX] != 255);
+        } while (tempY >= 0 && tempX >= 0 && inContour(tempX, tempY));
         double distanceTopLeft = Math.sqrt(Math.pow(y - tempY, 2) + Math.pow(x - tempX, 2));
 
         tempY = y;
@@ -438,7 +472,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
         do {
             tempY--;
             tempX++;
-        } while (tempY >= 0 && tempX < data.getCols() && contour[tempY][tempX] != 255);
+        } while (tempY >= 0 && tempX < data.getCols() && inContour(tempX, tempY));
         double distanceTopRight = Math.sqrt(Math.pow(y - tempY, 2) + Math.pow(x - tempX, 2));
 
         tempY = y;
@@ -446,7 +480,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
         do {
             tempY++;
             tempX--;
-        } while (tempY < data.getRows() && tempX >= 0 && contour[tempY][tempX] != 255);
+        } while (tempY < data.getRows() && tempX >= 0 && inContour(tempX, tempY));
         double distanceBottomLeft = Math.sqrt(Math.pow(y - tempY, 2) + Math.pow(x - tempX, 2));
 
         tempY = y;
@@ -454,7 +488,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
         do {
             tempY++;
             tempX++;
-        } while (tempY < data.getRows() && tempX < data.getCols() && contour[tempY][tempX] != 255);
+        } while (tempY < data.getRows() && tempX < data.getCols() && inContour(tempX, tempY));
         double distanceBottomRight = Math.sqrt(Math.pow(y - tempY, 2) + Math.pow(x - tempX, 2));
 
         return new Distances(distanceTop, distanceBottom, distanceRight, distanceLeft, distanceTopRight, distanceTopLeft, distanceBottomRight, distanceBottomLeft);
@@ -554,7 +588,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
     private boolean inContour(final int x, final int y) {
         if (x >= 0 && y >= 0) {
             if (y < contour.length && x < contour[0].length) {
-                return contour[y][x] == 0;
+                return contour[y][x] > 0;
             }
         }
         return false;

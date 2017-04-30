@@ -102,7 +102,7 @@ public class BackgroundSelector extends Step<Images> {
         int[][] contourImage = new int[images.getRows()][images.getCols()];
         for (int i = 0; i < images.getRows(); i++) {
             for (int j = 0; j < images.getCols(); j++) {
-                contourImage[i][j] = sumImage[i][j] > middleSumImage ? 255 : 0;
+                contourImage[i][j] = sumImage[i][j] > middleSumImage ? 0 : 255;
             }
         }
         BmpHelper.writeBmp(outputFolder + CONTOUR_IMAGE_NAME, contourImage);
@@ -111,7 +111,7 @@ public class BackgroundSelector extends Step<Images> {
     public static Images loadInputData(final String inputFolder, final int count) {
         final Images result = new Images();
         for (int i = 0; i < count; i++) {
-            int[][] bmp = BmpHelper.readBmp(inputFolder + "img1_00000_" + String.format("%05d", i) + ".bmp");
+            int[][] bmp = BmpHelper.readBmp(inputFolder + "img0_00000_" + String.format("%05d", i) + ".bmp");
             result.add(bmp);
         }
         return result;
