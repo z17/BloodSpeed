@@ -54,35 +54,21 @@ public class Transformer extends Step<Void> {
 
     @Override
     public Void process() {
+        int[][] contourTransformed = transformImage(contour, true);
+        BmpHelper.writeBmp(outputDir.toAbsolutePath() + "/contour.bmp", contourTransformed);
+
         int currentNumberFile = 0;
         for (int[][] matrix : data.getImagesList()) {
-            final String name = outputPrefix + String.format("%05d", currentNumberFile )+ ".bmp";
-            if (currentNumberFile == 0) {
-                int[][] result = transformImage(matrix, true);
-                BmpHelper.writeBmp(outputDir.resolve(name).toString(), result);
-            } else {
-                int[][] result = transformImage(matrix, false);
-                BmpHelper.writeBmp(outputDir.resolve(name).toString(), result);
-            }
+            final String name = outputPrefix + String.format("%05d", currentNumberFile) + ".bmp";
+            int[][] result = transformImage(matrix, false);
+            BmpHelper.writeBmp(outputDir.resolve(name).toString(), result);
             currentNumberFile++;
 
             System.out.println("Image " + currentNumberFile + "/" + data.getImagesList().size() + "  complete");
         }
 
-        int[][] contourTransformed = transformImage(contour, false);
-        for (int i = 0; i < contourTransformed.length; i++) {
-            for (int j = 0; j < contourTransformed[i].length; j++) {
-                if (contourTransformed[i][j] > 128) {
-//                    contourTransformed[i][j] = 0;
-                } else {
-//                    contourTransformed[i][j] = 255;
-                }
-            }
-        }
-        BmpHelper.writeBmp(outputDir + "/contour.bmp", contourTransformed);
         return null;
     }
-
 
     /*
     todo: Можно сделать оптимальнее: сначала рассчитать координаты точек, которые войдут в трансформированное изображение, а потом уже получать значения этих точек для каждого изображения
