@@ -3,7 +3,6 @@ package blood_speed.runner;
 import blood_speed.helper.BmpHelper;
 import blood_speed.helper.FunctionHelper;
 import blood_speed.step.BackgroundSelector;
-import blood_speed.step.MiddleLineSelector;
 import blood_speed.step.Step;
 import blood_speed.step.Transformer;
 import blood_speed.step.data.Images;
@@ -25,6 +24,7 @@ class TransformRunner implements AbstractRunner {
         int indent = Integer.valueOf(properties.getProperty("transformer_indent"));
         int oneStepSize = Integer.valueOf(properties.getProperty("transformer_step_size"));
         int stepsCount = Integer.valueOf(properties.getProperty("transformer_steps_count"));
+        boolean truncateByContour = Boolean.valueOf(properties.getProperty("transformer_truncate_by_contour"));
 
         run(centralPointsFile,
                 inputFolder,
@@ -36,7 +36,8 @@ class TransformRunner implements AbstractRunner {
                 perpendicularStep,
                 indent,
                 oneStepSize,
-                stepsCount);
+                stepsCount,
+                truncateByContour);
     }
 
     public static void main(String[] args) {
@@ -48,10 +49,11 @@ class TransformRunner implements AbstractRunner {
                 2000,
                 "data/tests/capillary_2k_m2/my/backgroundSelector/sum-image.bmp",
                 "data/tests/capillary_2k_m2/my/res3_gr2.bmp",
-                7,
+                6,
                 4,
                 1,
-                10
+                10,
+                true
         );
     }
 
@@ -65,7 +67,8 @@ class TransformRunner implements AbstractRunner {
                      int perpendicularStep,
                      int indent,
                      int oneStepSize,
-                     int stepsCount
+                     int stepsCount,
+                     boolean truncateByContour
     ) {
         List<Point> middleLine = FunctionHelper.readPointsList(centralPointsFile);
         Images data = BackgroundSelector.loadOutputData(inputFolder, count);
@@ -81,7 +84,8 @@ class TransformRunner implements AbstractRunner {
                 outputPrefix,
                 indent,
                 oneStepSize,
-                stepsCount);
+                stepsCount,
+                truncateByContour);
         step.process();
     }
 }

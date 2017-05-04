@@ -38,7 +38,10 @@ public class Transformer extends Step<Void> {
     // кол-во шагов по перпендикуляру
     private final int stepsCount;
 
-    public Transformer(final List<Point> middleLine, final Images data, int[][] sum, int[][] contour, int perpendicularStep, final String outputDir, final String outputPrefix, int indent, double oneStepSize, int stepsCount) {
+    // обрезать ли по контуру изображение
+    private final boolean truncateByContour;
+
+    public Transformer(final List<Point> middleLine, final Images data, int[][] sum, int[][] contour, int perpendicularStep, final String outputDir, final String outputPrefix, int indent, double oneStepSize, int stepsCount, boolean truncateByContour) {
         this.middleLine = middleLine;
         this.data = data;
         this.sum = sum;
@@ -49,18 +52,21 @@ public class Transformer extends Step<Void> {
         this.indent = indent;
         this.oneStepSize = oneStepSize;
         this.stepsCount = stepsCount;
+        this.truncateByContour = truncateByContour;
         FunctionHelper.checkOutputFolders(outputDir);
     }
 
     @Override
     public Void process() {
-        int[][] contourTransformed = transformImage(contour, true);
-        BmpHelper.writeBmp(outputDir.toAbsolutePath() + "/contour.bmp", contourTransformed);
+        Point[][] transformerPoints = getTransformImagePoints();
 
+        int[][] contourTransformed = transformImage(contour, transformerPoints, null);
+        BmpHelper.writeBmp(outputDir.toAbsolutePath() + "/contour.bmp", contourTransformed);
+        contourTransformed = BmpHelper.readBmp(outputDir.toAbsolutePath() + "/contour-p.bmp");
         int currentNumberFile = 0;
         for (int[][] matrix : data.getImagesList()) {
             final String name = outputPrefix + String.format("%05d", currentNumberFile) + ".bmp";
-            int[][] result = transformImage(matrix, false);
+            int[][] result = transformImage(matrix, transformerPoints, contourTransformed);
             BmpHelper.writeBmp(outputDir.resolve(name).toString(), result);
             currentNumberFile++;
 
@@ -70,23 +76,12 @@ public class Transformer extends Step<Void> {
         return null;
     }
 
-    /*
-    todo: Можно сделать оптимальнее: сначала рассчитать координаты точек, которые войдут в трансформированное изображение, а потом уже получать значения этих точек для каждого изображения
-    Сейчас координаты рассчитываются для каждого отдельно, при том что они всегда одинаковые.
-     */
-    private int[][] transformImage(int[][] image, boolean drawPerpendiculars) {
-
-        // todo: отрефакторить момент записи перпендикуляров
-        int[][] imagePerpendicularOne = null;
-        int[][] imagePerpendicularTwo = null;
-
-        if (drawPerpendiculars) {
-            imagePerpendicularOne = MatrixHelper.copyMatrix(sum);
-            imagePerpendicularTwo = MatrixHelper.copyMatrix(sum);
-        }
+    private Point[][] getTransformImagePoints() {
+        int[][] imagePerpendicularOne = MatrixHelper.copyMatrix(sum);
+        int[][] imagePerpendicularTwo = MatrixHelper.copyMatrix(sum);
 
         int currentStep = 0;
-        int[][] result = new int[stepsCount * 2 + 1][middleLine.size() - 2 * indent];
+        Point[][] result = new Point[stepsCount * 2 + 1][middleLine.size() - 2 * indent];
         for (int i = indent; i < middleLine.size() - indent; i++) {
             Point p1 = middleLine.get(i - indent);
             Point p2 = middleLine.get(i + indent);
@@ -97,7 +92,7 @@ public class Transformer extends Step<Void> {
             final Point middlePoint = new Point(xMiddle, yMiddle);
 
             final Line perpendicularLine = segmentP1P2.getPerpendicular(middlePoint);
-            result[stepsCount][i - indent] = (int) Math.ceil(MathHelper.getPointValue(middlePoint, image));
+            result[stepsCount][i - indent] = middlePoint;
 
             for (int k = 1; k <= stepsCount; k++) {
                 double r = oneStepSize * k;
@@ -109,51 +104,55 @@ public class Transformer extends Step<Void> {
                 Point a = points.get(0);
                 Point b = points.get(1);
 
-                final int aValue;
-                if (MathHelper.pointInImage(a, data.getCols(), data.getRows())) {
-                    aValue = (int) Math.ceil(MathHelper.getPointValue(a, image));
-                } else {
-                    aValue = 0;
-                }
-
-                final int bValue;
-                if (MathHelper.pointInImage(b, data.getCols(), data.getRows())) {
-                    bValue = (int) Math.ceil(MathHelper.getPointValue(b, image));
-                } else {
-                    bValue = 0;
-                }
-
                 if (getVectorDirection(p1, a, middlePoint)) {
-                    if (currentStep % perpendicularStep == 0 && drawPerpendiculars) {
+                    if (currentStep % perpendicularStep == 0) {
                         drawPoint(a, imagePerpendicularOne);
                         drawPoint(b, imagePerpendicularTwo);
                     }
-                    result[stepsCount - k][i - indent] = aValue;
-                    result[stepsCount + k][i - indent] = bValue;
+                    result[stepsCount - k][i - indent] = a;
+                    result[stepsCount + k][i - indent] = b;
                 } else {
-                    if (currentStep % perpendicularStep == 0 && drawPerpendiculars) {
+                    if (currentStep % perpendicularStep == 0) {
                         drawPoint(b, imagePerpendicularOne);
                         drawPoint(a, imagePerpendicularTwo);
                     }
-                    result[stepsCount - k][i - indent] = bValue;
-                    result[stepsCount + k][i - indent] = aValue;
+                    result[stepsCount - k][i - indent] = b;
+                    result[stepsCount + k][i - indent] = a;
                 }
             }
 
             currentStep++;
 
-            if (drawPerpendiculars) {
-                imagePerpendicularOne[middleLine.get(i).getIntY()][middleLine.get(i).getIntX()] = 160;
-                imagePerpendicularTwo[middleLine.get(i).getIntY()][middleLine.get(i).getIntX()] = 160;
+            imagePerpendicularOne[middleLine.get(i).getIntY()][middleLine.get(i).getIntX()] = 160;
+            imagePerpendicularTwo[middleLine.get(i).getIntY()][middleLine.get(i).getIntX()] = 160;
+
+        }
+
+        BmpHelper.writeBmp(outputDir + "/__track1.bmp", imagePerpendicularOne);
+        BmpHelper.writeBmp(outputDir + "/__track2.bmp", imagePerpendicularTwo);
+        return result;
+    }
+
+    private int[][] transformImage(final int[][] image, final Point[][] transformerPoints, final int[][] contour) {
+        int[][] result = new int[transformerPoints.length][transformerPoints[0].length];
+
+        for (int y = 0; y < transformerPoints.length; y++) {
+            for (int x = 0; x < transformerPoints[y].length; x++) {
+                Point currentPoint = transformerPoints[y][x];
+                int value;
+                if (MathHelper.pointInImage(currentPoint, data.getCols(), data.getRows())) {
+                    value = (int) Math.ceil(MathHelper.getPointValue(currentPoint, image));
+                } else {
+                    value = 0;
+                }
+
+                if (contour != null && truncateByContour && !inContour(x, y, contour)) {
+                    value = 0;
+                }
+
+                result[y][x] = value;
             }
-
         }
-
-        if (drawPerpendiculars) {
-            BmpHelper.writeBmp(outputDir + "/__track1.bmp", imagePerpendicularOne);
-            BmpHelper.writeBmp(outputDir + "/__track2.bmp", imagePerpendicularTwo);
-        }
-
         return result;
     }
 
@@ -168,5 +167,14 @@ public class Transformer extends Step<Void> {
         if (MathHelper.pointInImage(p, data.getCols(), data.getRows())) {
             imagePerpendicular[p.getIntY()][p.getIntX()] = 200;
         }
+    }
+
+    private boolean inContour(final int x, final int y, int[][] contour) {
+        if (x >= 0 && y >= 0) {
+            if (y < contour.length && x < contour[0].length) {
+                return contour[y][x] > 0;
+            }
+        }
+        return false;
     }
 }
