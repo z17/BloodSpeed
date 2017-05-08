@@ -115,6 +115,7 @@ public class AcPdfFst extends Step<SpeedImages> {
                 secondImage = inputFiles.get(0);
             }
 
+
             // цикл по ширине кадра
             for (int x = 0; x <= imageWidth - 1; x++) {
                 double shift = x + currentSpeed;
@@ -122,6 +123,7 @@ public class AcPdfFst extends Step<SpeedImages> {
                 if (shift < imageWidth && shift >= 0) {
                     double sumRate = 0;
                     double z1 = 0;
+
                     for (int r1 = -r; r1 <= r; r1 += dr) {
                         for (int r2 = -r; r2 <= r; r2 += dr) {
                             if (r1 * r1 + r2 * r2 > r * r) {
@@ -163,7 +165,7 @@ public class AcPdfFst extends Step<SpeedImages> {
         MatrixHelper.writeMatrix(txtName, pd);
 
         String bmpName = outputFolder + "/" + outputFilePrefix + "m" + maxSpeed + "_" + currentSpeed + ".bmp";
-        MatrixHelper.writeMatrix(bmpName, BmpHelper.transformToImage(pd));
+        BmpHelper.writeBmp(bmpName, BmpHelper.transformToImage(pd));
 
         String bmpName1 = outputFolder + "/" + outputFilePrefix + "me" + maxSpeed + "_" + currentSpeed + ".bmp";
         BmpHelper.writeBmp(bmpName1, pde);

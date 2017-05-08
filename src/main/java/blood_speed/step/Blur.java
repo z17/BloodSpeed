@@ -96,13 +96,16 @@ public class Blur extends Step<SpeedImages> {
         imgs = blr2(imgs.getKey(), imge, s2dn1, s2dn2, 1, 1, gv1);
 
         String outBmpName1 = outputFolder + "/" + prefix + "sm" + "_" + one.speed + ".bmp";
-        int[][] outBmp1 = MatrixHelper.multiplyMatrix(imgs.getKey(), 0.025);
-
+        int[][] outBmp1 = BmpHelper.transformToImage(imgs.getKey());
         BmpHelper.writeBmp(outBmpName1, outBmp1);
+
         String outBmpName2 = outputFolder + "/" + prefix + "sme" + "_" + one.speed + ".bmp";
         BmpHelper.writeBmp(outBmpName2, imgs.getValue());
 
-        return new SpeedData(one.speed, outBmp1, null);
+        String outTxt = outputFolder + "/" + prefix + "sm" + "_" + one.speed + ".txt";
+        MatrixHelper.writeMatrix(outTxt, imgs.getKey());
+
+        return new SpeedData(one.speed, imgs.getKey(), null);
     }
 
     private Pair<int[][], int[][]> blr2(int[][] img, int[][] imge,
