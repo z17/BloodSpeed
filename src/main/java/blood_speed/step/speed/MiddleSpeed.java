@@ -1,7 +1,8 @@
-package blood_speed.step;
+package blood_speed.step.speed;
 
 import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MatrixHelper;
+import blood_speed.step.Step;
 
 import java.util.ArrayList;
 import java.util.List;

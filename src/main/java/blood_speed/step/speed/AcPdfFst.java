@@ -1,10 +1,11 @@
-package blood_speed.step;
+package blood_speed.step.speed;
 
 import blood_speed.runner.SpeedSteps;
 import blood_speed.helper.BmpHelper;
 import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MathHelper;
 import blood_speed.helper.MatrixHelper;
+import blood_speed.step.Step;
 import blood_speed.step.data.Point;
 import blood_speed.step.data.SpeedData;
 import blood_speed.step.data.SpeedImages;
@@ -144,7 +145,11 @@ public class AcPdfFst extends Step<SpeedImages> {
                                 // если попадаем в контур
                                 if (circuitImage[point0.getIntY()][point0.getIntX()] > 0 &&
                                         circuitImage[point1.getIntY()][point1.getIntX()] > 0) {
+                                    // Desync
                                     double point_sh = MathHelper.getPointValue(point0, secondImage) - MathHelper.getPointValue(point1, firstImage);
+                                    // Correlation
+//                                    double point_sh = MathHelper.getPointValue(point0, secondImage) * MathHelper.getPointValue(point1, firstImage);
+
                                     double g2 = g11[r1 + r][r2 + r];
                                     sumRate = sumRate + g2 * point_sh * point_sh;
                                     z1 = z1 + g2;

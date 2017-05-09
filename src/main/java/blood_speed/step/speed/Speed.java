@@ -1,11 +1,13 @@
-package blood_speed.step;
+package blood_speed.step.speed;
 
 import blood_speed.helper.BmpHelper;
 import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MatrixHelper;
+import blood_speed.step.Step;
 import blood_speed.step.data.SpeedImages;
 import blood_speed.step.data.SpeedData;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Speed extends Step<double[][]> {
@@ -47,7 +49,12 @@ public class Speed extends Step<double[][]> {
         return resultMatrix;
     }
 
-    private double getMinimum(int currentRow, int currentCol, List<SpeedData> imagesList) {
+    private double getMinimum(int currentRow, int currentCol, final List<SpeedData> imagesList) {
+//        вывод значений для одной точки
+//        currentCol = 106;
+//        currentRow = 624;
+//        List<Integer> array = new ArrayList<>(imagesList.size());
+
         int minimum = imagesList.get(0).matrix[currentRow][currentCol];
         double minimumNumber = 0;
 
@@ -56,7 +63,11 @@ public class Speed extends Step<double[][]> {
                 minimum = current.matrix[currentRow][currentCol];
                 minimumNumber = current.speed;
             }
+//            array.add(current.matrix[currentRow][currentCol]);
         }
+
+//        MatrixHelper.writeMatrix("desync.txt", array);
+//        System.exit(1);
         return minimumNumber;
     }
 
@@ -64,12 +75,10 @@ public class Speed extends Step<double[][]> {
     public static SpeedImages loadData(final String dir, final String prefix, final int stepsNumber, final int startStep, final int maxSpeed) {
         System.out.println("Reading blur images");
         SpeedImages images = new SpeedImages();
-
-        for (int i = startStep; i <= stepsNumber; i++) {
-
-            int currentSpeed = maxSpeed * i / stepsNumber;
-            final String name = dir + "/" + prefix + "sm" + "_" + currentSpeed + ".bmp";
-            images.add(new SpeedData(currentSpeed, BmpHelper.readBmp(name), null));
+        double step = ((double)maxSpeed - startStep) / stepsNumber;
+        for (double currentSpeed = startStep; currentSpeed < maxSpeed; currentSpeed = currentSpeed + step) {
+            final String name = dir + "/" + prefix + "sm" + "_" + currentSpeed + ".txt";
+            images.add(new SpeedData(currentSpeed, MatrixHelper.readMatrix(name), null));
         }
 
         return images;

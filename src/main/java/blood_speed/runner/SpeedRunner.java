@@ -43,16 +43,20 @@ class SpeedRunner implements AbstractRunner {
         String speedOutputImageWithCoefficient = properties.getProperty("speed_output_image_with_coefficient");
 
         int middleStepAffectedCols = Integer.valueOf(properties.getProperty("affected_cols"));
-        String middleStepOutputFile = properties.getProperty("middle_output_file");
 
-        // папки
+        // папки и файлы
         String folderInput = properties.getProperty("input_folder");
         String circuitImage = properties.getProperty("circuit_image");
-        String step1FolderOutput = properties.getProperty("correlation_folder");
-        String step2FolderOutput = properties.getProperty("blur_folder");
-        String step3FolderOutput = properties.getProperty("result_folder");
+
+        String outputFolder = properties.getProperty("speed_output_folder");
+        String step1FolderOutput = outputFolder + "/" + properties.getProperty("correlation_folder") + "/";
+        String step2FolderOutput = outputFolder + "/" + properties.getProperty("blur_folder") + "/";
+        String step3FolderOutput = outputFolder + "/" + properties.getProperty("result_folder") + "/";
+
+        String middleStepOutputFile = step3FolderOutput + properties.getProperty("middle_output_file");
 
         int digitsInFileName = Integer.valueOf(properties.getProperty("digits_in_file_name"));
+
 
         SpeedSteps.StepData data = new SpeedSteps.StepData();
         data
@@ -114,14 +118,18 @@ class SpeedRunner implements AbstractRunner {
         String speedOutputImageWithCoefficient = properties.getProperty("stage2_speed_output_image_with_coefficient");
 
         int middleStepAffectedCols = Integer.valueOf(properties.getProperty("affected_cols"));
-        String middleStepOutputFile = properties.getProperty("stage2_middle_output_file");
 
-        // папки
+        // папки и файлы
         String folderInput = properties.getProperty("input_folder");
         String circuitImage = properties.getProperty("circuit_image");
-        String step1FolderOutput = properties.getProperty("stage2_correlation_folder");
-        String step2FolderOutput = properties.getProperty("stage2_blur_folder");
-        String step3FolderOutput = properties.getProperty("stage2_result_folder");
+
+        String outputFolder = properties.getProperty("speed_output_folder");
+        String step1FolderOutput = outputFolder + "/" + properties.getProperty("stage2_correlation_folder") + "/";
+        String step2FolderOutput = outputFolder + "/" + properties.getProperty("stage2_blur_folder") + "/";
+        String step3FolderOutput = outputFolder + "/" + properties.getProperty("stage2_result_folder") + "/";
+
+        String middleStepOutputFile = step3FolderOutput + properties.getProperty("stage2_middle_output_file");
+
 
         int digitsInFileName = Integer.valueOf(properties.getProperty("digits_in_file_name"));
 

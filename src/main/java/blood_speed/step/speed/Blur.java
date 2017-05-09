@@ -1,9 +1,10 @@
-package blood_speed.step;
+package blood_speed.step.speed;
 
 import blood_speed.runner.SpeedSteps;
 import blood_speed.helper.BmpHelper;
 import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MatrixHelper;
+import blood_speed.step.Step;
 import blood_speed.step.data.SpeedImages;
 import blood_speed.step.data.SpeedData;
 import javafx.util.Pair;

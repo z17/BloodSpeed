@@ -2,6 +2,10 @@ package blood_speed.runner;
 
 import blood_speed.step.*;
 import blood_speed.step.data.SpeedImages;
+import blood_speed.step.speed.AcPdfFst;
+import blood_speed.step.speed.Blur;
+import blood_speed.step.speed.MiddleSpeed;
+import blood_speed.step.speed.Speed;
 
 public final class SpeedSteps {
 
@@ -52,6 +56,9 @@ public final class SpeedSteps {
         );
         SpeedImages blurImages = step2.process();
 
+//        Чтобы запустить с чтением с диска
+//        SpeedImages blurImages = Speed.loadData(data.blurStepOutputFolder, data.outputFilePrefix, data.stepsNumber, data.startStep, data.maxSpeed);
+
         Step<double[][]> step3 = new Speed(
                 data.step3OutputFolder,
                 data.step3OutputNameClearFile,
@@ -67,10 +74,6 @@ public final class SpeedSteps {
 
 //        чтобы запустить чтение с диска
 //        AcPdfFst.Step1Result step1Result = Blur.loadData(prefix, step1FolderOutput, minNdv1, ndv);
-//        Чтобы запустить с чтением с диска
-//        Speed.SpeedImages images = Speed.loadBlurImages(step2FolderOutput, prefix + "sm", ndv, minNdv1);
-//        Speed speed = new Speed( step3FolderOutput, images);
-
     }
 
     static final class StepData {

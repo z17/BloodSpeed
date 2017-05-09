@@ -95,7 +95,7 @@ public class BackgroundSelector extends Step<Images> {
             }
         }
 
-        int middleSumImage = (int) (sum / (images.getRows() * images.getCols() * 1.56));
+        int middleSumImage = (int) (sum / (images.getRows() * images.getCols() * 1.4));
         BmpHelper.writeBmp(outputFolder + SUM_IMAGE_NAME, sumImage);
 
         // формируем контур капилляра

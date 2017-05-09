@@ -87,7 +87,7 @@ public final class MatrixHelper {
         List<String> lines = new ArrayList<>();
         StringBuilder stringBuilder = new StringBuilder();
         for (Number m : matrix) {
-            stringBuilder.append(String.format(Locale.ROOT, "%10.5f", m.doubleValue()));
+            stringBuilder.append(String.format(Locale.ROOT, "%20.5f", m.doubleValue()));
         }
 
         lines.add(stringBuilder.toString());

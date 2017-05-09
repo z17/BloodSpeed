@@ -62,7 +62,7 @@ public class Transformer extends Step<Void> {
 
         int[][] contourTransformed = transformImage(contour, transformerPoints, null);
         BmpHelper.writeBmp(outputDir.toAbsolutePath() + "/contour.bmp", contourTransformed);
-        contourTransformed = BmpHelper.readBmp(outputDir.toAbsolutePath() + "/contour-p.bmp");
+//        contourTransformed = BmpHelper.readBmp("C:\\Java\\projects\\BloodSpeed\\data\\tests\\capillary_2k_m2\\my\\contour.bmp");
         int currentNumberFile = 0;
         for (int[][] matrix : data.getImagesList()) {
             final String name = outputPrefix + String.format("%05d", currentNumberFile) + ".bmp";

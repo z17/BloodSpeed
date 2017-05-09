@@ -230,6 +230,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
             if (dissynchronizationPoints.size() == 0) {
                 break;
             }
+
             final Point minDissynchronizationPoint = getMinDissynchronizationPoint(dissynchronizationFactor, dissynchronizationPoints, currentPoint, maxSpeed);
             drawLine(currentPoint, minDissynchronizationPoint, visualise, color);
             color += 80;
