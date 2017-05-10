@@ -68,7 +68,7 @@ public final class SpeedSteps {
         );
         double[][] speedMatrix = step3.process();
 
-        Step<Integer> middleSpeed = new MiddleSpeed(speedMatrix, data.middleStepOutputFile, data.affectedCols);
+        Step<Integer> middleSpeed = new MiddleSpeed(speedMatrix, data.middleStepOutputFile, data.middleStepBlurSpeedFile, data.affectedCols);
 
         return middleSpeed.process();
 
@@ -113,10 +113,11 @@ public final class SpeedSteps {
 
         // step4 : middle speed
         private String middleStepOutputFile;
+        public String middleStepBlurSpeedFile;
         private int affectedCols;
 
         boolean ready() {
-            return counter == 26;
+            return counter == 27;
         }
 
         StepData setInputFilePrefix(String inputFilePrefix) {
@@ -244,9 +245,13 @@ public final class SpeedSteps {
             return this;
         }
 
-
         StepData setMiddleStepOutputFile(String middleStepOutputFile) {
             this.middleStepOutputFile = middleStepOutputFile;
+            counter++;
+            return this;
+        }
+        StepData setMiddleStepBlurSpeedFile(String middleStepBlurSpeedFile) {
+            this.middleStepBlurSpeedFile = middleStepBlurSpeedFile;
             counter++;
             return this;
         }

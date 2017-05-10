@@ -54,6 +54,7 @@ class SpeedRunner implements AbstractRunner {
         String step3FolderOutput = outputFolder + "/" + properties.getProperty("result_folder") + "/";
 
         String middleStepOutputFile = step3FolderOutput + properties.getProperty("middle_output_file");
+        String middleStepBlurSpeedFile = step3FolderOutput + properties.getProperty("middle_output_blur_file");
 
         int digitsInFileName = Integer.valueOf(properties.getProperty("digits_in_file_name"));
 
@@ -88,6 +89,7 @@ class SpeedRunner implements AbstractRunner {
                 .setStep3OoutputNameImageFile(speedOutputImageWithCoefficient)
 
                 .setMiddleStepOutputFile(middleStepOutputFile)
+                .setMiddleStepBlurSpeedFile(middleStepBlurSpeedFile)
                 .setAffectedCols(middleStepAffectedCols);
 
         SpeedSteps runner = new SpeedSteps();
@@ -129,6 +131,7 @@ class SpeedRunner implements AbstractRunner {
         String step3FolderOutput = outputFolder + "/" + properties.getProperty("stage2_result_folder") + "/";
 
         String middleStepOutputFile = step3FolderOutput + properties.getProperty("stage2_middle_output_file");
+        String middleStepBlurSpeedFile = step3FolderOutput + properties.getProperty("stage2_middle_output_blur_file");
 
 
         int digitsInFileName = Integer.valueOf(properties.getProperty("digits_in_file_name"));
@@ -168,6 +171,7 @@ class SpeedRunner implements AbstractRunner {
                 .setStep3OoutputNameImageFile(speedOutputImageWithCoefficient)
 
                 .setMiddleStepOutputFile(middleStepOutputFile)
+                .setMiddleStepBlurSpeedFile(middleStepBlurSpeedFile)
                 .setAffectedCols(middleStepAffectedCols);
 
         SpeedSteps runner = new SpeedSteps();
