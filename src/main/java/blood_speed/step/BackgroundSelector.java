@@ -38,7 +38,7 @@ public class BackgroundSelector extends Step<Images> {
             int[][] current = images.getImagesList().get(k);
             for (int i = 0; i < images.getRows(); i++) {
                 for (int j = 0; j < images.getCols(); j++) {
-                    middleValues[i][j] += (double)current[i][j] / blurDivider;
+                    middleValues[i][j] += (double) current[i][j] / blurDivider;
                 }
             }
         }
@@ -54,7 +54,7 @@ public class BackgroundSelector extends Step<Images> {
                 // из среднего значения добавляем 1 кадр, который попал в рамки  области -10 кадров..текущий..+10 кадров
                 for (int i = 0; i < images.getRows(); i++) {
                     for (int j = 0; j < images.getCols(); j++) {
-                        middleValues[i][j] = middleValues[i][j] - ((double)deletedFrame[i][j] / blurDivider) + ((double)addedFrame[i][j] / blurDivider);
+                        middleValues[i][j] = middleValues[i][j] - ((double) deletedFrame[i][j] / blurDivider) + ((double) addedFrame[i][j] / blurDivider);
                     }
                 }
             }
@@ -109,8 +109,12 @@ public class BackgroundSelector extends Step<Images> {
     }
 
     public static Images loadInputData(final String inputFolder, final int count) {
+        return loadInputData(inputFolder, 0, count);
+    }
+
+    public static Images loadInputData(final String inputFolder, final int start, final int count) {
         final Images result = new Images();
-        for (int i = 0; i < count; i++) {
+        for (int i = start; i < start + count; i++) {
             int[][] bmp = BmpHelper.readBmp(inputFolder + "img0_00000_" + String.format("%05d", i) + ".bmp");
             result.add(bmp);
         }

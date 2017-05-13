@@ -56,7 +56,10 @@ public class MiddleLineSelector extends Step<List<Point>> {
 
         List<Point> result;
 
-        result = refinePoints(centralPoints);
+        result = refinePointsByLength(centralPoints, 3);
+        drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
+
+        result = refinePoints(result);
         drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
 
         result = refinePointsByLength(result, 3);

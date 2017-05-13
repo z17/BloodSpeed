@@ -42,18 +42,18 @@ class TransformRunner implements AbstractRunner {
 
     public static void main(String[] args) {
         new TransformRunner().run(
-                "data/tests/capillary_2k_m2/my/middle-line/middle-full-points.txt",
-                "data/tests/capillary_2k_m2/my/backgroundSelector/",
-                "data/tests/capillary_2k_m2/my/transformedImages",
+                "data/tests/capillary_all_cap_smolensk/middle-line/middle-full-points.txt",
+                "data/tests/capillary_all_cap_smolensk/backgroundSelector/",
+                "data/tests/capillary_all_cap_smolensk/transformedImages",
                 "result_",
-                2000,
-                "data/tests/capillary_2k_m2/my/backgroundSelector/sum-image.bmp",
-                "data/tests/capillary_2k_m2/my/res3_gr2.bmp",
-                6,
+                400,
+                "data/tests/capillary_all_cap_smolensk/backgroundSelector/sum-image.bmp",
+                "data/tests/capillary_all_cap_smolensk/contour.bmp",
+                5,
                 4,
                 1,
                 10,
-                true
+                false
         );
     }
 
