@@ -17,16 +17,16 @@ class BackgroundSelectorRunner implements AbstractRunner {
     }
 
     private void run(String inputFolder, String outputFolder, int count, int blurDepth) {
-        Images images = BackgroundSelector.loadInputData(inputFolder, 800, count);
+        Images images = BackgroundSelector.loadInputData(inputFolder, count);
         BackgroundSelector backgroundSelector = new BackgroundSelector(images, outputFolder, blurDepth);
         backgroundSelector.process();
     }
 
     public static void main(String[] args) {
         new BackgroundSelectorRunner().run(
-                "data/tests/capillary_all_cap_smolensk/step2_stab/",
-                "data/tests/capillary_all_cap_smolensk/backgroundSelector/",
-                400,
+                "data/tests/capillary_dec94_pasha4_cap1/out2b/",
+                "data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/",
+                1649,
                 10
         );
     }

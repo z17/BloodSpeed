@@ -45,18 +45,18 @@ class MiddleLineRunner implements AbstractRunner {
 
     public static void main(String[] args) {
         new MiddleLineRunner().run(
-                "data/tests/capillary_all_cap_smolensk/backgroundSelector/",
-                "data/tests/capillary_all_cap_smolensk/middle-line/",
+                "data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/",
+                "data/tests/capillary_dec94_pasha4_cap1/middle-line/",
                 "",
                 "middle-full-points.txt",
                 400,
-                "data/tests/capillary_all_cap_smolensk/contour.bmp",
-                "data/tests/capillary_all_cap_smolensk/backgroundSelector/sum.txt",
-                "data/tests/capillary_all_cap_smolensk/backgroundSelector/sum-image.bmp",
-                new Point(18, 132),
-                3,
-                5,
-                35
+                "data/tests/capillary_dec94_pasha4_cap1/contour.bmp",
+                "data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/sum.txt",
+                "data/tests/capillary_dec94_pasha4_cap1/backgroundSelector/sum-image.bmp",
+                new Point(26, 166),
+                4,
+                15,
+                30
         );
     }
 
