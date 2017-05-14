@@ -219,6 +219,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
         Point currentPoint = startPoint;
         Direction currentDirection = null;
         int color = 0;
+        int count = 0;
         while (true) {
             final int[][] dissynchronizationFactor = findDissynchronizationFactor(currentPoint, regionSize, maxSpeed);
             List<Point> dissynchronizationPoints = getDissynchronizationPoints(dissynchronizationFactor, currentPoint, maxSpeed);
@@ -246,9 +247,15 @@ public class MiddleLineSelector extends Step<List<Point>> {
 
             Point nextPoint = choiceBestPoint(filteredCandidates);
 
+            count++;
             points.add(currentPoint);
 
             if (nextPoint == null) {
+                break;
+            }
+
+            if (count > 100) {
+                System.err.println("It found more than 100 points on first step. Is it error?");
                 break;
             }
 
