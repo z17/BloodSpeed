@@ -161,49 +161,6 @@ public class MiddleLineSelector extends Step<List<Point>> {
         return result;
     }
 
-    private List<Point> getNeighboringPoints(final List<Point> centralPoints) {
-        List<Point> resultPoints = new ArrayList<>();
-        for (int i = 0; i < centralPoints.size() - 1; i++) {
-            final Point startPoint = centralPoints.get(i);
-            final Point finishPoint = centralPoints.get(i + 1);
-
-            Point currentPoint = startPoint;
-            boolean flagStop = false;
-            while (!flagStop) {
-                Direction direction = Direction.getByPoints(currentPoint, finishPoint);
-                Direction[] towardsDirections = direction.getTowardsDirections();
-
-                double minDifferent = 0;
-                Point nextPoint = null;
-                for (Direction d : towardsDirections) {
-                    Point oneOfNextPoint = d.nextPointFunction.apply(currentPoint);
-                    if (oneOfNextPoint.equals(finishPoint)) {
-                        flagStop = true;
-                    }
-
-                    if (!inContour(oneOfNextPoint)) {
-                        continue;
-                    }
-
-                    Distances borderDistance = findBorderDistance(oneOfNextPoint);
-                    double minDirection = borderDistance.getMinDirectionValue();
-                    if (minDirection > minDifferent && !resultPoints.contains(oneOfNextPoint)) {
-                        minDifferent = minDirection;
-//                    nextDirection = d;
-                        nextPoint = oneOfNextPoint;
-                    }
-                }
-                if (nextPoint == null) {
-                    break;
-                }
-                currentPoint = nextPoint;
-                resultPoints.add(currentPoint);
-            }
-        }
-
-        return resultPoints;
-    }
-
     private Point getBestMiddlePoint(final Point fistPoint, final Point secondPoint) {
         // добавляем промежуточную точку, выбирая её с радиусом 1/2 расстояния между текуей и слуд
         double halfDistance = MathHelper.distance(fistPoint, secondPoint) / 2;
@@ -277,24 +234,18 @@ public class MiddleLineSelector extends Step<List<Point>> {
         return points;
     }
 
-    // todo: as stream filter
-    private List<Point> filterDissynchronizationPoints(List<Point> dissynchronizationPoints, Point currentPoint, Direction prevDirection) {
+    private List<Point> filterDissynchronizationPoints(final List<Point> dissynchronizationPoints, final Point currentPoint, final Direction prevDirection) {
 
         if (prevDirection == null) {
             return dissynchronizationPoints;
         }
 
-        List<Point> result = new ArrayList<>();
-        for (Point p : dissynchronizationPoints) {
-            Direction nextDirection = Direction.getByPoints(currentPoint, p);
-            Direction[] oppositeDirection = nextDirection.getOppositeDirection();
-            if (Arrays.asList(oppositeDirection).contains(prevDirection)) {
-                continue;
-            }
-
-            result.add(p);
-        }
-        return result;
+        return dissynchronizationPoints.stream()
+                .filter(p -> {
+                    Direction nextDirection = Direction.getByPoints(currentPoint, p);
+                    Direction[] oppositeDirection = nextDirection.getOppositeDirection();
+                    return !Arrays.asList(oppositeDirection).contains(prevDirection);
+                }).collect(Collectors.toList());
     }
 
     private List<Point> filterCandidates(final List<Point> candidates, final Collection<Point> dissynchronizationPoints) {
@@ -567,6 +518,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
         return nextPoint;
     }
 
+    @SuppressWarnings("unused")
     private Point choiceBestPointByRadius(Collection<Point> candidates) {
         double minDifferent = 0;
         Point nextPoint = null;
