@@ -1,13 +1,14 @@
 package blood_speed.runner;
 
+import blood_speed.Main;
 import blood_speed.step.BackgroundSelector;
 import blood_speed.step.data.Images;
 
 import java.util.Properties;
 
-class BackgroundSelectorRunner implements AbstractRunner {
+final class BackgroundSelectorRunner extends AbstractRunner {
     @Override
-    public void run(final Properties properties) {
+    protected void runMethod(Properties properties) {
         String inputFolder = properties.getProperty("background_input_folder");
         int count = Integer.valueOf(properties.getProperty("background_count"));
         String outputFolder = properties.getProperty("background_output_folder");
@@ -22,12 +23,7 @@ class BackgroundSelectorRunner implements AbstractRunner {
         backgroundSelector.process();
     }
 
-    public static void main(String[] args) {
-        new BackgroundSelectorRunner().run(
-                "data/tests/capillary_test2/out2b/",
-                "data/tests/capillary_test2/backgroundSelector/",
-                4801,
-                10
-        );
+    public static void main(String... args) {
+        new BackgroundSelectorRunner().run(Main.getSettings());
     }
 }

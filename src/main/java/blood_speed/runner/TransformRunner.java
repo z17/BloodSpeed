@@ -1,5 +1,6 @@
 package blood_speed.runner;
 
+import blood_speed.Main;
 import blood_speed.helper.BmpHelper;
 import blood_speed.helper.FunctionHelper;
 import blood_speed.step.BackgroundSelector;
@@ -11,9 +12,9 @@ import blood_speed.step.data.Point;
 import java.util.List;
 import java.util.Properties;
 
-class TransformRunner implements AbstractRunner {
+final class TransformRunner extends AbstractRunner {
     @Override
-    public void run(Properties properties) {
+    public void runMethod(final Properties properties) {
         String centralPointsFile = properties.getProperty("transformer_central_points");
         String inputFolder = properties.getProperty("transformer_input_folder");
         String outputFolder = properties.getProperty("transformer_output_folder");
@@ -40,21 +41,9 @@ class TransformRunner implements AbstractRunner {
                 truncateByContour);
     }
 
-    public static void main(String[] args) {
-        new TransformRunner().run(
-                "data/tests/capillary_test2/middle-line/middle-full-points.txt",
-                "data/tests/capillary_test2/backgroundSelector/",
-                "data/tests/capillary_test2/transformedImages",
-                "result_",
-                4801,
-                "data/tests/capillary_test2/backgroundSelector/sum-image.bmp",
-                "data/tests/capillary_test2/contour.bmp",
-                5,
-                4,
-                1,
-                10,
-                false
-        );
+
+    public static void main(String... args) {
+        new TransformRunner().run(Main.getSettings());
     }
 
     private void run(String centralPointsFile,

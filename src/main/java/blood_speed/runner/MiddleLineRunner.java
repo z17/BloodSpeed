@@ -1,5 +1,6 @@
 package blood_speed.runner;
 
+import blood_speed.Main;
 import blood_speed.helper.BmpHelper;
 import blood_speed.helper.MatrixHelper;
 import blood_speed.step.BackgroundSelector;
@@ -9,9 +10,9 @@ import blood_speed.step.data.Point;
 
 import java.util.Properties;
 
-class MiddleLineRunner implements AbstractRunner {
+final class MiddleLineRunner extends AbstractRunner {
     @Override
-    public void run(Properties properties) {
+    public void runMethod(Properties properties) {
         String inputFolder = properties.getProperty("middle_input_folder");
         int count = Integer.valueOf(properties.getProperty("middle_count"));
         String outputFolder = properties.getProperty("middle_output_folder");
@@ -26,7 +27,6 @@ class MiddleLineRunner implements AbstractRunner {
         int regionSize = Integer.valueOf(properties.getProperty("middle_region_size"));
         int maxSpeed = Integer.valueOf(properties.getProperty("middle_max_speed"));
         int angleLimit = Integer.valueOf(properties.getProperty("middle_angle_limit"));
-        int maxCentralPoints = Integer.valueOf(properties.getProperty("middle_max_central_points"));
 
         run(inputFolder,
                 outputFolder,
@@ -43,21 +43,8 @@ class MiddleLineRunner implements AbstractRunner {
         );
     }
 
-    public static void main(String[] args) {
-        new MiddleLineRunner().run(
-                "data/tests/capillary_test2/backgroundSelector/",
-                "data/tests/capillary_test2/middle-line/",
-                "",
-                "middle-full-points.txt",
-                400,
-                "data/tests/capillary_test2/contour.bmp",
-                "data/tests/capillary_test2/backgroundSelector/sum.txt",
-                "data/tests/capillary_test2/backgroundSelector/sum-image.bmp",
-                new Point(48, 167),
-                4,
-                15,
-                30
-        );
+    public static void main(String... args) {
+        new MiddleLineRunner().run(Main.getSettings());
     }
 
     private void run(String inputFolder,
