@@ -1,5 +1,7 @@
 package blood_speed.helper;
 
+import com.jhlabs.image.GaussianFilter;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -12,19 +14,7 @@ public final class BmpHelper {
     }
 
     public static void writeBmp(final String name, final int[][] matrix) {
-
-        int[] preparedArray = new int[matrix.length * matrix[0].length];
-
-        int index = 0;
-        for (int[] aMatrix : matrix) {
-            for (int value : aMatrix) {
-                preparedArray[index] = value;
-                index++;
-            }
-        }
-
-        BufferedImage img = new BufferedImage(matrix[0].length, matrix.length, BufferedImage.TYPE_BYTE_GRAY);
-        img.getRaster().setPixels(0, 0, matrix[0].length, matrix.length, preparedArray);
+        BufferedImage img = convertToImage(matrix);
 
         try {
             ImageIO.write(img, "BMP", new File(name));
@@ -58,13 +48,7 @@ public final class BmpHelper {
     public static int[][] readBmp(final String name) {
         try {
             BufferedImage image = ImageIO.read(new File(name));
-            if (image.getType() == BufferedImage.TYPE_3BYTE_BGR) {
-                return readBmp3ByteBGR(image);
-            } else if (image.getType() == BufferedImage.TYPE_BYTE_GRAY || image.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
-                return readBmpByteGray(image);
-            }
-
-            throw new RuntimeException("Unknown image type (not TYPE_3BYTE_BGR or TYPE_BYTE_GRAY");
+            return convertFromImage(image);
         } catch (IOException e) {
             throw new RuntimeException("Cant read file " + name, e);
         }
@@ -155,5 +139,40 @@ public final class BmpHelper {
             }
         }
         return result;
+    }
+
+    public static int[][] gaussianBlur(final int[][] image, final int radius) {
+        BufferedImage img = convertToImage(image);
+
+        GaussianFilter gaussianFilter = new GaussianFilter();
+        gaussianFilter.setRadius(radius);
+        gaussianFilter.filter(img, img);
+        return convertFromImage(img);
+    }
+
+    private static BufferedImage convertToImage(final int[][] image) {
+        int[] preparedArray = new int[image.length * image[0].length];
+
+        int index = 0;
+        for (int[] aMatrix : image) {
+            for (int value : aMatrix) {
+                preparedArray[index] = value;
+                index++;
+            }
+        }
+
+        BufferedImage img = new BufferedImage(image[0].length, image.length, BufferedImage.TYPE_BYTE_GRAY);
+        img.getRaster().setPixels(0, 0, image[0].length, image.length, preparedArray);
+        return img;
+    }
+
+    private static int[][] convertFromImage(final BufferedImage image) {
+        if (image.getType() == BufferedImage.TYPE_3BYTE_BGR) {
+            return readBmp3ByteBGR(image);
+        } else if (image.getType() == BufferedImage.TYPE_BYTE_GRAY || image.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+            return readBmpByteGray(image);
+        }
+
+        throw new RuntimeException("Unknown image type (not TYPE_3BYTE_BGR or TYPE_BYTE_GRAY");
     }
 }

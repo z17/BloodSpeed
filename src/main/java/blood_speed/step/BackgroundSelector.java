@@ -14,7 +14,9 @@ public class BackgroundSelector extends Step<Images> {
     private final String outputFolder;
     private final int blurDepth;
 
+    private final static String SUM_IMAGE_CLEAR_NAME = "sum-image-clear.bmp";
     private final static String SUM_IMAGE_NAME = "sum-image.bmp";
+    private final static String SUM_IMAGE_BLUR_NAME = "sum-image-blur.bmp";
     private final static String SUM_FILE_NAME = "sum.txt";
     private static final String CONTOUR_IMAGE_NAME = "contour-image.bmp";
 
@@ -43,7 +45,6 @@ public class BackgroundSelector extends Step<Images> {
             }
         }
 
-        Images resultImages = new Images();
         for (int currentNumber = 0; currentNumber < images.getImagesList().size(); currentNumber++) {
 
             // для первых 11 и последних 10 кадров пропускаем изменение middleValue
@@ -67,14 +68,14 @@ public class BackgroundSelector extends Step<Images> {
                 }
             }
 
-            resultImages.add(currentResult);
             BmpHelper.writeBmp(outputFolder + "/background_" + currentNumber + ".bmp", currentResult);
             System.out.println("Image " + currentNumber + "/" + images.getImagesList().size() + "  complete");
         }
-        return resultImages;
+        return null;
     }
 
     private void createSumAndContourImages() {
+
         // сумма всех изображений
         int[][] sumMatrix = new int[images.getRows()][images.getCols()];
         for (int[][] matrix : images.getImagesList()) {
@@ -88,6 +89,20 @@ public class BackgroundSelector extends Step<Images> {
         MatrixHelper.writeMatrix(outputFolder + SUM_FILE_NAME, sumMatrix);
 
         int[][] sumImage = BmpHelper.transformToImage(sumMatrix);
+
+        BmpHelper.writeBmp(outputFolder + SUM_IMAGE_CLEAR_NAME, sumImage);
+
+        int[][] blurImage = BmpHelper.gaussianBlur(sumImage, 30);
+        BmpHelper.writeBmp(outputFolder + SUM_IMAGE_BLUR_NAME, blurImage);
+
+        for (int i = 0; i < images.getRows(); i++) {
+            for (int j = 0; j < images.getCols(); j++) {
+                sumImage[i][j] = sumImage[i][j] - blurImage[i][j];
+            }
+        }
+
+        sumImage = BmpHelper.transformToImage(sumImage);
+
         int sum = 0;
         for (int i = 0; i < images.getRows(); i++) {
             for (int j = 0; j < images.getCols(); j++) {
@@ -95,7 +110,7 @@ public class BackgroundSelector extends Step<Images> {
             }
         }
 
-        int middleSumImage = (int) (sum / (images.getRows() * images.getCols() * 1.4));
+        int middleSumImage = (int) (sum / (images.getRows() * images.getCols() * 1.1));
         BmpHelper.writeBmp(outputFolder + SUM_IMAGE_NAME, sumImage);
 
         // формируем контур капилляра
