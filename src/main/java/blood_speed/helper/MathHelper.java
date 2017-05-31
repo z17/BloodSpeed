@@ -12,7 +12,10 @@ public class MathHelper {
     public static final double EPSILON = 0.1;
 
     public static boolean pointInImage(final Point p, final int width, final int height) {
-        if (p.getX() < 0 || p.getX() > width - 1 - MathHelper.EPSILON || p.getY() < 0 || p.getY() > height - 1 - MathHelper.EPSILON ) {
+        return pointInImage(p.getIntX(), p.getIntY(), width, height);
+    }
+    public static boolean pointInImage(final int x, final int y, final int width, final int height) {
+        if (x < 0 || x > width - 1 - MathHelper.EPSILON || y < 0 || y > height - 1 - MathHelper.EPSILON ) {
             return false;
         }
         return true;

@@ -47,13 +47,15 @@ public class MiddleLineSelector extends Step<List<Point>> {
 
     }
 
+
     @Override
     public List<Point> process() {
+        doIt();
+        System.exit(0);
         System.out.println("Middle line started");
         int numberOfFile = 0;
         List<Point> result = getCentralPoints(start, regionSize, maxSpeed);
         drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
-
         result = refinePoints(result);
         drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
 
@@ -167,6 +169,43 @@ public class MiddleLineSelector extends Step<List<Point>> {
         Set<Point> halfCirclePoints = getCirclePoints(fistPoint, halfDistance);
         List<Point> halfCandidates = getCandidates(halfCirclePoints, MathHelper.middlePoint(fistPoint, secondPoint), halfDistance, 25);
         return choiceBestPoint(halfCandidates);
+    }
+
+    private void doIt() {
+        System.err.println("Calculating vectors");
+        Point[][] points = new Point[data.getRows()][data.getCols()];
+        for (int y = 0; y < data.getRows(); y++) {
+            for (int x = 0; x < data.getCols(); x++) {
+                if (!inContour(x, y)) {
+                    continue;
+                }
+
+                Point currentPoint = new Point(x, y);
+                final int[][] dissynchronizationFactor = findDissynchronizationFactor(currentPoint, regionSize, maxSpeed);
+                List<Point> dissynchronizationPoints = getDissynchronizationPoints(dissynchronizationFactor, currentPoint, maxSpeed);
+                final Point minDissynchronizationPoint = getMinDissynchronizationPoint(dissynchronizationFactor, dissynchronizationPoints, currentPoint, maxSpeed);
+                points[y][x] = minDissynchronizationPoint;
+            }
+            System.out.printf("%d / %d lines of image analyzed\n", y + 1, data.getRows());
+        }
+
+
+        double[][] vectorsX = new double[data.getRows()][data.getCols()];
+        double[][] vectorsY = new double[data.getRows()][data.getCols()];
+        for (int y = 0; y < data.getRows(); y++) {
+            for (int x = 0; x < data.getCols(); x++) {
+                if (!inContour(x, y)) {
+                    continue;
+                }
+                vectorsX[y][x] = points[y][x].getX();
+                vectorsY[y][x] = points[y][x].getY();
+            }
+        }
+
+        int[][] imageVectorsX = BmpHelper.transformToImage(vectorsX);
+        int[][] imageVectorsY = BmpHelper.transformToImage(vectorsY);
+        BmpHelper.writeBmp(outputPrefix + "x.bmp", imageVectorsX);
+        BmpHelper.writeBmp(outputPrefix + "y.bmp", imageVectorsY);
     }
 
     private List<Point> getCentralPoints(final Point startPoint, final int regionSize, final int maxSpeed) {
@@ -316,8 +355,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
             Point currentPoint = stack.get(i);
             for (Direction d : Direction.values()) {
                 Point candidate = d.nextPointFunction.apply(currentPoint);
-                if (inContour(candidate)
-                        && candidate.getIntY() >= point.getIntY() - maxSpeed
+                if (candidate.getIntY() >= point.getIntY() - maxSpeed
                         && candidate.getIntY() <= point.getIntY() + maxSpeed
                         && candidate.getIntX() >= point.getIntX() - maxSpeed
                         && candidate.getIntX() <= point.getIntX() + maxSpeed
@@ -343,12 +381,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
                 boolean inRegion = MathHelper.inCircle(point.getIntX(), point.getIntY(), j, i, maxSpeed);
                 boolean inPointRegion = MathHelper.inCircle(point.getIntX(), point.getIntY(), j, i, minSpeed);
                 if (!inRegion || inPointRegion) {
-                    // пропускаем, если проверяемая точка попала за пределы максимальной или минимальной скорости или за пределы контура
-                    continue;
-                }
-
-                // если вышли за контур
-                if (!inContour(j, i)) {
+                    // пропускаем, если проверяемая точка попала за пределы максимальной или минимальной скорости или за пределы изображения
                     continue;
                 }
 
@@ -372,8 +405,10 @@ public class MiddleLineSelector extends Step<List<Point>> {
         int sum = 0;
         for (int i = point.getIntY() - radius; i < point.getIntY() + radius; i++) {
             for (int j = point.getIntX() - radius; j < point.getIntX() + radius; j++) {
-                boolean inRegion = Math.sqrt(Math.pow(point.getIntY() - i, 2) + Math.pow(point.getIntX() - j, 2)) < radius;
-                if (!inRegion) {
+
+                boolean inImage = MathHelper.pointInImage(j, i, image[0].length, image.length);
+                boolean inRegion = MathHelper.inCircle(point.getIntX(), point.getIntY(), j, i, radius);
+                if (!inRegion || !inImage) {
                     continue;
                 }
                 sum += image[i][j];
