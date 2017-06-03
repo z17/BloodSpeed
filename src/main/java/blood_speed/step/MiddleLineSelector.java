@@ -30,10 +30,12 @@ public class MiddleLineSelector extends Step<List<Point>> {
     private final double[][] mask;
     private final int maxSpeed;
     private final int angleLimit;
+    private final int vectorBlurRadius;
+    private final boolean fast;
 
     private final static String MIDDLE_POINTS_IMAGE_FILENAME = "middle-points%d.bmp";
 
-    public MiddleLineSelector(Point start, Images data, int[][] contour, int sumMatrix[][], int sumImage[][], String outputFolder, final String outputPrefix, String outputPointsName, int regionSize, int maxSpeed, int angleLimit) {
+    public MiddleLineSelector(Point start, Images data, int[][] contour, int sumMatrix[][], int sumImage[][], String outputFolder, final String outputPrefix, String outputPointsName, int regionSize, int maxSpeed, int angleLimit, int vectorBlurRadius, boolean fast) {
         this.start = start;
         this.data = data;
         this.contour = contour;
@@ -44,9 +46,10 @@ public class MiddleLineSelector extends Step<List<Point>> {
         this.mask = MathHelper.generateMask(regionSize * 2 + 1);
         this.maxSpeed = maxSpeed;
         this.angleLimit = angleLimit;
+        this.vectorBlurRadius = vectorBlurRadius;
+        this.fast = fast;
         FunctionHelper.checkOutputFolders(outputFolder);
         this.outputPrefix = outputFolder + "/" + outputPrefix;
-
     }
 
 
@@ -54,8 +57,8 @@ public class MiddleLineSelector extends Step<List<Point>> {
     public List<Point> process() {
         System.out.println("Middle line started");
 
-//        Point[][] vectors = createVectorsMap();
-
+        /*
+        // код для чтеия уже ранее посчитанного массива векторов
         double[][] xV = MatrixHelper.readDoubleMatrix(outputPrefix + "x-blur.txt");
         double[][] yV = MatrixHelper.readDoubleMatrix(outputPrefix + "y-blur.txt");
         final Point[][] vectors = new Point[data.getRows()][data.getCols()];
@@ -65,13 +68,24 @@ public class MiddleLineSelector extends Step<List<Point>> {
                 vectors[y][x] = new Point(xV[y][x], yV[y][x]);
             }
         }
+        */
 
         int numberOfFile = 0;
-        List<Point> result = findPointsByVectors(start, vectors);
-        drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
+        List<Point> result;
+        if (fast) {
+            System.err.println("It is fast variant of algorithm. If you want more accuracy, but slow, change 'middle_fast' option in config file");
+            result = getCentralPoints(start);
+            drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
 
-        result = refinePoints(result);
-        drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
+            result = refinePoints(result);
+            drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
+        } else {
+            System.err.println("It is slow variant of algorithm. If you want fast middle line selector, change 'middle_fast' option in config file");
+            Point[][] vectors = createVectorsMap();
+
+            result = findPointsByVectors(start, vectors);
+            drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
+        }
 
         result = refinePointsByLength(result, 3);
         drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
@@ -91,7 +105,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
     }
 
     private List<Point> refinePoints(List<Point> points) {
-        List<Point> result = new ArrayList<>();
+        Set<Point> result = new LinkedHashSet<>();
         result.add(points.get(0));
         for (int i = 0; i < points.size(); i++) {
             Point a;
@@ -125,7 +139,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
             result.add(choiceBestPoint(candidates));
         }
         result.add(points.get(points.size() - 1));
-        return result;
+        return new ArrayList<>(result);
     }
 
     /**
@@ -203,9 +217,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
         splitVectorsToImage(vectors, "x", "y");
 
         Point[][] blurVectors = new Point[data.getRows()][data.getCols()];
-        // todo: as a parameter
-        final int blurRadius = 4;
-        double[][] mask = MathHelper.generateMask(blurRadius * 2 + 1);
+        double[][] mask = MathHelper.generateMask(vectorBlurRadius * 2 + 1);
         for (int y = 0; y < data.getRows(); y++) {
             for (int x = 0; x < data.getCols(); x++) {
                 if (!inContour(x, y)) {
@@ -216,13 +228,13 @@ public class MiddleLineSelector extends Step<List<Point>> {
                 double sumY = 0;
                 double sumK = 0;
 
-                for (int yBlur = y - blurRadius; yBlur <= y + blurRadius; yBlur++) {
-                    for (int xBlur = x - blurRadius; xBlur <= x + blurRadius; xBlur++) {
+                for (int yBlur = y - vectorBlurRadius; yBlur <= y + vectorBlurRadius; yBlur++) {
+                    for (int xBlur = x - vectorBlurRadius; xBlur <= x + vectorBlurRadius; xBlur++) {
                         if (!inContour(xBlur, yBlur)) {
                             continue;
                         }
 
-                        double g = mask[yBlur - y + blurRadius][xBlur - x + blurRadius];
+                        double g = mask[yBlur - y + vectorBlurRadius][xBlur - x + vectorBlurRadius];
                         sumX += vectors[yBlur][xBlur].getX() * g;
                         sumY += vectors[yBlur][xBlur].getY() * g;
                         sumK += g;
@@ -281,35 +293,32 @@ public class MiddleLineSelector extends Step<List<Point>> {
     }
 
     private List<Point> findPointsByVectors(final Point startPoint, final Point[][] vectors) {
-
         final List<Point> result = new ArrayList<>();
         Point currentPoint = startPoint;
-        int count = 0;
         while (true) {
             final Point vectorDestination = vectors[currentPoint.getIntY()][currentPoint.getIntX()];
             final LineSegment segment = new LineSegment(currentPoint, vectorDestination);
             final Point vectorPoint = MathHelper.getInterSectionPointWithCircleAndSegment(segment, currentPoint, 1);
 
             if (vectorPoint == null) {
+                System.err.println("Unknown error");
                 break;
             }
 
-            List<Point> candidates = findCandidatesOnPerpendicular(segment, vectorPoint);
-
+            final List<Point> candidates = findCandidatesOnPerpendicular(segment, vectorPoint);
             final Point nextPoint = choiceBestPoint(candidates);
+
+            if (result.contains(nextPoint)) {
+                break;
+            }
 
             result.add(nextPoint);
             currentPoint = nextPoint;
-
-            count++;
-            if (count > 250) {
-                break;
-            }
         }
         return result;
     }
 
-    private List<Point> getCentralPoints(final Point startPoint, final int maxSpeed) {
+    private List<Point> getCentralPoints(final Point startPoint) {
         int[][] visualise = MatrixHelper.copyMatrix(sumImage);
         final List<Point> points = new ArrayList<>();
 

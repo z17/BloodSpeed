@@ -27,6 +27,8 @@ final class MiddleLineRunner extends AbstractRunner {
         int regionSize = Integer.valueOf(properties.getProperty("middle_region_size"));
         int maxSpeed = Integer.valueOf(properties.getProperty("middle_max_speed"));
         int angleLimit = Integer.valueOf(properties.getProperty("middle_angle_limit"));
+        int vectorBlurRadius = Integer.valueOf(properties.getProperty("middle_vector_blur_radius"));
+        boolean fast = Boolean.valueOf(properties.getProperty("middle_fast"));
 
         run(inputFolder,
                 outputFolder,
@@ -39,7 +41,9 @@ final class MiddleLineRunner extends AbstractRunner {
                 new Point(x, y),
                 regionSize,
                 maxSpeed,
-                angleLimit
+                angleLimit,
+                vectorBlurRadius,
+                fast
         );
     }
 
@@ -58,7 +62,9 @@ final class MiddleLineRunner extends AbstractRunner {
                      Point startPoint,
                      int regionSize,
                      int maxSpeed,
-                     int angleLimit) {
+                     int angleLimit,
+                     int vectorBlurRadius,
+                     boolean fast) {
         Images images = BackgroundSelector.loadOutputData(inputFolder, count);
         int[][] contour = BmpHelper.readBmp(contourName);
         // изображение суммы
@@ -76,7 +82,9 @@ final class MiddleLineRunner extends AbstractRunner {
                 outputPointsName,
                 regionSize,
                 maxSpeed,
-                angleLimit);
+                angleLimit,
+                vectorBlurRadius,
+                fast);
         selector.process();
     }
 }
