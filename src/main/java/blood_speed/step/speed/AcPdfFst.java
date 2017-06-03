@@ -75,6 +75,7 @@ public class AcPdfFst extends Step<SpeedImages> {
 
         List<ForkJoinTask<SpeedData>> tasks = new ArrayList<>();
         ForkJoinPool executor = ForkJoinPool.commonPool();
+        System.err.printf("Using %d threads%s", executor.getParallelism(), System.lineSeparator());
 
         // цикл по всем шагам
         for (int currentStep = 0; currentStep < stepsNumber; currentStep++) {

@@ -4,14 +4,14 @@ import blood_speed.helper.BmpHelper;
 import blood_speed.helper.FunctionHelper;
 import blood_speed.helper.MathHelper;
 import blood_speed.helper.MatrixHelper;
-import blood_speed.step.data.Images;
-import blood_speed.step.data.Line;
-import blood_speed.step.data.LineSegment;
-import blood_speed.step.data.Point;
+import blood_speed.step.data.*;
 import blood_speed.step.util.Direction;
 import blood_speed.step.util.Distances;
+import blood_speed.util.Pair;
 
 import java.util.*;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
 import java.util.stream.Collectors;
 
 /**
@@ -52,7 +52,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
 
     @Override
     public List<Point> process() {
-        doIt();
+        createVectorsMap();
         System.exit(0);
         System.out.println("Middle line started");
         int numberOfFile = 0;
@@ -173,25 +173,82 @@ public class MiddleLineSelector extends Step<List<Point>> {
         return choiceBestPoint(halfCandidates);
     }
 
-    private void doIt() {
-        System.err.println("Calculating vectors");
-        Point[][] points = new Point[data.getRows()][data.getCols()];
+    /**
+     * Рассчитывает карту векторой. В каждой ячейке координата конца вектора из данной точки
+     */
+    private void createVectorsMap() {
+        System.err.println("Calculating vectors in parallel");
+
+        List<ForkJoinTask<Pair<Integer, Point[]>>> tasks = new ArrayList<>();
+        final ForkJoinPool executor = ForkJoinPool.commonPool();
+        System.err.printf("Using %d threads%s", executor.getParallelism(), System.lineSeparator());
+
+        for (int y = 0; y < data.getRows(); y++) {
+            final int Y = y;
+            tasks.add(executor.submit(() -> createVectorsLine(Y)));
+        }
+
+        final Point[][] points = new Point[data.getRows()][];
+        for (ForkJoinTask<Pair<Integer, Point[]>> task : tasks) {
+            Pair<Integer, Point[]> result = task.join();
+            points[result.getKey()] = result.getValue();
+        }
+
+        splitVectorsToImage(points, "x", "y");
+
+        final int blurRadius = 4;
+        double[][] mask = MathHelper.generateMask(blurRadius * 2 + 1);
         for (int y = 0; y < data.getRows(); y++) {
             for (int x = 0; x < data.getCols(); x++) {
                 if (!inContour(x, y)) {
                     continue;
                 }
 
-                Point currentPoint = new Point(x, y);
-                final int[][] dissynchronizationFactor = findDissynchronizationFactor(currentPoint, maxSpeed);
-                List<Point> dissynchronizationPoints = getDissynchronizationPoints(dissynchronizationFactor, currentPoint, maxSpeed);
-                final Point minDissynchronizationPoint = getMinDissynchronizationPoint(dissynchronizationFactor, dissynchronizationPoints, currentPoint, maxSpeed);
-                points[y][x] = minDissynchronizationPoint;
+                double sumX = 0;
+                double sumY = 0;
+                double sumK = 0;
+
+                for (int yBlur = y - blurRadius; yBlur <= y + blurRadius; yBlur++) {
+                    for (int xBlur = x - blurRadius; xBlur <= x + blurRadius; xBlur++) {
+                        if (!inContour(xBlur, yBlur)) {
+                            continue;
+                        }
+
+                        double g = mask[yBlur - y + blurRadius][xBlur - x + blurRadius];
+                        sumX += points[yBlur][xBlur].getX() * g;
+                        sumY += points[yBlur][xBlur].getY() * g;
+                        sumK += g;
+                    }
+                }
+
+                points[y][x] = new Point(sumX / sumK, sumY / sumK);
             }
-            System.out.printf("%d / %d lines of image analyzed\n", y + 1, data.getRows());
         }
 
+        splitVectorsToImage(points, "x-blur", "y-blur");
+    }
 
+    /**
+     * Рессчитывает вектора строки y
+     */
+    private Pair<Integer, Point[]> createVectorsLine(final int y) {
+        Point[] line = new Point[data.getCols()];
+        for (int x = 0; x < data.getCols(); x++) {
+            if (!inContour(x, y)) {
+                continue;
+            }
+
+            Point currentPoint = new Point(x, y);
+            final int[][] dissynchronizationFactor = findDissynchronizationFactor(currentPoint);
+            List<Point> dissynchronizationPoints = getDissynchronizationPoints(dissynchronizationFactor, currentPoint);
+            final Point minDissynchronizationPoint = getMinDissynchronizationPoint(dissynchronizationFactor, dissynchronizationPoints, currentPoint, maxSpeed);
+            line[x] = minDissynchronizationPoint;
+        }
+        System.out.printf("%d / %d lines of image analyzed\n", y + 1, data.getRows());
+        return new Pair<>(y, line);
+    }
+
+    private void splitVectorsToImage(final Point[][] points, final String xName, final String yName) {
         double[][] vectorsX = new double[data.getRows()][data.getCols()];
         double[][] vectorsY = new double[data.getRows()][data.getCols()];
         for (int y = 0; y < data.getRows(); y++) {
@@ -204,10 +261,13 @@ public class MiddleLineSelector extends Step<List<Point>> {
             }
         }
 
+        MatrixHelper.writeMatrix(outputPrefix + xName + ".txt", vectorsX);
+        MatrixHelper.writeMatrix(outputPrefix + yName + ".txt", vectorsY);
+
         int[][] imageVectorsX = BmpHelper.transformToImage(vectorsX);
         int[][] imageVectorsY = BmpHelper.transformToImage(vectorsY);
-        BmpHelper.writeBmp(outputPrefix + "x3.bmp", imageVectorsX);
-        BmpHelper.writeBmp(outputPrefix + "y3.bmp", imageVectorsY);
+        BmpHelper.writeBmp(outputPrefix + xName + ".bmp", imageVectorsX);
+        BmpHelper.writeBmp(outputPrefix + yName + ".bmp", imageVectorsY);
     }
 
     private List<Point> getCentralPoints(final Point startPoint, final int maxSpeed) {
@@ -219,8 +279,8 @@ public class MiddleLineSelector extends Step<List<Point>> {
         int color = 0;
         int count = 0;
         while (true) {
-            final int[][] dissynchronizationFactor = findDissynchronizationFactor(currentPoint, maxSpeed);
-            List<Point> dissynchronizationPoints = getDissynchronizationPoints(dissynchronizationFactor, currentPoint, maxSpeed);
+            final int[][] dissynchronizationFactor = findDissynchronizationFactor(currentPoint);
+            List<Point> dissynchronizationPoints = getDissynchronizationPoints(dissynchronizationFactor, currentPoint);
 
             dissynchronizationPoints = filterDissynchronizationPoints(dissynchronizationPoints, currentPoint, currentDirection);
 
@@ -295,7 +355,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
                 .collect(Collectors.toList());
     }
 
-    private List<Point> getDissynchronizationPoints(int[][] dissynchronizationFactor, Point currentPoint, int maxSpeed) {
+    private List<Point> getDissynchronizationPoints(final int[][] dissynchronizationFactor, final Point currentPoint) {
         List<Point> points = new ArrayList<>();
         for (int i = 0; i < dissynchronizationFactor.length; i++) {
             for (int j = 0; j < dissynchronizationFactor[i].length; j++) {
@@ -346,9 +406,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
         return minDissPoint;
     }
 
-    private int[][] findDissynchronizationFactor(Point point, int maxSpeed) {
-        final int minSpeed = maxSpeed - regionSize;
-
+    private int[][] findDissynchronizationFactor(final Point point) {
         // массив, где true означает что до этой точки региона можно дойти из исходной
         boolean checkRegion[][] = new boolean[2 * maxSpeed + 1][2 * maxSpeed + 1];
         List<Point> stack = new ArrayList<>();
@@ -381,9 +439,8 @@ public class MiddleLineSelector extends Step<List<Point>> {
                 }
 
                 boolean inRegion = MathHelper.inCircle(point.getIntX(), point.getIntY(), j, i, maxSpeed);
-                boolean inPointRegion = MathHelper.inCircle(point.getIntX(), point.getIntY(), j, i, minSpeed);
-                if (!inRegion || inPointRegion) {
-                    // пропускаем, если проверяемая точка попала за пределы максимальной или минимальной скорости или за пределы изображения
+                if (!inRegion) {
+                    // пропускаем, если проверяемая точка попала за пределы максимальной скорости
                     continue;
                 }
 
