@@ -129,4 +129,26 @@ public class MathHelper {
         double r2 = (x2 - x) / (x2 - x1) * matrix[y2][x1] + (x - x1) / (x2 - x1) * matrix[y2][x2];
         return (y2 - y) / (y2 - y1) * r1 + (y - y1) / (y2 - y1) * r2;
     }
+
+    /**
+     * Генерирует маску с нормальным распределением, 1 в центре
+     */
+    public static double[][] generateMask(int size) {
+        double[][] res = new double[size][size];
+        double middle = ((double) size - 1) / 2;
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                double x = Math.sqrt(Math.pow(i - middle, 2) + Math.pow(j - middle, 2));
+                res[i][j] = func(8 * x / size, 0, 2);
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Нормальное распределение
+     */
+    private static double func(double x, double m, double o) {
+        return Math.exp(-(Math.pow(x - m, 2) / (2 * Math.pow(o, 2))));
+    }
 }

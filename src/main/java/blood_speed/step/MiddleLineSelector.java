@@ -27,6 +27,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
     private final String outputPrefix;
     private final String outputPointsName;
     private final int regionSize;
+    private final double[][] mask;
     private final int maxSpeed;
     private final int angleLimit;
 
@@ -40,6 +41,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
         this.sumImage = sumImage;
         this.outputPointsName = outputPointsName;
         this.regionSize = regionSize;
+        this.mask = MathHelper.generateMask(regionSize * 2 + 1);
         this.maxSpeed = maxSpeed;
         this.angleLimit = angleLimit;
         FunctionHelper.checkOutputFolders(outputFolder);
@@ -54,7 +56,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
         System.exit(0);
         System.out.println("Middle line started");
         int numberOfFile = 0;
-        List<Point> result = getCentralPoints(start, regionSize, maxSpeed);
+        List<Point> result = getCentralPoints(start, maxSpeed);
         drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
         result = refinePoints(result);
         drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
@@ -181,7 +183,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
                 }
 
                 Point currentPoint = new Point(x, y);
-                final int[][] dissynchronizationFactor = findDissynchronizationFactor(currentPoint, regionSize, maxSpeed);
+                final int[][] dissynchronizationFactor = findDissynchronizationFactor(currentPoint, maxSpeed);
                 List<Point> dissynchronizationPoints = getDissynchronizationPoints(dissynchronizationFactor, currentPoint, maxSpeed);
                 final Point minDissynchronizationPoint = getMinDissynchronizationPoint(dissynchronizationFactor, dissynchronizationPoints, currentPoint, maxSpeed);
                 points[y][x] = minDissynchronizationPoint;
@@ -204,11 +206,11 @@ public class MiddleLineSelector extends Step<List<Point>> {
 
         int[][] imageVectorsX = BmpHelper.transformToImage(vectorsX);
         int[][] imageVectorsY = BmpHelper.transformToImage(vectorsY);
-        BmpHelper.writeBmp(outputPrefix + "x.bmp", imageVectorsX);
-        BmpHelper.writeBmp(outputPrefix + "y.bmp", imageVectorsY);
+        BmpHelper.writeBmp(outputPrefix + "x3.bmp", imageVectorsX);
+        BmpHelper.writeBmp(outputPrefix + "y3.bmp", imageVectorsY);
     }
 
-    private List<Point> getCentralPoints(final Point startPoint, final int regionSize, final int maxSpeed) {
+    private List<Point> getCentralPoints(final Point startPoint, final int maxSpeed) {
         int[][] visualise = MatrixHelper.copyMatrix(sumImage);
         final List<Point> points = new ArrayList<>();
 
@@ -217,7 +219,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
         int color = 0;
         int count = 0;
         while (true) {
-            final int[][] dissynchronizationFactor = findDissynchronizationFactor(currentPoint, regionSize, maxSpeed);
+            final int[][] dissynchronizationFactor = findDissynchronizationFactor(currentPoint, maxSpeed);
             List<Point> dissynchronizationPoints = getDissynchronizationPoints(dissynchronizationFactor, currentPoint, maxSpeed);
 
             dissynchronizationPoints = filterDissynchronizationPoints(dissynchronizationPoints, currentPoint, currentDirection);
@@ -344,8 +346,8 @@ public class MiddleLineSelector extends Step<List<Point>> {
         return minDissPoint;
     }
 
-    private int[][] findDissynchronizationFactor(Point point, int pointRegionSize, int maxSpeed) {
-        final int minSpeed = maxSpeed - pointRegionSize;
+    private int[][] findDissynchronizationFactor(Point point, int maxSpeed) {
+        final int minSpeed = maxSpeed - regionSize;
 
         // массив, где true означает что до этой точки региона можно дойти из исходной
         boolean checkRegion[][] = new boolean[2 * maxSpeed + 1][2 * maxSpeed + 1];
@@ -369,7 +371,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
         int[][] dissynchronizationFactor = new int[2 * maxSpeed + 1][2 * maxSpeed + 1];
         for (int i = point.getIntY() - maxSpeed; i <= point.getIntY() + maxSpeed; i++) {
             for (int j = point.getIntX() - maxSpeed; j <= point.getIntX() + maxSpeed; j++) {
-                if (i <= pointRegionSize || j <= pointRegionSize || i >= data.getRows() - pointRegionSize - 1 || j >= data.getCols() - pointRegionSize - 1) {
+                if (i <= regionSize || j <= regionSize || i >= data.getRows() - regionSize - 1 || j >= data.getCols() - regionSize - 1) {
                     // если проверяемая точка стоит на границе изображения
                     continue;
                 }
@@ -388,10 +390,10 @@ public class MiddleLineSelector extends Step<List<Point>> {
                 Point currentPoint = new Point(j, i);
                 for (int k = 0; k < data.getImagesList().size() - 1; k++) {
                     int[][] img1 = data.getImagesList().get(k);
-                    int regionSum1 = getRegionSum(img1, point, pointRegionSize);
+                    int regionSum1 = getRegionSum(img1, point);
 
                     int[][] img2 = data.getImagesList().get(k + 1);
-                    int regionSum2 = getRegionSum(img2, currentPoint, pointRegionSize);
+                    int regionSum2 = getRegionSum(img2, currentPoint);
                     dissynchronizationFactor[i - point.getIntY() + maxSpeed][j - point.getIntX() + maxSpeed] += Math.abs(regionSum1 - regionSum2);
                 }
             }
@@ -401,17 +403,17 @@ public class MiddleLineSelector extends Step<List<Point>> {
     }
 
 
-    private int getRegionSum(int[][] image, Point point, int radius) {
+    private int getRegionSum(int[][] image, Point point) {
         int sum = 0;
-        for (int i = point.getIntY() - radius; i < point.getIntY() + radius; i++) {
-            for (int j = point.getIntX() - radius; j < point.getIntX() + radius; j++) {
+        for (int i = point.getIntY() - regionSize; i <= point.getIntY() + regionSize; i++) {
+            for (int j = point.getIntX() - regionSize; j <= point.getIntX() + regionSize; j++) {
 
                 boolean inImage = MathHelper.pointInImage(j, i, image[0].length, image.length);
-                boolean inRegion = MathHelper.inCircle(point.getIntX(), point.getIntY(), j, i, radius);
+                boolean inRegion = MathHelper.inCircle(point.getIntX(), point.getIntY(), j, i, regionSize);
                 if (!inRegion || !inImage) {
                     continue;
                 }
-                sum += image[i][j];
+                sum += image[i][j] * mask[i - point.getIntY() + regionSize][j - point.getIntX() + regionSize];
             }
         }
         return sum;
