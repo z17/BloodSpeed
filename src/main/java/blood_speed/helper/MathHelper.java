@@ -14,8 +14,9 @@ public class MathHelper {
     public static boolean pointInImage(final Point p, final int width, final int height) {
         return pointInImage(p.getIntX(), p.getIntY(), width, height);
     }
+
     public static boolean pointInImage(final int x, final int y, final int width, final int height) {
-        if (x < 0 || x > width - 1 - MathHelper.EPSILON || y < 0 || y > height - 1 - MathHelper.EPSILON ) {
+        if (x < 0 || x > width - 1 - MathHelper.EPSILON || y < 0 || y > height - 1 - MathHelper.EPSILON) {
             return false;
         }
         return true;
@@ -41,6 +42,9 @@ public class MathHelper {
         return Math.sqrt(Math.pow(centerX - x, 2) + Math.pow(centerY - y, 2)) < r;
     }
 
+    /**
+     * Точки пересечения линии line и окружности с центров в circleCenter и радиусом r
+     */
     public static List<Point> getInterSectionPointWithCircleAndLine(final Line line, final Point circleCenter, final double r) {
         Point p1, p2;
         if (!doubleEquals(line.getA(), 0)) {
@@ -79,6 +83,10 @@ public class MathHelper {
         return Arrays.asList(a, b);
     }
 
+    /**
+     * Возвращает точку пересечения отрезка и окружности с центром в circleCenter и радиусом r
+     * Если их две - кидает ошибку
+     */
     public static Point getInterSectionPointWithCircleAndSegment(final LineSegment segment, final Point circleCenter, final double r) {
         List<Point> points = getInterSectionPointWithCircleAndLine(segment, circleCenter, r);
 

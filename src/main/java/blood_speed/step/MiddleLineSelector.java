@@ -52,12 +52,24 @@ public class MiddleLineSelector extends Step<List<Point>> {
 
     @Override
     public List<Point> process() {
-        createVectorsMap();
-        System.exit(0);
         System.out.println("Middle line started");
+
+//        Point[][] vectors = createVectorsMap();
+
+        double[][] xV = MatrixHelper.readDobuleMatrix(outputPrefix + "x-blur.txt");
+        double[][] yV = MatrixHelper.readDobuleMatrix(outputPrefix + "y-blur.txt");
+        final Point[][] vectors = new Point[data.getRows()][data.getCols()];
+
+        for (int y = 0; y < data.getRows(); y++) {
+            for (int x = 0; x < data.getCols(); x++) {
+                vectors[y][x] = new Point(xV[y][x], yV[y][x]);
+            }
+        }
+
         int numberOfFile = 0;
-        List<Point> result = getCentralPoints(start, maxSpeed);
+        List<Point> result = findPointsByVectors(start, vectors);
         drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
+
         result = refinePoints(result);
         drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
 
@@ -105,17 +117,11 @@ public class MiddleLineSelector extends Step<List<Point>> {
             }
 
             LineSegment segment = new LineSegment(a, b);
-            Line perpendicular = segment.getPerpendicular(middlePoint);
             Set<Point> candidates = new HashSet<>();
             candidates.add(middlePoint);
             candidates.add(points.get(i));
-            for (int k = 1; k < 5; k++) {
-                List<Point> pointsCandidates = MathHelper.getInterSectionPointWithCircleAndLine(perpendicular, middlePoint, k);
-                if (pointsCandidates == null || pointsCandidates.size() != 2) {
-                    throw new RuntimeException("Unknown error");
-                }
-                candidates.addAll(pointsCandidates);
-            }
+            candidates.addAll(findCandidatesOnPerpendicular(segment, middlePoint));
+
             result.add(choiceBestPoint(candidates));
         }
         result.add(points.get(points.size() - 1));
@@ -176,7 +182,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
     /**
      * Рассчитывает карту векторой. В каждой ячейке координата конца вектора из данной точки
      */
-    private void createVectorsMap() {
+    private Point[][] createVectorsMap() {
         System.err.println("Calculating vectors in parallel");
 
         List<ForkJoinTask<Pair<Integer, Point[]>>> tasks = new ArrayList<>();
@@ -188,14 +194,16 @@ public class MiddleLineSelector extends Step<List<Point>> {
             tasks.add(executor.submit(() -> createVectorsLine(Y)));
         }
 
-        final Point[][] points = new Point[data.getRows()][];
+        final Point[][] vectors = new Point[data.getRows()][];
         for (ForkJoinTask<Pair<Integer, Point[]>> task : tasks) {
             Pair<Integer, Point[]> result = task.join();
-            points[result.getKey()] = result.getValue();
+            vectors[result.getKey()] = result.getValue();
         }
 
-        splitVectorsToImage(points, "x", "y");
+        splitVectorsToImage(vectors, "x", "y");
 
+        Point[][] blurVectors = new Point[data.getRows()][data.getCols()];
+        // todo: as a parameter
         final int blurRadius = 4;
         double[][] mask = MathHelper.generateMask(blurRadius * 2 + 1);
         for (int y = 0; y < data.getRows(); y++) {
@@ -215,17 +223,19 @@ public class MiddleLineSelector extends Step<List<Point>> {
                         }
 
                         double g = mask[yBlur - y + blurRadius][xBlur - x + blurRadius];
-                        sumX += points[yBlur][xBlur].getX() * g;
-                        sumY += points[yBlur][xBlur].getY() * g;
+                        sumX += vectors[yBlur][xBlur].getX() * g;
+                        sumY += vectors[yBlur][xBlur].getY() * g;
                         sumK += g;
                     }
                 }
 
-                points[y][x] = new Point(sumX / sumK, sumY / sumK);
+                blurVectors[y][x] = new Point(sumX / sumK, sumY / sumK);
             }
         }
 
-        splitVectorsToImage(points, "x-blur", "y-blur");
+        splitVectorsToImage(blurVectors, "x-blur", "y-blur");
+
+        return blurVectors;
     }
 
     /**
@@ -268,6 +278,35 @@ public class MiddleLineSelector extends Step<List<Point>> {
         int[][] imageVectorsY = BmpHelper.transformToImage(vectorsY);
         BmpHelper.writeBmp(outputPrefix + xName + ".bmp", imageVectorsX);
         BmpHelper.writeBmp(outputPrefix + yName + ".bmp", imageVectorsY);
+    }
+
+    private List<Point> findPointsByVectors(final Point startPoint, final Point[][] vectors) {
+
+        final List<Point> result = new ArrayList<>();
+        Point currentPoint = startPoint;
+        int count = 0;
+        while (true) {
+            final Point vectorDestination = vectors[currentPoint.getIntY()][currentPoint.getIntX()];
+            final LineSegment segment = new LineSegment(currentPoint, vectorDestination);
+            final Point vectorPoint = MathHelper.getInterSectionPointWithCircleAndSegment(segment, currentPoint, 1);
+
+            if (vectorPoint == null) {
+                break;
+            }
+
+            List<Point> candidates = findCandidatesOnPerpendicular(segment, vectorPoint);
+
+            final Point nextPoint = choiceBestPoint(candidates);
+
+            result.add(nextPoint);
+            currentPoint = nextPoint;
+
+            count++;
+            if (count > 250) {
+                break;
+            }
+        }
+        return result;
     }
 
     private List<Point> getCentralPoints(final Point startPoint, final int maxSpeed) {
@@ -546,6 +585,9 @@ public class MiddleLineSelector extends Step<List<Point>> {
     }
 
 
+    /**
+     * Ну и треш я написал. Возвращает некий набор точек, лежащих на окружности с центром в точке point и радиусом r
+     */
     private Set<Point> getCirclePoints(final Point point, final double r) {
         Set<Point> circle = new HashSet<>();
         for (int j = (int) Math.round(point.getIntX() - r); j < point.getIntX() + r; j++) {
@@ -574,6 +616,14 @@ public class MiddleLineSelector extends Step<List<Point>> {
         return circle;
     }
 
+    /**
+     *
+     * Возвращаем набор точек из circle, для которых угол межу P, центром окружности и точками не больше angleLimit
+     * @param circle набор точек на окружности
+     * @param point точка на окружности
+     * @param r радиус окружности
+     * @param angleLimit лимит градусов
+     */
     private List<Point> getCandidates(final Collection<Point> circle, final Point point, final double r, double angleLimit) {
         List<Point> candidates = new ArrayList<>();
         for (Point c : circle) {
@@ -591,10 +641,27 @@ public class MiddleLineSelector extends Step<List<Point>> {
     }
 
 
+    private List<Point> findCandidatesOnPerpendicular(final Line line, final Point point) {
+        Line perpendicular = line.getPerpendicular(point);
+        List<Point> candidates = new ArrayList<>();
+        for (int k = 1; k < 5; k++) {
+            List<Point> pointsCandidates = MathHelper.getInterSectionPointWithCircleAndLine(perpendicular, point, k);
+            if (pointsCandidates == null || pointsCandidates.size() != 2) {
+                throw new RuntimeException("Unknown error");
+            }
+            candidates.addAll(pointsCandidates);
+        }
+
+        return candidates;
+    }
+
     private Point choiceBestPoint(final Collection<Point> candidates) {
         return choiceBestPointByMinValue(candidates);
     }
 
+    /**
+     * Выбирает лучшую точку ЦЛК из кандидатов на основе максимума суммированного изображения
+     */
     private Point choiceBestPointByMinValue(Collection<Point> candidates) {
         Point nextPoint = null;
 
@@ -612,6 +679,9 @@ public class MiddleLineSelector extends Step<List<Point>> {
         return nextPoint;
     }
 
+    /**
+     * Выбирает лучшую точку ЦЛК из кандидатов по максимальной отдолённости от краёв контура
+     */
     @SuppressWarnings("unused")
     private Point choiceBestPointByRadius(Collection<Point> candidates) {
         double minDifferent = 0;

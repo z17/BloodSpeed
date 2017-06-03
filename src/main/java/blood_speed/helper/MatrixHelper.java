@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -19,6 +20,39 @@ public final class MatrixHelper {
             }
         }
         return m;
+    }
+
+    public static double[][] readDobuleMatrix(final String inTxt) {
+        try {
+            final List<String> strings = Files.readAllLines(Paths.get(inTxt));
+            final int rows = strings.size();
+            final int columns = strings.get(0).trim().split("\\s+").length;
+            final double[][] matrix = new double[rows][columns];
+
+            final NumberFormat format = NumberFormat.getInstance();
+            int row = 0;
+            for (String line : strings) {
+                int column = 0;
+                final String[] split = line.trim().split("\\s+");
+                if (split.length != columns) {
+                    throw new IllegalArgumentException("Not a matrix");
+                }
+
+                for (String oneNumber : split) {
+
+
+                    Number number = format.parse(oneNumber.trim());
+                    matrix[row][column] = number.doubleValue();
+                    column++;
+                }
+                row++;
+            }
+
+            return matrix;
+
+        } catch (IOException | ParseException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static int[][] readMatrix(final String inTxt) {
@@ -37,7 +71,6 @@ public final class MatrixHelper {
                 }
 
                 for (String oneNumber : split) {
-
                     matrix[row][column] = Integer.valueOf(oneNumber.trim());
                     column++;
                 }
