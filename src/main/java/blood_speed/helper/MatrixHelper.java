@@ -22,7 +22,7 @@ public final class MatrixHelper {
         return m;
     }
 
-    public static double[][] readDobuleMatrix(final String inTxt) {
+    public static double[][] readDoubleMatrix(final String inTxt) {
         try {
             final List<String> strings = Files.readAllLines(Paths.get(inTxt));
             final int rows = strings.size();

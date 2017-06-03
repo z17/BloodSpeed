@@ -56,8 +56,8 @@ public class MiddleLineSelector extends Step<List<Point>> {
 
 //        Point[][] vectors = createVectorsMap();
 
-        double[][] xV = MatrixHelper.readDobuleMatrix(outputPrefix + "x-blur.txt");
-        double[][] yV = MatrixHelper.readDobuleMatrix(outputPrefix + "y-blur.txt");
+        double[][] xV = MatrixHelper.readDoubleMatrix(outputPrefix + "x-blur.txt");
+        double[][] yV = MatrixHelper.readDoubleMatrix(outputPrefix + "y-blur.txt");
         final Point[][] vectors = new Point[data.getRows()][data.getCols()];
 
         for (int y = 0; y < data.getRows(); y++) {
