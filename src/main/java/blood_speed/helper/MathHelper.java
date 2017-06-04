@@ -139,6 +139,18 @@ public class MathHelper {
     }
 
     /**
+     * Возвращает true когда вектор (start, b) идёт левее (start, a).
+     * <p>
+     * При общей начальной точке двух векторов их векторное произведение больше нуля, если второй вектор направлен влево от первого,
+     * и меньше нуля, если вправо.
+     */
+    public static boolean getVectorDirection(final Point a, final Point b, final Point start) {
+        Point vectorB = new Point(b.getX() - start.getX(), b.getY() - start.getY());
+        Point vectorA = new Point(a.getX() - start.getX(), a.getY() - start.getY());
+        return vectorA.getX() * vectorB.getY() - vectorA.getY() * vectorB.getX() > 0;
+    }
+
+    /**
      * Генерирует маску с нормальным распределением, 1 в центре
      */
     public static double[][] generateMask(int size) {

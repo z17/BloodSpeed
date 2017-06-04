@@ -105,7 +105,7 @@ public final class MatrixHelper {
         for (double[] m : matrix) {
             StringBuilder stringBuilder = new StringBuilder();
             for (double k : m) {
-                stringBuilder.append(String.format("%10f", k));
+                stringBuilder.append(String.format(" %20f", k));
             }
             lines.add(stringBuilder.toString());
         }

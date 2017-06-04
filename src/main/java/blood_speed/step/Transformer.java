@@ -62,7 +62,6 @@ public class Transformer extends Step<Void> {
 
         int[][] contourTransformed = transformImage(contour, transformerPoints, null);
         BmpHelper.writeBmp(outputDir.toAbsolutePath() + "/contour.bmp", contourTransformed);
-//        contourTransformed = BmpHelper.readBmp("C:\\Java\\projects\\BloodSpeed\\data\\tests\\capillary_2k_m2\\my\\contour.bmp");
         int currentNumberFile = 0;
         for (int[][] matrix : data.getImagesList()) {
             final String name = outputPrefix + String.format("%05d", currentNumberFile) + ".bmp";
@@ -104,7 +103,7 @@ public class Transformer extends Step<Void> {
                 Point a = points.get(0);
                 Point b = points.get(1);
 
-                if (getVectorDirection(p1, a, middlePoint)) {
+                if (MathHelper.getVectorDirection(p1, a, middlePoint)) {
                     if (currentStep % perpendicularStep == 0) {
                         drawPoint(a, imagePerpendicularOne);
                         drawPoint(b, imagePerpendicularTwo);
@@ -156,12 +155,7 @@ public class Transformer extends Step<Void> {
         return result;
     }
 
-    // если произведение векторов из одной точки больше нуля, то второй вектор направлен влево от первого
-    private boolean getVectorDirection(final Point a, final Point b, final Point start) {
-        Point pointVector = new Point(b.getX() - start.getX(), b.getY() - start.getY());
-        Point vectorA = new Point(a.getX() - start.getX(), a.getY() - start.getY());
-        return 1 / pointVector.getX() * vectorA.getY() - pointVector.getY() * vectorA.getX() < 0;
-    }
+
 
     private void drawPoint(Point p, int[][] imagePerpendicular) {
         if (MathHelper.pointInImage(p, data.getCols(), data.getRows())) {

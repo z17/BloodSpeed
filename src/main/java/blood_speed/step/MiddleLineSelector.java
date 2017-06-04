@@ -52,7 +52,6 @@ public class MiddleLineSelector extends Step<List<Point>> {
         this.outputPrefix = outputFolder + "/" + outputPrefix;
     }
 
-
     @Override
     public List<Point> process() {
         System.out.println("Middle line started");
@@ -83,7 +82,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
             System.err.println("It is slow variant of algorithm. If you want fast middle line selector, change 'middle_fast' option in config file");
             Point[][] vectors = createVectorsMap();
 
-            result = findPointsByVectors(start, vectors);
+            result = findPointsByPreparedVectors(start, vectors);
             drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
         }
 
@@ -130,11 +129,9 @@ public class MiddleLineSelector extends Step<List<Point>> {
                 middlePoint = b;
             }
 
-            LineSegment segment = new LineSegment(a, b);
             Set<Point> candidates = new HashSet<>();
-            candidates.add(middlePoint);
             candidates.add(points.get(i));
-            candidates.addAll(findCandidatesOnPerpendicular(segment, middlePoint));
+            candidates.addAll(findCandidatesOnPerpendicular(a, b, middlePoint));
 
             result.add(choiceBestPoint(candidates));
         }
@@ -261,7 +258,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
             }
 
             Point currentPoint = new Point(x, y);
-            final int[][] dissynchronizationFactor = findDissynchronizationFactor(currentPoint);
+            final int[][] dissynchronizationFactor = findDissynchronizationFactor(currentPoint, false);
             List<Point> dissynchronizationPoints = getDissynchronizationPoints(dissynchronizationFactor, currentPoint);
             final Point minDissynchronizationPoint = getMinDissynchronizationPoint(dissynchronizationFactor, dissynchronizationPoints, currentPoint, maxSpeed);
             line[x] = minDissynchronizationPoint;
@@ -292,7 +289,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
         BmpHelper.writeBmp(outputPrefix + yName + ".bmp", imageVectorsY);
     }
 
-    private List<Point> findPointsByVectors(final Point startPoint, final Point[][] vectors) {
+    private List<Point> findPointsByPreparedVectors(final Point startPoint, final Point[][] vectors) {
         final List<Point> result = new ArrayList<>();
         Point currentPoint = startPoint;
         while (true) {
@@ -305,10 +302,10 @@ public class MiddleLineSelector extends Step<List<Point>> {
                 break;
             }
 
-            final List<Point> candidates = findCandidatesOnPerpendicular(segment, vectorPoint);
+            final List<Point> candidates = findCandidatesOnPerpendicular(currentPoint, vectorDestination, vectorPoint);
             final Point nextPoint = choiceBestPoint(candidates);
 
-            if (result.contains(nextPoint)) {
+            if (result.contains(nextPoint) || nextPoint == null) {
                 break;
             }
 
@@ -327,7 +324,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
         int color = 0;
         int count = 0;
         while (true) {
-            final int[][] dissynchronizationFactor = findDissynchronizationFactor(currentPoint);
+            final int[][] dissynchronizationFactor = findDissynchronizationFactor(currentPoint, true);
             List<Point> dissynchronizationPoints = getDissynchronizationPoints(dissynchronizationFactor, currentPoint);
 
             dissynchronizationPoints = filterDissynchronizationPoints(dissynchronizationPoints, currentPoint, currentDirection);
@@ -454,21 +451,22 @@ public class MiddleLineSelector extends Step<List<Point>> {
         return minDissPoint;
     }
 
-    private int[][] findDissynchronizationFactor(final Point point) {
+    private int[][] findDissynchronizationFactor(final Point point, final boolean filterInContour) {
         // массив, где true означает что до этой точки региона можно дойти из исходной
         boolean checkRegion[][] = new boolean[2 * maxSpeed + 1][2 * maxSpeed + 1];
         List<Point> stack = new ArrayList<>();
+        Set<Point> pointsSet = new HashSet<>();
         stack.add(point);
         for (int i = 0; i < stack.size(); i++) {
             Point currentPoint = stack.get(i);
             for (Direction d : Direction.values()) {
                 Point candidate = d.nextPointFunction.apply(currentPoint);
-                if (candidate.getIntY() >= point.getIntY() - maxSpeed
-                        && candidate.getIntY() <= point.getIntY() + maxSpeed
-                        && candidate.getIntX() >= point.getIntX() - maxSpeed
-                        && candidate.getIntX() <= point.getIntX() + maxSpeed
-                        && !stack.contains(candidate)) {
+                if (MathHelper.distance(candidate, point) <= maxSpeed
+                        && !pointsSet.contains(candidate)
+                        && (!filterInContour || inContour(candidate))   // либо мы в контуре и фильтркем, либо не учитываем контур
+                        && inImage(candidate)) {
                     stack.add(candidate);
+                    pointsSet.add(candidate);
                     checkRegion[candidate.getIntY() - point.getIntY() + maxSpeed][candidate.getIntX() - point.getIntX() + maxSpeed] = true;
                 }
             }
@@ -626,11 +624,11 @@ public class MiddleLineSelector extends Step<List<Point>> {
     }
 
     /**
-     *
      * Возвращаем набор точек из circle, для которых угол межу P, центром окружности и точками не больше angleLimit
-     * @param circle набор точек на окружности
-     * @param point точка на окружности
-     * @param r радиус окружности
+     *
+     * @param circle     набор точек на окружности
+     * @param point      точка на окружности
+     * @param r          радиус окружности
      * @param angleLimit лимит градусов
      */
     private List<Point> getCandidates(final Collection<Point> circle, final Point point, final double r, double angleLimit) {
@@ -650,15 +648,54 @@ public class MiddleLineSelector extends Step<List<Point>> {
     }
 
 
-    private List<Point> findCandidatesOnPerpendicular(final Line line, final Point point) {
+    private List<Point> findCandidatesOnPerpendicular(final Point startLinePoint, final Point endLinePoint, final Point point) {
+        Line line = new Line(startLinePoint, endLinePoint);
         Line perpendicular = line.getPerpendicular(point);
         List<Point> candidates = new ArrayList<>();
+        candidates.add(point);
+
+        boolean inContourLeftLine = true;
+        boolean inContourRightLine = true;
+
         for (int k = 1; k < 5; k++) {
             List<Point> pointsCandidates = MathHelper.getInterSectionPointWithCircleAndLine(perpendicular, point, k);
             if (pointsCandidates == null || pointsCandidates.size() != 2) {
                 throw new RuntimeException("Unknown error");
             }
-            candidates.addAll(pointsCandidates);
+            Point a = pointsCandidates.get(0);
+            Point b = pointsCandidates.get(0);
+
+            // Жесть какая-то. Смотрим с какой стороны от прямой лежат полученные точки и проверяем, не выходили ли мы за контур
+            if (MathHelper.getVectorDirection(endLinePoint, a, point)) {
+                // (point, a) left of (point, endLinePoint)
+                if (!inContour(a)) {
+                    inContourLeftLine = false;
+                }
+                if (!inContour(b)) {
+                    inContourRightLine = false;
+                }
+
+                if (inContourLeftLine) {
+                    candidates.add(a);
+                }
+                if (inContourRightLine) {
+                    candidates.add(b);
+                }
+            } else {
+                if (!inContour(a)) {
+                    inContourRightLine = false;
+                }
+                if (!inContour(b)) {
+                    inContourLeftLine = false;
+                }
+
+                if (inContourLeftLine) {
+                    candidates.add(b);
+                }
+                if (inContourRightLine) {
+                    candidates.add(a);
+                }
+            }
         }
 
         return candidates;
@@ -724,6 +761,17 @@ public class MiddleLineSelector extends Step<List<Point>> {
         }
         return false;
     }
+
+    private boolean inImage(final Point point) {
+        if (point.getIntX() >= 0 && point.getIntY() >= 0) {
+            if (point.getIntY() < contour.length && point.getIntX() < contour[0].length) {
+                return true;
+            }
+        }
+        return false;
+
+    }
+
 
     private void drawTrack(Collection<Point> points, final String name) {
         System.out.println("Draw " + name);
