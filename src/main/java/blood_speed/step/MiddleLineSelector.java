@@ -186,8 +186,8 @@ public class MiddleLineSelector extends Step<List<Point>> {
         // добавляем промежуточную точку, выбирая её с радиусом 1/2 расстояния между текуей и слуд
         double halfDistance = MathHelper.distance(fistPoint, secondPoint) / 2;
         Set<Point> halfCirclePoints = getCirclePoints(fistPoint, halfDistance);
-        List<Point> halfCandidates = getCandidates(halfCirclePoints, MathHelper.middlePoint(fistPoint, secondPoint), halfDistance, 25);
-        return choiceBestPoint(halfCandidates);
+        List<Point> halfCandidates = getCandidates(halfCirclePoints, MathHelper.middlePoint(fistPoint, secondPoint), halfDistance, 10);
+        return choiceBestPoint(filterCandidatesByArea(halfCandidates, fistPoint));
     }
 
     /**
@@ -290,29 +290,45 @@ public class MiddleLineSelector extends Step<List<Point>> {
     }
 
     private List<Point> findPointsByPreparedVectors(final Point startPoint, final Point[][] vectors) {
-        final List<Point> result = new ArrayList<>();
+        final List<Point> points = new ArrayList<>();
+
         Point currentPoint = startPoint;
+        int count = 0;
         while (true) {
-            final Point vectorDestination = vectors[currentPoint.getIntY()][currentPoint.getIntX()];
-            final LineSegment segment = new LineSegment(currentPoint, vectorDestination);
-            final Point vectorPoint = MathHelper.getInterSectionPointWithCircleAndSegment(segment, currentPoint, 1);
 
-            if (vectorPoint == null) {
-                System.err.println("Unknown error");
+            final Point minDissynchronizationPoint = vectors[currentPoint.getIntY()][currentPoint.getIntX()];
+
+            // получаем точки окружности, с центром в текущей точек и радиусом = расстояние от текущей до минимума десинхронизации
+            double r = MathHelper.distance(minDissynchronizationPoint, currentPoint);
+
+            Set<Point> circle = getCirclePoints(currentPoint, r);
+
+            final List<Point> candidates = getCandidates(circle, minDissynchronizationPoint, r, angleLimit);
+            final List<Point> filtered = filterCandidatesByArea(candidates, currentPoint);
+            final Point nextPoint = choiceBestPoint(filtered);
+
+            count++;
+            points.add(currentPoint);
+
+            if (nextPoint == null) {
                 break;
             }
 
-            final List<Point> candidates = findCandidatesOnPerpendicular(currentPoint, vectorDestination, vectorPoint);
-            final Point nextPoint = choiceBestPoint(candidates);
-
-            if (result.contains(nextPoint) || nextPoint == null) {
+            if (count > 100) {
+                System.err.println("It found more than 100 points on first step. Is it error?");
                 break;
             }
 
-            result.add(nextPoint);
+            // добавляем промежуточную точку, выбирая её с радиусом 1/2 расстояния между текуей и след
+            Point nextHalfPoint = getBestMiddlePoint(currentPoint, nextPoint);
+            if (nextHalfPoint != null) {
+                points.add(nextHalfPoint);
+            }
+
             currentPoint = nextPoint;
         }
-        return result;
+
+        return points;
     }
 
     private List<Point> getCentralPoints(final Point startPoint) {
@@ -394,6 +410,9 @@ public class MiddleLineSelector extends Step<List<Point>> {
                 }).collect(Collectors.toList());
     }
 
+    /**
+     * Фильтрует точки только на входящие в область
+     */
     private List<Point> filterCandidates(final List<Point> candidates, final Collection<Point> dissynchronizationPoints) {
         return candidates.stream()
                 .filter(dissynchronizationPoints::contains)
@@ -451,7 +470,18 @@ public class MiddleLineSelector extends Step<List<Point>> {
         return minDissPoint;
     }
 
-    private int[][] findDissynchronizationFactor(final Point point, final boolean filterInContour) {
+    private List<Point> filterCandidatesByArea(final List<Point> candidates, final Point center) {
+        boolean[][] regionAvailability = createRegionAvailabilityMap(center, true);
+        return candidates.stream()
+                .filter(p -> regionAvailability[p.getIntY() - center.getIntY() + maxSpeed][p.getIntX() - center.getIntX() + maxSpeed])
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Возвращает матрицу boolean, в которой true означает что до этой точки можно дойти из Point. сама точке Point считается что лежит в центре этой матрицы
+     * При filterInContour = true, показывает можно ли пройти по капилляру. Если false, то назначение метода не очень понятно.
+     */
+    private boolean[][] createRegionAvailabilityMap(final Point point, final boolean filterInContour) {
         // массив, где true означает что до этой точки региона можно дойти из исходной
         boolean checkRegion[][] = new boolean[2 * maxSpeed + 1][2 * maxSpeed + 1];
         List<Point> stack = new ArrayList<>();
@@ -471,6 +501,12 @@ public class MiddleLineSelector extends Step<List<Point>> {
                 }
             }
         }
+        return checkRegion;
+    }
+
+    private int[][] findDissynchronizationFactor(final Point point, final boolean filterInContour) {
+        // массив, где true означает что до этой точки региона можно дойти из исходной
+        boolean checkRegion[][] = createRegionAvailabilityMap(point, filterInContour);
 
         int[][] dissynchronizationFactor = new int[2 * maxSpeed + 1][2 * maxSpeed + 1];
         for (int i = point.getIntY() - maxSpeed; i <= point.getIntY() + maxSpeed; i++) {
@@ -639,10 +675,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
             if (angle > angleLimit || Double.isNaN(angle)) {
                 continue;
             }
-//                Direction tempDirection = Direction.getByPoints(currentPoint, c);
-//                if (!Arrays.asList(currentDirection.getOppositeDirection()).contains(tempDirection)) {
             candidates.add(c);
-//                }
         }
         return candidates;
     }
@@ -708,7 +741,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
     /**
      * Выбирает лучшую точку ЦЛК из кандидатов на основе максимума суммированного изображения
      */
-    private Point choiceBestPointByMinValue(Collection<Point> candidates) {
+    private Point choiceBestPointByMinValue(final Collection<Point> candidates) {
         Point nextPoint = null;
 
         int minSum = Integer.MAX_VALUE;
@@ -772,8 +805,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
 
     }
 
-
-    private void drawTrack(Collection<Point> points, final String name) {
+    private void drawTrack(final Collection<Point> points, final String name) {
         System.out.println("Draw " + name);
         FunctionHelper.drawPointsOnImage(points, outputPrefix + name, sumImage);
     }
