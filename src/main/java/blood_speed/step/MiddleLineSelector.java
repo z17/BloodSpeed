@@ -76,14 +76,46 @@ public class MiddleLineSelector extends Step<List<Point>> {
             result = getCentralPoints(start);
             drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
 
+            FunctionHelper.writePointsList(outputPrefix + outputPointsName, result);
+            System.exit(1);
+
             result = refinePoints(result);
             drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
+
+
         } else {
+
             System.err.println("It is slow variant of algorithm. If you want fast middle line selector, change 'middle_fast' option in config file");
             Point[][] vectors = createVectorsMap();
 
+//            double[][] xV = MatrixHelper.readDoubleMatrix(outputPrefix + "x-blur.txt");
+//            double[][] yV = MatrixHelper.readDoubleMatrix(outputPrefix + "y-blur.txt");
+//            final Point[][] vectors = new Point[data.getRows()][data.getCols()];
+//
+//            for (int y = 0; y < data.getRows(); y++) {
+//                for (int x = 0; x < data.getCols(); x++) {
+//                    vectors[y][x] = new Point(xV[y][x], yV[y][x]);
+//                }
+//            }
+
+//            int[][] visualise = MatrixHelper.copyMatrix(sumImage);
+//            List<Point> middleLine = FunctionHelper.readPointsList("C:\\Java\\projects\\BloodSpeed\\data\\tests\\caps_errors\\CAP5_\\my\\middle-line\\middle-full-points.txt");
+//            int color = 0;
+//            for (Point p : middleLine) {
+//                drawLine(p, vectors[p.getIntY()][p.getIntX()], visualise, color);
+//                color += 80;
+//                if (color > 255) {
+//                    color = 0;
+//                }
+//            }
+//
+//            BmpHelper.writeBmp(outputPrefix + "vectors.bmp", visualise);
+//            System.exit(1);
+
+
             result = findPointsByPreparedVectors(start, vectors);
             drawTrack(result, String.format(MIDDLE_POINTS_IMAGE_FILENAME, ++numberOfFile));
+            System.exit(1);
         }
 
         result = refinePointsByLength(result, 3);
@@ -290,13 +322,20 @@ public class MiddleLineSelector extends Step<List<Point>> {
     }
 
     private List<Point> findPointsByPreparedVectors(final Point startPoint, final Point[][] vectors) {
+        int[][] visualise = MatrixHelper.copyMatrix(sumImage);
         final List<Point> points = new ArrayList<>();
 
         Point currentPoint = startPoint;
+        int color = 0;
         int count = 0;
         while (true) {
 
             final Point minDissynchronizationPoint = vectors[currentPoint.getIntY()][currentPoint.getIntX()];
+            drawLine(currentPoint, minDissynchronizationPoint, visualise, color);
+            color += 80;
+            if (color > 255) {
+                color = 0;
+            }
 
             // получаем точки окружности, с центром в текущей точек и радиусом = расстояние от текущей до минимума десинхронизации
             double r = MathHelper.distance(minDissynchronizationPoint, currentPoint);
@@ -327,7 +366,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
 
             currentPoint = nextPoint;
         }
-
+        BmpHelper.writeBmp(outputPrefix + "vectors.bmp", visualise);
         return points;
     }
 
@@ -385,7 +424,7 @@ public class MiddleLineSelector extends Step<List<Point>> {
             Point nextHalfPoint = getBestMiddlePoint(currentPoint, nextPoint);
 
             if (nextHalfPoint != null) {
-                points.add(nextHalfPoint);
+//                points.add(nextHalfPoint);
             }
 
             currentPoint = nextPoint;

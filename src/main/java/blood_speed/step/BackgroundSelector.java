@@ -18,6 +18,7 @@ public class BackgroundSelector extends Step<Images> {
     private final static String SUM_IMAGE_NAME = "sum-image.bmp";
     private final static String SUM_IMAGE_BLUR_NAME = "sum-image-blur.bmp";
     private final static String SUM_FILE_NAME = "sum.txt";
+    private final static String SUM_FILE_NAME_CLEAR = "sum-clear.txt";
     private static final String CONTOUR_IMAGE_NAME = "contour-image.bmp";
 
     public BackgroundSelector(final Images images, final String outputFolder, final int blurDepth) {
@@ -86,7 +87,7 @@ public class BackgroundSelector extends Step<Images> {
             }
         }
 
-        MatrixHelper.writeMatrix(outputFolder + SUM_FILE_NAME, sumMatrix);
+        MatrixHelper.writeMatrix(outputFolder + SUM_FILE_NAME_CLEAR, sumMatrix);
 
         int[][] sumImage = BmpHelper.transformToImage(sumMatrix);
 
@@ -110,9 +111,10 @@ public class BackgroundSelector extends Step<Images> {
             }
         }
 
-        int middleSumImage = (int) (sum / (images.getRows() * images.getCols() * 1.1));
         BmpHelper.writeBmp(outputFolder + SUM_IMAGE_NAME, sumImage);
+        MatrixHelper.writeMatrix(outputFolder + SUM_FILE_NAME, sumImage);
 
+        int middleSumImage = (int) (sum / (images.getRows() * images.getCols() * 1.1));
         // формируем контур капилляра
         int[][] contourImage = new int[images.getRows()][images.getCols()];
         for (int i = 0; i < images.getRows(); i++) {
