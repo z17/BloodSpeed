@@ -1,11 +1,17 @@
 apply plugin: 'java'
 
+
 repositories {
     jcenter()
 }
 
+jar {
+    manifest {
+        attributes 'Main-Class': 'blood_speed.Main'
+    }
+}
+
 dependencies {
-// https://mvnrepository.com/artifact/com.jhlabs/filters
     compile group: 'com.jhlabs', name: 'filters', version: '2.0.235'
 
 

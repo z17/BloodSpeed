@@ -1,11 +1,9 @@
 *.class
-*.jar
 *.war
 *.ear
 
-.idea/
-bin/
-data/
-gradle/
-out/
-build/
+/.idea/
+/bin/
+/data/
+/out/
+/build/

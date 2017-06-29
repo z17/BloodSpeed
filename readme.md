@@ -2,11 +2,9 @@
 
 Из корня проекта выполнить следующие команды:
 
-    javac -d bin -cp src/main/java -encoding UTF8 src/main/java/blood_speed/Main.java
-    cd bin
-    jar cfe speed.jar blood_speed.Main *
+    gradlew jar
     
-Появится файл `speed.jar`
+Появится файл `build/libs/BloodSpeed.jar`
 
 Исходный код тут https://github.com/z17/BloodSpeed
 
