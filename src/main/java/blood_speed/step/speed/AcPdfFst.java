@@ -135,26 +135,25 @@ public class AcPdfFst extends Step<SpeedImages> {
                             final Point point0 = new Point(x + r2, middleHeight - r1);
                             final Point point1 = new Point(x + currentSpeed + r2, middleHeight - r1);
 
-                            if (point0.getX() < 0 || point0.getX() > imageWidth - 1 - MathHelper.EPSILON || point1.getX() < 0 || point1.getX() > imageWidth- 1 - MathHelper.EPSILON) {
+                            if (!MathHelper.pointInImage(point0, FunctionHelper.cols(firstImage), FunctionHelper.rows(firstImage))) {
+                                continue;
+                            }
+                            if (!MathHelper.pointInImage(point1, FunctionHelper.cols(firstImage), FunctionHelper.rows(firstImage))) {
                                 continue;
                             }
 
-                            if (point0.getY() < 0 || point0.getY() > circuitImage.length - 1- MathHelper.EPSILON || point1.getY() < 0 || point1.getY() > circuitImage.length - 1- MathHelper.EPSILON) {
-                                continue;
-                            }
-
-                                // если попадаем в контур
-                                if (circuitImage[point0.getIntY()][point0.getIntX()] > 0 &&
-                                        circuitImage[point1.getIntY()][point1.getIntX()] > 0) {
-                                    // Desync
-                                    double point_sh = MathHelper.getPointValue(point0, secondImage) - MathHelper.getPointValue(point1, firstImage);
-                                    // Correlation
+                            // если попадаем в контур
+                            if (circuitImage[point0.getIntY()][point0.getIntX()] > 0 &&
+                                    circuitImage[point1.getIntY()][point1.getIntX()] > 0) {
+                                // Desync
+                                double point_sh = MathHelper.getPointValue(point0, secondImage) - MathHelper.getPointValue(point1, firstImage);
+                                // Correlation
 //                                    double point_sh = MathHelper.getPointValue(point0, secondImage) * MathHelper.getPointValue(point1, firstImage);
 
-                                    double g2 = g11[r1 + r][r2 + r];
-                                    sumRate = sumRate + g2 * point_sh * point_sh;
-                                    z1 = z1 + g2;
-                                }
+                                double g2 = g11[r1 + r][r2 + r];
+                                sumRate = sumRate + g2 * point_sh * point_sh;
+                                z1 = z1 + g2;
+                            }
                         }
                     }
                     pd[currentFrame][x] = (int) Math.round(sumRate / z1);

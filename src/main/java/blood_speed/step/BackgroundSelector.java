@@ -133,7 +133,7 @@ public class BackgroundSelector extends Step<Images> {
     public static Images loadInputData(final String inputFolder, final int start, final int count) {
         final Images result = new Images();
         for (int i = start; i < start + count; i++) {
-            int[][] bmp = BmpHelper.readBmp(inputFolder + "img1_00000_" + String.format("%05d", i) + ".bmp");
+            int[][] bmp = BmpHelper.readBmp(inputFolder + "img0_00000_" + String.format("%05d", i) + ".bmp");
             result.add(bmp);
         }
         return result;
